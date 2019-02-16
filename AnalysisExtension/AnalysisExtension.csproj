@@ -57,8 +57,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AnalysisMode\FtoC.cs" />
     <Compile Include="ChooseFileWindow.cs" />
     <Compile Include="ChooseFileWindowCommand.cs" />
+    <Compile Include="AnalysisMode\Analysis.cs" />
     <Compile Include="StaticValue.cs" />
     <Compile Include="ToolListCommand.cs" />
     <Compile Include="View\ChooseFileWindowControl.xaml.cs">

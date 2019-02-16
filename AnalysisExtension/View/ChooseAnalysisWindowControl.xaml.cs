@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AnalysisExtension.AnalysisMode;
+using AnalysisExtension.Model;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
@@ -9,19 +11,31 @@ namespace AnalysisExtension
     public partial class ChooseAnalysisWindowControl : UserControl
     {
         private List<FileTreeNode> chooseFile;
+        private List<Analysis> analysisListElement;
+        private List<bool> isCorrespond;
+        private List<string> type = new List<string>();
 
+        
         //----------------set------------------------
         public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
         {
-            InitializeComponent();
             this.chooseFile = chooseFile;
+            Refresh();
+        }
+
+        private void Refresh()
+        {
+            InitializeComponent();
+
+            analysisListElement = new List<Analysis>();
+            isCorrespond = new List<bool>();
+
             SetTextInfo();
+            SetAnalysisList();
         }
 
         private void SetTextInfo()
         {
-            List<string> type = new List<string>();
-
             foreach (FileTreeNode node in chooseFile)
             {
                 if (node.Type != null && !type.Contains(node.Type))
@@ -42,6 +56,41 @@ namespace AnalysisExtension
 
                 choose_analysis_info_tb.Text += info;
             }
+        }
+
+        private void SetAnalysisList()
+        {
+            //TODO : get real list
+
+            for (int i = 0; i < 10; i++)
+            {
+                string s = "FtoC" + i;
+                FtoC element = new FtoC(s);
+
+                //check type
+                bool isFind = false;
+                foreach (string t in type)
+                {
+                    if (element.Type.Contains(t))
+                    {
+                        isFind = true;
+                        break;
+                    }
+                }
+
+                if (isFind)
+                {
+                    isCorrespond.Add(true);
+                    analysisListElement.Add(element);
+                }
+                else
+                {
+                    isCorrespond.Add(false);
+                }
+            }
+            
+            analysisList.ItemsSource = analysisListElement;
+           
         }
 
         //-----------Listener---------------------------------------
