@@ -25,7 +25,20 @@ namespace AsyncToolWindowSample.ToolWindows
             //TODO : get file list in project
             for (int i = 0; i < 30; i++)
             {
-                nodeList.Add(new FileTreeNode("name" + i, "path" + i));
+                string name = "name";
+                if (i % 3 == 0)
+                {
+                    name = name + i + ".cs";
+                }
+                else if (i % 3 == 1)
+                {
+                    name = name + i + ".c";
+                }
+                else
+                {
+                    name = name + i + ".f";
+                }
+                nodeList.Add(new FileTreeNode(name, "path" + i));
             }
 
             this.fileList.ItemsSource = nodeList;
@@ -36,17 +49,14 @@ namespace AsyncToolWindowSample.ToolWindows
             Window window = new Window
             {
                 Title = "Choose Analysis Window",
-                Content = new ChooseAnalysisWindowControl(chooseNodeList)
+                Content = new ChooseAnalysisWindowControl(chooseNodeList),
+                Width = 800,
+                Height = 450
             };
 
             window.ShowDialog();
         }
         
-        private void CloseWindow()
-        {
-            Refresh();
-            Window.GetWindow(this).Close();
-        }
         //-----------------listener-----------------------------
 
         private void OnClickBtNextListener(object sender, EventArgs args)
@@ -67,16 +77,13 @@ namespace AsyncToolWindowSample.ToolWindows
             }
             else
             {
-                CloseWindow();
+                Refresh();
+                StaticValue.CloseWindow(this);
                 ShowNextWindow();
                 
             }
         }
 
-        private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
-        {
-            CloseWindow();
-        }
 
         private void OnFileChooseListener(object sender, RoutedEventArgs e)
         {
@@ -92,14 +99,16 @@ namespace AsyncToolWindowSample.ToolWindows
             node.IsChoose = false;
         }
 
-
-        private void UIElement_OnPreviewMouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
         {
-            ScrollViewer scv = (ScrollViewer)sender;
-            scv.ScrollToVerticalOffset(scv.VerticalOffset - e.Delta);
-            e.Handled = true;
+            Refresh();
+            StaticValue.BtCancelListener(sender, e,this);
         }
 
+        private void OnPreviewMouseWheelListener(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            StaticValue.OnPreviewMouseWheelListener(sender, e);
+        }
     }
 }
 

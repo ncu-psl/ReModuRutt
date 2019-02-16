@@ -22,7 +22,7 @@
 
     <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
         <TextBlock VerticalAlignment="Top" Padding="4,4,4,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"  Height="39" >Select the file</TextBlock>
-        <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="UIElement_OnPreviewMouseWheel">
+        <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
             <ListBox x:Name="fileList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource pathDataTemplate}"/>
         </ScrollViewer>
         <Button Click="OnClickBtNextListener" Width="76" Name="next_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>

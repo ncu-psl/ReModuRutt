@@ -4,8 +4,26 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"> 
-    <Grid>
-        <Button Content="Click Here !" Height="50" HorizontalAlignment="Left" Margin="100,100,0,0" Name="Button1" VerticalAlignment="Top" Width="100" Click="Button1_Click" />
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <UserControl.Resources>
+        <DataTemplate x:Key="analysisTemplate">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                <CheckBox Content="{Binding Name}"
+                          x:Name="analysis_check_box"
+                          Checked="OnAnalysisChooseListener"
+                          Unchecked="OnAnalysisDisChooseListener"/>
+            </StackPanel>
+        </DataTemplate>
+    </UserControl.Resources>
+
+
+    <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+        <TextBlock x:Name="choose_analysis_info_tb" VerticalAlignment="Top" Padding="4,4,4,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"  Height="39" >Select the analysis method that want to do.</TextBlock>
+        <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
+            <ListBox x:Name="analysisList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource analysisTemplate}"/>
+        </ScrollViewer>
+        <Button Width="76" Name="next_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>
+        <Button Click="OnClickBtCancelListener" Width="76" x:Name="cancel_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Cancel" Margin="0,0,76,0"/>
     </Grid>
 </UserControl>
