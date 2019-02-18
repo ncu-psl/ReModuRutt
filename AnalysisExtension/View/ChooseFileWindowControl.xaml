@@ -25,7 +25,7 @@
         <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
             <ListBox x:Name="fileList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource pathDataTemplate}"/>
         </ScrollViewer>
-        <Button Click="OnClickBtNextListener" Width="76" Name="next_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>
-        <Button Click="OnClickBtCancelListener" Width="76" x:Name="cancel_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Cancel" Margin="0,0,76,0"/>
+        <Button Click="OnClickBtNextListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>
+        <Button Click="OnClickBtCancelListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Cancel" Margin="0,0,76,0"/>
     </Grid>
 </UserControl>

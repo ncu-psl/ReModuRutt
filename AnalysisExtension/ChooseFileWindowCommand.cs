@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using Task = System.Threading.Tasks.Task;
 
@@ -9,7 +10,7 @@ namespace AnalysisExtension
 
     internal sealed class ChooseFileWindowCommand
     {
-
+        public static ChooseFileWindowCommand command = null;
         public const int CommandId = 0x0100;
 
         public static readonly Guid CommandSet = new Guid("00606536-0755-446c-80a6-a9fb9217df5d");
@@ -24,6 +25,11 @@ namespace AnalysisExtension
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
+
+            if (command == null)
+            {
+                command = this;
+            }
         }
 
         public static ChooseFileWindowCommand Instance
@@ -51,9 +57,14 @@ namespace AnalysisExtension
 
         private void Execute(object sender, EventArgs e)
         {
+            ExecuteStartWin();
+        }
+
+        public void ExecuteStartWin()
+        {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            ToolWindowPane window = this.package.FindToolWindow(typeof(ChooseFileWindow), 0, true);
+            ToolWindowPane window = package.FindToolWindow(typeof(ChooseFileWindow), 0, true);
             if ((null == window) || (null == window.Frame))
             {
                 throw new NotSupportedException("Cannot create tool window");
@@ -62,5 +73,6 @@ namespace AnalysisExtension
             IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
             Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
         }
+
     }
 }

@@ -23,7 +23,10 @@
         <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
             <ListBox x:Name="analysisList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource analysisTemplate}"/>
         </ScrollViewer>
-        <Button Width="76" Name="next_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>
-        <Button Click="OnClickBtCancelListener" Width="76" x:Name="cancel_bt_1" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Cancel" Margin="0,0,76,0"/>
+        <Button Content="Next" Click="OnClickBtNextListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+        <Button Content="Previous" Click="OnClickBtPreviousListener" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="76" Margin="0,0,76,0"/>
+        <Button Content="Cancel" Click="OnClickBtCancelListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom"  Margin="0,0,152,0"/>
+        
+
     </Grid>
 </UserControl>

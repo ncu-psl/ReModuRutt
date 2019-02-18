@@ -15,7 +15,7 @@ namespace AnalysisExtension
         private List<bool> isCorrespond;
         private List<string> type = new List<string>();
 
-        
+
         //----------------set------------------------
         public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
         {
@@ -112,6 +112,17 @@ namespace AnalysisExtension
         private void OnPreviewMouseWheelListener(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
             StaticValue.OnPreviewMouseWheelListener(sender, e);
+        }
+
+        private void OnClickBtPreviousListener(object sender, RoutedEventArgs e)
+        {
+            StaticValue.CloseWindow(this);
+            ChooseFileWindowCommand.command.ExecuteStartWin();
+        }
+
+        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
