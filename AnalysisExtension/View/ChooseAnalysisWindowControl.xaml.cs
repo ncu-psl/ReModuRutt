@@ -12,7 +12,6 @@ namespace AnalysisExtension
     {
         private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
-        private List<bool> isCorrespond;
         private List<string> type = new List<string>();
 
 
@@ -28,7 +27,6 @@ namespace AnalysisExtension
             InitializeComponent();
 
             analysisListElement = new List<Analysis>();
-            isCorrespond = new List<bool>();
 
             SetTextInfo();
             SetAnalysisList();
@@ -80,15 +78,12 @@ namespace AnalysisExtension
 
                 if (isFind)
                 {
-                    isCorrespond.Add(true);
+                    //add
                     analysisListElement.Add(element);
-                }
-                else
-                {
-                    isCorrespond.Add(false);
                 }
             }
             
+            //set
             analysisList.ItemsSource = analysisListElement;
            
         }
@@ -96,12 +91,16 @@ namespace AnalysisExtension
         //-----------Listener---------------------------------------
         private void OnAnalysisChooseListener(object sender, RoutedEventArgs args)
         {
-
+            CheckBox checkBox = sender as CheckBox;
+            Analysis analysis = checkBox.DataContext as Analysis;
+            analysis.IsChoose = true;
         }
 
         private void OnAnalysisDisChooseListener(object sender, RoutedEventArgs args)
         {
-
+            CheckBox checkBox = sender as CheckBox;
+            Analysis analysis = checkBox.DataContext as Analysis;
+            analysis.IsChoose = false;
         }
 
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
