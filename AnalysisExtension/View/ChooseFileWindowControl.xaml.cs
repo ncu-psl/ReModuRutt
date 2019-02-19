@@ -1,8 +1,13 @@
 ﻿using AnalysisExtension;
+using EnvDTE;
+using EnvDTE80;
+using Microsoft.VisualStudio.Shell;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace AsyncToolWindowSample.ToolWindows
 {
@@ -11,6 +16,8 @@ namespace AsyncToolWindowSample.ToolWindows
         private List<FileTreeNode> nodeList = null;
         private List<FileTreeNode> chooseNodeList = null;
 
+        private DTE2 dte;
+
         public ChooseFileWindowControl()
         {
             Refresh();
@@ -18,35 +25,37 @@ namespace AsyncToolWindowSample.ToolWindows
 
         private void Refresh()
         {
+            dte = (DTE2)Package.GetGlobalService(typeof(DTE));
             InitializeComponent();
 
             nodeList = new List<FileTreeNode>();
 
-            //TODO : get file list in project
-            for (int i = 0; i < 30; i++)
-            {
-                string name = "name";
-                if (i % 3 == 0)
-                {
-                    name = name + i + ".cs";
-                }
-                else if (i % 3 == 1)
-                {
-                    name = name + i + ".c";
-                }
-                else
-                {
-                    name = name + i + ".f";
-                }
-                nodeList.Add(new FileTreeNode(name, "path" + i));
-            }
+            //get file list in project
+            ThreadHelper.ThrowIfNotOnUIThread();
+           
+            ProjectItems projs = dte.Solution.Item(1).ProjectItems;
+            AddProjectItem(projs);
 
             this.fileList.ItemsSource = nodeList;
         }
 
+        private void AddProjectItem(ProjectItems projs)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            foreach (ProjectItem item in projs)
+            {
+                ProjectItem itemNow = item;
+                nodeList.Add(new FileTreeNode(item.Name, item.FileNames[0]));
+                if (itemNow.ProjectItems != null)
+                {
+                    AddProjectItem(itemNow.ProjectItems);
+                }
+            }
+        }
+
         private void ShowNextWindow()
         {
-            Window window = new Window
+            System.Windows.Window window = new System.Windows.Window
             {
                 Title = "Choose Analysis Window",
                 Content = new ChooseAnalysisWindowControl(chooseNodeList),
@@ -106,8 +115,8 @@ namespace AsyncToolWindowSample.ToolWindows
         }
 
         private void OnPreviewMouseWheelListener(object sender, System.Windows.Input.MouseWheelEventArgs e)
-        {
-            StaticValue.OnPreviewMouseWheelListener(sender, e);
+        {            
+            StaticValue.OnPreviewMouseWheelListener(sender, e);                    
         }
     }
 }

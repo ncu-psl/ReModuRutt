@@ -11,7 +11,7 @@ namespace AnalysisExtension
         //public static ResourceManager RESOURCE_MANAGER = new ResourceManager("AnalysisExtension.String",Assembly.GetExecutingAssembly());
 
 
-        public static void BtCancelListener(object sender, RoutedEventArgs e,UserControl control)
+        public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {
             CloseWindow(control);
         }

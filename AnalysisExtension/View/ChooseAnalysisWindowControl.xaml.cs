@@ -1,8 +1,7 @@
 ﻿using AnalysisExtension.AnalysisMode;
 using AnalysisExtension.Model;
-using System;
+using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -13,7 +12,6 @@ namespace AnalysisExtension
         private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
         private List<string> type = new List<string>();
-
 
         //----------------set------------------------
         public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
@@ -89,6 +87,12 @@ namespace AnalysisExtension
         }
 
         //-----------Listener---------------------------------------
+
+        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
+        {
+
+        }
+
         private void OnAnalysisChooseListener(object sender, RoutedEventArgs args)
         {
             CheckBox checkBox = sender as CheckBox;
@@ -119,9 +123,5 @@ namespace AnalysisExtension
             ChooseFileWindowCommand.command.ExecuteStartWin();
         }
 
-        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }
