@@ -58,6 +58,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AnalysisMode\FtoC.cs" />
+    <Compile Include="View\CheckInfoWindowControl.xaml.cs">
+      <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ChooseFileWindow.cs" />
     <Compile Include="ChooseFileWindowCommand.cs" />
     <Compile Include="AnalysisMode\Analysis.cs" />
@@ -191,6 +194,10 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="View\CheckInfoWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\ChooseFileWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

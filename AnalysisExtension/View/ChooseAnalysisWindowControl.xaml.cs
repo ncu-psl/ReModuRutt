@@ -12,6 +12,8 @@ namespace AnalysisExtension
         private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
         private List<string> type = new List<string>();
+        private Analysis chooseAnalysis = null;
+        private bool hasChoose = false;
 
         //----------------set------------------------
         public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
@@ -90,25 +92,43 @@ namespace AnalysisExtension
 
         private void OnClickBtNextListener(object sender, RoutedEventArgs e)
         {
+            StaticValue.CloseWindow(this);
+            System.Windows.Window window = new System.Windows.Window
+            {
+                Title = "Choose Analysis Window",
+                Content = new CheckInfoWindowControl(type,chooseAnalysis,this),
+                Width = 350,
+                Height = 200
+            };
 
+            window.ShowDialog();
         }
 
         private void OnAnalysisChooseListener(object sender, RoutedEventArgs args)
         {
-            CheckBox checkBox = sender as CheckBox;
-            Analysis analysis = checkBox.DataContext as Analysis;
-            analysis.IsChoose = true;
+            if (!hasChoose)
+            {
+                CheckBox checkBox = sender as CheckBox;
+                Analysis analysis = checkBox.DataContext as Analysis;
+                analysis.IsChoose = true;
+                hasChoose = true;
+                chooseAnalysis = analysis;
+            }            
         }
 
         private void OnAnalysisDisChooseListener(object sender, RoutedEventArgs args)
         {
-            CheckBox checkBox = sender as CheckBox;
-            Analysis analysis = checkBox.DataContext as Analysis;
-            analysis.IsChoose = false;
+            if (hasChoose)
+            {
+                CheckBox checkBox = sender as CheckBox;
+                Analysis analysis = checkBox.DataContext as Analysis;
+                analysis.IsChoose = false;
+            }            
         }
 
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
         {
+            Refresh();
             StaticValue.BtCancelListener(sender, e,this);
         }
 
@@ -119,9 +139,12 @@ namespace AnalysisExtension
 
         private void OnClickBtPreviousListener(object sender, RoutedEventArgs e)
         {
+            Refresh();
             StaticValue.CloseWindow(this);
             ChooseFileWindowCommand.command.ExecuteStartWin();
         }
-
     }
 }
+
+
+//TODO : single choose
