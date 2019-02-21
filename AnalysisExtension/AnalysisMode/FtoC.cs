@@ -1,6 +1,4 @@
 ﻿using AnalysisExtension.Model;
-using System;
-using System.Collections.Generic;
 
 namespace AnalysisExtension.AnalysisMode
 {
@@ -12,11 +10,9 @@ namespace AnalysisExtension.AnalysisMode
         }
 
         //override
-        public new bool AnalysisMethod()
+        public new void AnalysisMethod()
         {
-            bool result = false;
 
-            return result;
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AnalysisExtension.Model
 {
@@ -24,11 +23,11 @@ namespace AnalysisExtension.Model
             Type.Add(type);
         }
 
-        public bool AnalysisMethod()
+        public void AnalysisMethod()
         {
-            bool result = false;
+          /*  bool result = false;
 
-            return result;
+            return result;*/
         }
     }
 }

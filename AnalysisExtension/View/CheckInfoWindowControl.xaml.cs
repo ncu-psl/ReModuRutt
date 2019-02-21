@@ -1,4 +1,5 @@
 ﻿using AnalysisExtension.Model;
+using LoadingControl.Control;
 using System.Collections.Generic;
 using System.Windows.Controls;
 
@@ -9,7 +10,6 @@ namespace AnalysisExtension
         private List<string> fileType = null;
         private Analysis analysisMode = null;
         private UserControl previousControl;
-
 
         public CheckInfoWindowControl(List<string> fileType,Analysis analysisMode,UserControl previousControl)
         {
@@ -34,7 +34,18 @@ namespace AnalysisExtension
 
         private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
         {
+            Refresh();
+            StaticValue.CloseWindow(this);
+            LoadingAnimation loading = new LoadingAnimation(analysisMode);
+            System.Windows.Window window = new System.Windows.Window
+            {
+                Title = "wait",
+                Content = loading,
+                Width = 350,
+                Height = 200
+            };
 
+            window.ShowDialog();
         }
 
         private void OnClickBtPreviousListener(object sender, System.Windows.RoutedEventArgs e)
@@ -56,5 +67,6 @@ namespace AnalysisExtension
             Refresh();
             StaticValue.CloseWindow(this);
         }
+
     }
 }
