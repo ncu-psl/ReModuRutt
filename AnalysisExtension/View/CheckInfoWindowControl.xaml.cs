@@ -1,4 +1,5 @@
 ﻿using AnalysisExtension.Model;
+using AnalysisExtension.View;
 using LoadingControl.Control;
 using System.Collections.Generic;
 using System.Windows.Controls;
@@ -36,14 +37,43 @@ namespace AnalysisExtension
         {
             Refresh();
             StaticValue.CloseWindow(this);
-            LoadingAnimation loading = new LoadingAnimation(analysisMode);
+             LoadingAnimation loading = new LoadingAnimation(analysisMode);
+             System.Windows.Window window = new System.Windows.Window
+             {
+                 Title = "wait",
+                 Content = loading,
+                 Width = 350,
+                 Height = 200
+             };
+
+        
+         //TODO : get transferred reslt
+         /* List<Code> codeList = new List<Code>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                Code code = new Code();
+                code.CodeBefore = "code before" + "\n" + i + "code Before";
+                code.CodeAfter = "code after" + "\n" + i + "code After";
+                if (code.CodeBefore.Equals(code.CodeAfter))
+                {
+                    code.IsDiff = false;
+                }
+                else
+                {
+                    code.IsDiff = true;
+                }
+                codeList.Add(code);
+            }
+
+            TransformWindowControl codeWindow = new TransformWindowControl(codeList);
             System.Windows.Window window = new System.Windows.Window
             {
                 Title = "wait",
-                Content = loading,
-                Width = 350,
-                Height = 200
-            };
+                Content = codeWindow,
+                Width = 800,
+                Height = 450
+            };*/
 
             window.ShowDialog();
         }

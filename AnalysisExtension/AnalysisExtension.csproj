@@ -60,6 +60,7 @@
     <Compile Include="AnalysisMode\FtoC.cs" />
     <Compile Include="LoadingControl\Block.xaml.cs" />
     <Compile Include="LoadingControl\LoadingAnimation.xaml.cs" />
+    <Compile Include="Model\Code.cs" />
     <Compile Include="View\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
@@ -77,6 +78,9 @@
     <Compile Include="ProvideToolboxControlAttribute.cs" />
     <Compile Include="View\ChooseAnalysisWindowControl.xaml.cs">
       <DependentUpon>ChooseAnalysisWindowControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\TransformWindowControl.xaml.cs">
+      <DependentUpon>TransformWindowControl.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -213,6 +217,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\ChooseAnalysisWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\TransformWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
