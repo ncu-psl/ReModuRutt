@@ -19,13 +19,17 @@ namespace AnalysisExtension.View
 
     public partial class TransformWindowControl : UserControl
     {
-        private List<CodeBlock> code = null;
+        private List<CodeBlock> beforeList = null;
+        private List<CodeBlock> afterList = null;
 
-        public TransformWindowControl(List<CodeBlock> code)
+        public TransformWindowControl(List<CodeBlock> codeBefore, List<CodeBlock> codeAfter)
         {
             InitializeComponent();
-            this.code = code;
-            codeList.ItemsSource = code;
+            beforeList = codeBefore;
+            afterList = codeAfter;
+
+            codeListBefore.ItemsSource = beforeList;
+            codeListAfter.ItemsSource = afterList;
         }
 
         private void OnPreviewMouseWheelListener(object sender, MouseWheelEventArgs e)

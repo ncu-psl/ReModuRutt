@@ -8,9 +8,7 @@ namespace AnalysisExtension.Model
 {
     public class CodeBlock
     {
-        public string CodeBefore { get; set; }
-        public string CodeAfter { get; set; }
-        public bool IsDiff { get; set; }
+        public string Content { get; set; }
         public int BlockId { get; set; }
     }
 }

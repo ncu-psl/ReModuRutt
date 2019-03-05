@@ -7,16 +7,30 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <DataTemplate x:Key="transferTemplate">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
-                <TextBlock x:Name="before_tb" Text="{Binding CodeBefore}" Width="200"/>
-                <Button VerticalAlignment="Center" Content=">>" Width="50"/>
-                <TextBlock x:Name="after_tb" Text="{Binding CodeAfter}" Width="200"/>
-            </StackPanel>
+        <DataTemplate x:Key="beforeTransferTemplate">
+                <TextBlock x:Name="before_tb" Text="{Binding Content}" />
+        </DataTemplate>
+        <DataTemplate x:Key="afterTransferTemplate">
+            <TextBlock x:Name="after_tb" Text="{Binding Content}"/>
         </DataTemplate>
     </UserControl.Resources>
+  
+    <TabControl >
+        <TabItem Header="TabItem">
+            <DockPanel>
+                <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Left" Width="380" >
+                <ListView x:Name="codeListBefore" ItemTemplate="{StaticResource beforeTransferTemplate}"  ScrollViewer.CanContentScroll="True" />
+                </ScrollViewer>
+                <TextBlock Width="5"/>
+                <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Right">
+                    <ListView x:Name="codeListAfter" ItemTemplate="{StaticResource afterTransferTemplate}"  ScrollViewer.CanContentScroll="True" />
+                </ScrollViewer>
+            </DockPanel>            
+        </TabItem>
+        <TabItem Header="TabItem">
+            <Grid Background="#FFE5E5E5"/>
+        </TabItem>
+        
+    </TabControl>
 
-    <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener">
-        <ListView x:Name="codeList" ItemTemplate="{StaticResource transferTemplate}"  ScrollViewer.CanContentScroll="True" />
-    </ScrollViewer>
 </UserControl>

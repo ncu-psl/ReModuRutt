@@ -48,28 +48,24 @@ namespace AnalysisExtension
 
             window.ShowDialog();
             //TODO : get transferred reslt
-            List<CodeBlock> codeList = new List<CodeBlock>();
+            List<CodeBlock> beforeList = new List<CodeBlock>();
+            List<CodeBlock> afterList = new List<CodeBlock>();
 
             for (int i = 0; i < 10; i++)
             {
-                CodeBlock code = new CodeBlock();
-                code.CodeBefore = "code before" + "\n" + i + "code Before";
-                code.CodeAfter = "code after" + "\n" + i + "code After";
-                if (code.CodeBefore.Equals(code.CodeAfter))
-                {
-                    code.IsDiff = false;
-                }
-                else
-                {
-                    code.IsDiff = true;
-                }
-                codeList.Add(code);
+                CodeBlock before = new CodeBlock();
+                CodeBlock after = new CodeBlock();
+                before.Content = "code before" + "\n" + "code Before" + i;
+                after.Content = "code after" + "\n" + "code After" + i;
+
+                beforeList.Add(before);
+                afterList.Add(after);
             }
 
-            TransformWindowControl codeWindow = new TransformWindowControl(codeList);
-            /*System.Windows.Window */window = new System.Windows.Window
+            TransformWindowControl codeWindow = new TransformWindowControl(beforeList,afterList);
+            window = new System.Windows.Window
             {
-                Title = "wait",
+                Title = "result",
                 Content = codeWindow,
                 Width = 800,
                 Height = 450
