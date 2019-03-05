@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 
 namespace AnalysisExtension.Model
 {
-    public class Code
+    public class CodeBlock
     {
         public string CodeBefore { get; set; }
         public string CodeAfter { get; set; }
         public bool IsDiff { get; set; }
+        public int BlockId { get; set; }
     }
 }

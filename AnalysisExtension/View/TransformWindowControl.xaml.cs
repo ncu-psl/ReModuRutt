@@ -19,9 +19,9 @@ namespace AnalysisExtension.View
 
     public partial class TransformWindowControl : UserControl
     {
-        private List<Code> code = null;
+        private List<CodeBlock> code = null;
 
-        public TransformWindowControl(List<Code> code)
+        public TransformWindowControl(List<CodeBlock> code)
         {
             InitializeComponent();
             this.code = code;

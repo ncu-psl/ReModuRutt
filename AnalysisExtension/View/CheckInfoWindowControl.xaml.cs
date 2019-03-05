@@ -46,13 +46,13 @@ namespace AnalysisExtension
                  Height = 200
              };
 
-        
-         //TODO : get transferred reslt
-         /* List<Code> codeList = new List<Code>();
+            window.ShowDialog();
+            //TODO : get transferred reslt
+            List<CodeBlock> codeList = new List<CodeBlock>();
 
             for (int i = 0; i < 10; i++)
             {
-                Code code = new Code();
+                CodeBlock code = new CodeBlock();
                 code.CodeBefore = "code before" + "\n" + i + "code Before";
                 code.CodeAfter = "code after" + "\n" + i + "code After";
                 if (code.CodeBefore.Equals(code.CodeAfter))
@@ -67,13 +67,13 @@ namespace AnalysisExtension
             }
 
             TransformWindowControl codeWindow = new TransformWindowControl(codeList);
-            System.Windows.Window window = new System.Windows.Window
+            /*System.Windows.Window */window = new System.Windows.Window
             {
                 Title = "wait",
                 Content = codeWindow,
                 Width = 800,
                 Height = 450
-            };*/
+            };
 
             window.ShowDialog();
         }

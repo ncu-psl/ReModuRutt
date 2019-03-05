@@ -60,7 +60,7 @@
     <Compile Include="AnalysisMode\FtoC.cs" />
     <Compile Include="LoadingControl\Block.xaml.cs" />
     <Compile Include="LoadingControl\LoadingAnimation.xaml.cs" />
-    <Compile Include="Model\Code.cs" />
+    <Compile Include="Model\CodeBlock.cs" />
     <Compile Include="View\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
