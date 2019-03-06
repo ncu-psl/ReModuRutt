@@ -36,5 +36,18 @@ namespace AnalysisExtension.View
         {
             StaticValue.OnPreviewMouseWheelListener(sender,e);
         }
+
+        private void CodeListBefore_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ListBox listView = sender as ListBox;
+            int index = listView.SelectedIndex;
+            int id = (listView.Items[index] as CodeBlock).BlockId;
+            SolidColorBrush orgColor = listView.Background as SolidColorBrush;
+            //   MessageBox.Show(( + "");
+            /*SolidColorBrush chooseColor = new SolidColorBrush(Colors.Red);
+            item.Background = chooseColor;*/
+            
+            
+        }
     }
 }
