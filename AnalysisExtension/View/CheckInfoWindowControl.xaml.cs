@@ -56,7 +56,9 @@ namespace AnalysisExtension
                 CodeBlock before = new CodeBlock();
                 CodeBlock after = new CodeBlock();
                 before.Content = "code before" + "\n" + "code Before" + i;
+                before.BlockId = i;
                 after.Content = "code after" + "\n" + "code After" + i;
+                after.BlockId = i;
 
                 beforeList.Add(before);
                 afterList.Add(after);
