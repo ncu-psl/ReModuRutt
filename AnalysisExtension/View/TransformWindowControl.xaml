@@ -6,16 +6,8 @@
              xmlns:local="clr-namespace:AnalysisExtension.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <UserControl.Resources>
-        <DataTemplate x:Key="beforeTransferTemplate">
-            <TextBlock x:Name="before_tb" Text="{Binding Content}" />
-        </DataTemplate>
-        <DataTemplate x:Key="afterTransferTemplate">
-            <TextBlock x:Name="after_tb" Text="{Binding Content}"/>
-        </DataTemplate>
-    </UserControl.Resources>
-
-    <TabControl >
+    
+    <TabControl>
         <TabItem Header="TabItem">
             <DockPanel>
                 <GroupBox DockPanel.Dock="Bottom">
@@ -25,18 +17,18 @@
                         <Button Content="save all" Margin="2,0,0,0"/>
                     </StackPanel>
                 </GroupBox>
-                <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Left" Width="380" >
-                    <ListView x:Name="codeListBefore" ItemTemplate="{StaticResource beforeTransferTemplate}"  ScrollViewer.CanContentScroll="True" SelectionChanged="CodeListBefore_SelectionChanged" />
+                <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Left" Width="380">
+                    <ListView x:Name="codeListBefore" ScrollViewer.CanContentScroll="True" SelectionChanged="CodeListBefore_SelectionChanged"/>
                 </ScrollViewer>
                 <TextBlock Width="5"/>
                 <Grid >
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" >
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
                         <Button Content="change all files" Margin="2,0,0,0"/>
                         <Button Content="change all in this file" Margin="2,0,0,0"/>
                         <Button Content="change choose" Margin="2,0,0,0"/>
                     </StackPanel>
-                     <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Right" Margin="0,20,0,0">                    
-                        <ListView x:Name="codeListAfter" ItemTemplate="{StaticResource afterTransferTemplate}"  ScrollViewer.CanContentScroll="True" />                        
+                     <ScrollViewer PreviewMouseWheel="OnPreviewMouseWheelListener" DockPanel.Dock="Right" Margin="0,20,0,0" >                    
+                        <ListView x:Name="codeListAfter" ScrollViewer.CanContentScroll="True"/>                        
                     </ScrollViewer>
                     
                 </Grid>

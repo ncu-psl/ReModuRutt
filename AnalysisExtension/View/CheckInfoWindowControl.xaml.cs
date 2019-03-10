@@ -3,6 +3,7 @@ using AnalysisExtension.View;
 using LoadingControl.Control;
 using System.Collections.Generic;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace AnalysisExtension
 {
@@ -37,14 +38,14 @@ namespace AnalysisExtension
         {
             Refresh();
             StaticValue.CloseWindow(this);
-             LoadingAnimation loading = new LoadingAnimation(analysisMode);
-             System.Windows.Window window = new System.Windows.Window
-             {
-                 Title = "wait",
-                 Content = loading,
-                 Width = 350,
-                 Height = 200
-             };
+            LoadingAnimation loading = new LoadingAnimation(analysisMode);
+            System.Windows.Window window = new System.Windows.Window
+            {
+                Title = "wait",
+                Content = loading,
+                Width = 350,
+                Height = 200
+            };
 
             window.ShowDialog();
             //TODO : get transferred reslt
@@ -55,10 +56,13 @@ namespace AnalysisExtension
             {
                 CodeBlock before = new CodeBlock();
                 CodeBlock after = new CodeBlock();
+
                 before.Content = "code before" + "\n" + "code Before" + i;
                 before.BlockId = i;
+                before.BackgroundColor = Colors.White;
                 after.Content = "code after" + "\n" + "code After" + i;
                 after.BlockId = i;
+                after.BackgroundColor = Colors.White;
 
                 beforeList.Add(before);
                 afterList.Add(after);
