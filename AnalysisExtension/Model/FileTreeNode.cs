@@ -27,6 +27,3 @@ namespace AnalysisExtension
         }
     }
 }
-
-//https://docs.microsoft.com/zh-tw/dotnet/framework/wpf/data/data-templating-overview
-//https://blog.csdn.net/yl2isoft/article/details/38712449

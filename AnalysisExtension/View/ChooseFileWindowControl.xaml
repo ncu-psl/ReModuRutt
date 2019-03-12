@@ -9,12 +9,10 @@
 
     <UserControl.Resources>
         <DataTemplate x:Key="pathDataTemplate">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                 <CheckBox Content="{Binding Name}"
                           x:Name="file_check_box"
                           Checked="OnFileChooseListener"
                           Unchecked="OnFileDisChooseListener"/>
-            </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
 
@@ -22,13 +20,12 @@
 
     <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
         <TextBlock VerticalAlignment="Top" Padding="4,4,4,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"  Height="39" >Select the file</TextBlock>
-        <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
+        <!--ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
             <ListBox x:Name="fileList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource pathDataTemplate}"/>
-        </ScrollViewer>
-        <!--TreeView Name="GroupView" Margin="0,39,0,19" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <ListBox x:Name="fileList" ItemTemplate="{StaticResource pathDataTemplate}" />
-
         </-->
+        <TreeView Margin="0,39,0,19" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+            <TreeViewItem x:Name="fileTreeView" ItemTemplate="{StaticResource pathDataTemplate}"/>
+        </TreeView>
         <Button Click="OnClickBtNextListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>
         <Button Click="OnClickBtCancelListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Cancel" Margin="0,0,76,0"/>
     </Grid>

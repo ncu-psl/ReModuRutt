@@ -7,17 +7,18 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 
 namespace AsyncToolWindowSample.ToolWindows
 {
     public partial class ChooseFileWindowControl : UserControl
     {
-        private List<FileTreeNode> nodeList = null;
-        private List<FileTreeNode> chooseNodeList = null;
-
         private DTE2 dte;
 
+        private List<FileTreeNode> nodeList = null;
+        private List<FileTreeNode> chooseNodeList = null;
+        
         public ChooseFileWindowControl()
         {
             Refresh();
@@ -34,23 +35,76 @@ namespace AsyncToolWindowSample.ToolWindows
             ThreadHelper.ThrowIfNotOnUIThread();
            
             ProjectItems projs = dte.Solution.Item(1).ProjectItems;
-            AddProjectItem(projs);
 
-            this.fileList.ItemsSource = nodeList;
+            AddProjectItem(projs);
         }
 
         private void AddProjectItem(ProjectItems projs)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
+            
+            //set header
+            if (!fileTreeView.HasHeader)
+            {
+                fileTreeView.Header = GetNameFromPath(dte.Solution.FileName);
+            }
+
+            //add list
             foreach (ProjectItem item in projs)
             {
                 ProjectItem itemNow = item;
-                nodeList.Add(new FileTreeNode(item.Name, item.FileNames[0]));
+
+                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);
+
+                //if have subitem
                 if (itemNow.ProjectItems != null)
                 {
-                    AddProjectItem(itemNow.ProjectItems);
+                    fileTreeView.Items.Add(AddProjectSubItem(itemNow.ProjectItems, node));
+                }
+                else
+                {
+                    //add into list
+                    fileTreeView.Items.Add(node);
+                } 
+            }
+        }
+
+        private TreeViewItem AddProjectSubItem(ProjectItems projs,FileTreeNode topNode)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
+            TreeViewItem treeViewItem = new TreeViewItem();
+
+            if (!treeViewItem.HasHeader)
+            {
+                treeViewItem.Header = topNode.Name;
+            }
+
+            foreach (ProjectItem item in projs)
+            {
+                ProjectItem itemNow = item;
+                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);                
+                
+                if (itemNow.ProjectItems != null)
+                {
+                    treeViewItem.Items.Add(AddProjectSubItem(itemNow.ProjectItems,node));
+                }
+                else
+                {
+                    treeViewItem.Items.Add(node);
                 }
             }
+            return treeViewItem;
+        }
+
+        private string GetNameFromPath(string path)
+        {
+            string name = null;
+            string[] split = path.Split('\\');
+
+            name = split[split.Length - 1];
+
+            return name;
         }
 
         private void ShowNextWindow()
