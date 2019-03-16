@@ -10,7 +10,6 @@
     <UserControl.Resources>
         <DataTemplate x:Key="pathDataTemplate">
                 <CheckBox Content="{Binding Name}"
-                          x:Name="file_check_box"
                           Checked="OnFileChooseListener"
                           Unchecked="OnFileDisChooseListener"/>
         </DataTemplate>
@@ -23,7 +22,7 @@
         <!--ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
             <ListBox x:Name="fileList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource pathDataTemplate}"/>
         </-->
-        <TreeView Margin="0,39,0,19" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+        <TreeView Margin="0,39,0,19" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto">
             <TreeViewItem x:Name="fileTreeView" ItemTemplate="{StaticResource pathDataTemplate}"/>
         </TreeView>
         <Button Click="OnClickBtNextListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="Next"/>

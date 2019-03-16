@@ -16,11 +16,11 @@ namespace AsyncToolWindowSample.ToolWindows
     {
         private DTE2 dte;
 
-        private List<FileTreeNode> nodeList = null;
         private List<FileTreeNode> chooseNodeList = null;
         
         public ChooseFileWindowControl()
         {
+            chooseNodeList = new List<FileTreeNode>();
             Refresh();
         }
 
@@ -28,8 +28,6 @@ namespace AsyncToolWindowSample.ToolWindows
         {
             dte = (DTE2)Package.GetGlobalService(typeof(DTE));
             InitializeComponent();
-
-            nodeList = new List<FileTreeNode>();
 
             //get file list in project
             ThreadHelper.ThrowIfNotOnUIThread();
@@ -42,7 +40,12 @@ namespace AsyncToolWindowSample.ToolWindows
         private void AddProjectItem(ProjectItems projs)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            
+
+            while(fileTreeView.HasItems)
+            {
+                fileTreeView.Items.RemoveAt(0);
+            }
+
             //set header
             if (!fileTreeView.HasHeader)
             {
@@ -53,11 +56,10 @@ namespace AsyncToolWindowSample.ToolWindows
             foreach (ProjectItem item in projs)
             {
                 ProjectItem itemNow = item;
-
                 FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);
 
-                //if have subitem
-                if (itemNow.ProjectItems != null)
+                //if have subitem and is file
+                if (itemNow.ProjectItems != null && !IsFile(node.Name))
                 {
                     fileTreeView.Items.Add(AddProjectSubItem(itemNow.ProjectItems, node));
                 }
@@ -74,6 +76,7 @@ namespace AsyncToolWindowSample.ToolWindows
             ThreadHelper.ThrowIfNotOnUIThread();
 
             TreeViewItem treeViewItem = new TreeViewItem();
+            treeViewItem.ItemTemplate = fileTreeView.ItemTemplate;
 
             if (!treeViewItem.HasHeader)
             {
@@ -83,9 +86,9 @@ namespace AsyncToolWindowSample.ToolWindows
             foreach (ProjectItem item in projs)
             {
                 ProjectItem itemNow = item;
-                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);                
-                
-                if (itemNow.ProjectItems != null)
+                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);
+
+                if (itemNow.ProjectItems != null && !IsFile(node.Name))
                 {
                     treeViewItem.Items.Add(AddProjectSubItem(itemNow.ProjectItems,node));
                 }
@@ -97,6 +100,7 @@ namespace AsyncToolWindowSample.ToolWindows
             return treeViewItem;
         }
 
+        //-----------------tool--------------------------------
         private string GetNameFromPath(string path)
         {
             string name = null;
@@ -105,6 +109,23 @@ namespace AsyncToolWindowSample.ToolWindows
             name = split[split.Length - 1];
 
             return name;
+        }
+
+        private bool IsFile(string fileName)
+        {
+            bool result = false;
+            string[] split = fileName.Split('.');
+
+            if (split.Length < 2)
+            {
+                result = false;
+            }
+            else
+            {
+                result = true;
+            }
+
+            return result;
         }
 
         private void ShowNextWindow()
@@ -124,16 +145,6 @@ namespace AsyncToolWindowSample.ToolWindows
 
         private void OnClickBtNextListener(object sender, EventArgs args)
         {
-            chooseNodeList = new List<FileTreeNode>();
-
-            foreach (FileTreeNode node in nodeList)
-            {
-                if (node.IsChoose)
-                {
-                    chooseNodeList.Add(node);
-                }
-            }
-
             if (chooseNodeList.Count == 0)
             {
                 MessageBox.Show("not choose file yet.");
@@ -142,24 +153,28 @@ namespace AsyncToolWindowSample.ToolWindows
             {
                 Refresh();
                 StaticValue.CloseWindow(this);
-                ShowNextWindow();
-                
+                ShowNextWindow();                
             }
         }
-
 
         private void OnFileChooseListener(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = sender as CheckBox;
             FileTreeNode node = checkBox.DataContext as FileTreeNode;
-            node.IsChoose = true;
+            if (!chooseNodeList.Contains(node))
+            {
+                chooseNodeList.Add(node);
+            }
         }
 
         private void OnFileDisChooseListener(object sender, RoutedEventArgs e)
         {
             CheckBox checkBox = sender as CheckBox;
             FileTreeNode node = checkBox.DataContext as FileTreeNode;
-            node.IsChoose = false;
+            if (chooseNodeList.Contains(node))
+            {
+                chooseNodeList.Remove(node);
+            }
         }
 
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
@@ -174,6 +189,3 @@ namespace AsyncToolWindowSample.ToolWindows
         }
     }
 }
-
-
-//TODO : tree structure
