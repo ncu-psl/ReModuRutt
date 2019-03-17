@@ -138,5 +138,10 @@ namespace AnalysisExtension.View
             StaticValue.OnPreviewMouseWheelListener(sender, e);
         }
 
+        private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
+        {
+            Refresh();
+            StaticValue.CloseWindow(this);
+        }
     }
 }
