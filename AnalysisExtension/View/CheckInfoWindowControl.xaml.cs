@@ -61,7 +61,7 @@ namespace AnalysisExtension
                 before.BlockId = i;
                 before.BackgroundColor = Colors.White;
                 after.Content = "code after" + "\n" + "code After" + i;
-                after.BlockId = i;
+                after.BlockId = i%5;
                 after.BackgroundColor = Colors.White;
 
                 beforeList.Add(before);
