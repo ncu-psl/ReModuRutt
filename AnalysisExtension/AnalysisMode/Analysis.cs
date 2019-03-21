@@ -23,11 +23,8 @@ namespace AnalysisExtension.Model
             Type.Add(type);
         }
 
-        public void AnalysisMethod()
+        public virtual void AnalysisMethod()
         {
-          /*  bool result = false;
-
-            return result;*/
         }
     }
 }

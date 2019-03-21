@@ -19,7 +19,6 @@ namespace LoadingControl.Control
 
             analysisMode = analysis;
             LoadAsync();
-          //  CloseWindow();
         }
 
         public void CloseWindow()
@@ -29,8 +28,7 @@ namespace LoadingControl.Control
 
         private async void LoadAsync()
         {
-            await Task.Delay(5000);//Task.Run(() => analysisMode.AnalysisMethod());
-
+           await Task.Run(() => analysisMode.AnalysisMethod());
             CloseWindow();
         }
     }

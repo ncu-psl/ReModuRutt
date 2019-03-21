@@ -10,9 +10,9 @@ namespace AnalysisExtension.AnalysisMode
         }
 
         //override
-        public new void AnalysisMethod()
+        public override void AnalysisMethod()
         {
-
+            System.Threading.Thread.Sleep(2000);
         }
     }
 }
