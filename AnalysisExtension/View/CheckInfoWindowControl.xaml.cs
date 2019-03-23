@@ -34,10 +34,9 @@ namespace AnalysisExtension
             
         }
 
-        private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
+        //------------tool-------------
+        private void ShowNextWindow()
         {
-            Refresh();
-            StaticValue.CloseWindow(this);
             LoadingAnimation loading = new LoadingAnimation(analysisMode);
             System.Windows.Window window = new System.Windows.Window
             {
@@ -48,6 +47,10 @@ namespace AnalysisExtension
             };
 
             window.ShowDialog();
+        }
+
+        private void GetTransferredResult()
+        {
             //TODO : get transferred reslt
             List<CodeBlock> beforeList = new List<CodeBlock>();
             List<CodeBlock> afterList = new List<CodeBlock>();
@@ -61,15 +64,15 @@ namespace AnalysisExtension
                 before.BlockId = i;
                 before.BackgroundColor = Colors.White;
                 after.Content = "code after" + "\n" + "code After" + i;
-                after.BlockId = i%5;
+                after.BlockId = i % 5;
                 after.BackgroundColor = Colors.White;
 
                 beforeList.Add(before);
                 afterList.Add(after);
             }
 
-            TransformWindowControl codeWindow = new TransformWindowControl(beforeList,afterList);
-            window = new System.Windows.Window
+            TransformWindowControl codeWindow = new TransformWindowControl(beforeList, afterList);
+            System.Windows.Window window = new System.Windows.Window
             {
                 Title = "result",
                 Content = codeWindow,
@@ -78,6 +81,15 @@ namespace AnalysisExtension
             };
 
             window.ShowDialog();
+        }
+        //----------Listener---------------
+        private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Refresh();
+            StaticValue.CloseWindow(this);
+            ShowNextWindow();
+
+            GetTransferredResult();
         }
 
         private void OnClickBtPreviousListener(object sender, System.Windows.RoutedEventArgs e)

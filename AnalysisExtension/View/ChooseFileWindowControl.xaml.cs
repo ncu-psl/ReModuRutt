@@ -138,7 +138,7 @@ namespace AsyncToolWindowSample.ToolWindows
                 Height = 450
             };
 
-            window.ShowDialog();
+            window.ShowDialog(); 
         }
         
         //-----------------listener-----------------------------
@@ -153,7 +153,8 @@ namespace AsyncToolWindowSample.ToolWindows
             {
                 Refresh();
                 StaticValue.CloseWindow(this);
-                ShowNextWindow();                
+                ShowNextWindow();
+                chooseNodeList = new List<FileTreeNode>();
             }
         }
 

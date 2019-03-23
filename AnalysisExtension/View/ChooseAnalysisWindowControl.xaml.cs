@@ -11,14 +11,17 @@ namespace AnalysisExtension
     {
         private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
-        private List<string> type = new List<string>();
-        private Analysis chooseAnalysis = null;
+        private List<string> type;
+        private Analysis chooseAnalysis;
         private bool hasChoose = false;
 
         //----------------set------------------------
         public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
         {
             this.chooseFile = chooseFile;
+            chooseAnalysis = null;
+            type = new List<string>();
+
             Refresh();
         }
 
@@ -30,10 +33,12 @@ namespace AnalysisExtension
 
             SetTextInfo();
             SetAnalysisList();
+            hasChoose = false;
         }
 
         private void SetTextInfo()
         {
+            choose_analysis_info_tb.Text = "Select the analysis method that want to do.";
             foreach (FileTreeNode node in chooseFile)
             {
                 if (node.Type != null && !type.Contains(node.Type))
@@ -45,7 +50,6 @@ namespace AnalysisExtension
             if (type.Count > 0)
             {
                 string info = "\nType of Choose File :";
-
 
                 for(int i = 0;i < type.Count;i++)
                 {
@@ -85,23 +89,39 @@ namespace AnalysisExtension
             
             //set
             analysisList.ItemsSource = analysisListElement;
+            analysisList.UnselectAll();
            
         }
 
-        //-----------Listener---------------------------------------
-
-        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
+        private void ShowNextWindow()
         {
-            StaticValue.CloseWindow(this);
-            System.Windows.Window window = new System.Windows.Window
+            var nextPage = new CheckInfoWindowControl(type, chooseAnalysis, this);
+
+            Window window = new Window
             {
                 Title = "Choose Analysis Window",
-                Content = new CheckInfoWindowControl(type,chooseAnalysis,this),
+                Content = nextPage,
                 Width = 350,
                 Height = 200
             };
 
             window.ShowDialog();
+        }
+        //-----------Listener---------------------------------------
+
+        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
+        {
+            if (chooseAnalysis == null)
+            {
+                MessageBox.Show("not choose analysis mode yet.");
+            }
+            else
+            {
+                Refresh();
+                StaticValue.CloseWindow(this);
+                ShowNextWindow();          
+            }
+            
         }
 
         private void OnAnalysisChooseListener(object sender, RoutedEventArgs args)
