@@ -101,17 +101,18 @@ namespace AnalysisExtension.View
             if (index != -1)
             {
                 CodeBlock chooseBlock = ((listView.Items[index] as ListViewItem).Content as TextBlock).DataContext as CodeBlock;
-
+                Color changeColor = Colors.Blue;
+                Color orgColor = Colors.White;
                 foreach (CodeBlock codeBlock in beforeList)
                 {
                     if (codeBlock.BlockId == chooseBlock.BlockId)
                     {
-                        chooseBlock.BackgroundColor = Colors.AliceBlue;
-                        codeBlock.BackgroundColor = Colors.AliceBlue;
+                        chooseBlock.BackgroundColor = changeColor;
+                        codeBlock.BackgroundColor = changeColor;
                     }
                     else
                     {
-                        codeBlock.BackgroundColor = Colors.White;
+                        codeBlock.BackgroundColor = orgColor;
                     }
                 }
 
@@ -119,12 +120,12 @@ namespace AnalysisExtension.View
                 {
                     if (codeBlock.BlockId == chooseBlock.BlockId)
                     {
-                        chooseBlock.BackgroundColor = Colors.AliceBlue;
-                        codeBlock.BackgroundColor = Colors.AliceBlue;
+                        chooseBlock.BackgroundColor = changeColor;
+                        codeBlock.BackgroundColor = changeColor;
                     }
                     else
                     {
-                        codeBlock.BackgroundColor = Colors.White;
+                        codeBlock.BackgroundColor = orgColor;
                     }
                 }
 
