@@ -1,10 +1,8 @@
-﻿using System;
-using System.ComponentModel.Design;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using AsyncToolWindowSample.ToolWindows;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using System;
+using System.ComponentModel.Design;
+using System.Windows;
 using Task = System.Threading.Tasks.Task;
 
 namespace AnalysisExtension
@@ -14,6 +12,8 @@ namespace AnalysisExtension
     /// </summary>
     internal sealed class ToolListCommand
     {
+        public static ToolListCommand command = null;
+
         /// <summary>
         /// Command ID.
         /// </summary>
@@ -43,6 +43,11 @@ namespace AnalysisExtension
             var menuCommandID = new CommandID(CommandSet, CommandId);
             var menuItem = new MenuCommand(this.Execute, menuCommandID);
             commandService.AddCommand(menuItem);
+
+            if (command == null)
+            {
+                command = this;
+            }
         }
 
         /// <summary>
@@ -86,18 +91,24 @@ namespace AnalysisExtension
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
+
         private void Execute(object sender, EventArgs e)
+        {
+            ExecuteStartWin();
+        }
+
+        public void ExecuteStartWin()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            ToolWindowPane window = this.package.FindToolWindow(typeof(ChooseFileWindow), 0, true);
-            if ((null == window) || (null == window.Frame))
+            StaticValue.WINDOW = new Window
             {
-                throw new NotSupportedException("Cannot create tool window");
-            }
+                Width = StaticValue.WINDOW_WIDTH,
+                Height = StaticValue.WINDOW_HEIGHT
+            };
 
-            IVsWindowFrame windowFrame = (IVsWindowFrame)window.Frame;
-            Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(windowFrame.Show());
+            StaticValue.WINDOW.Content = new ChooseFileWindowControl();
+            StaticValue.WINDOW.ShowDialog();
         }
     }
 }

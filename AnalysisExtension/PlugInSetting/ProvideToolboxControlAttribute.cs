@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿/*using Microsoft.VisualStudio.Shell;
 using System;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -16,6 +16,9 @@ namespace AnalysisExtension
     /// </remarks>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
     [ComVisible(false)]
+    [ProvideToolWindow(typeof(ChooseFileWindow),
+    Style = Microsoft.VisualStudio.Shell.VsDockStyle.Tabbed,
+    Window = "3ae79031-e1bc-11d0-8f78-00a0c9110057")]
     public sealed class ProvideToolboxControlAttribute : RegistrationAttribute
     {
         private const string ToolboxControlsInstallerPath = "ToolboxControlsInstaller";
@@ -81,3 +84,4 @@ namespace AnalysisExtension
         }
     }
 }
+*/

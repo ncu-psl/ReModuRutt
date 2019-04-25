@@ -9,6 +9,8 @@ namespace AnalysisExtension
 {
     public partial class ChooseAnalysisWindowControl : UserControl
     {
+        private UserControl previousControl = null;
+
         private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
         private List<string> type;
@@ -16,8 +18,9 @@ namespace AnalysisExtension
         private bool hasChoose = false;
 
         //----------------set------------------------
-        public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile)
+        public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile, UserControl previousControl)
         {
+            this.previousControl = previousControl;
             this.chooseFile = chooseFile;
             chooseAnalysis = null;
             type = new List<string>();
@@ -95,17 +98,7 @@ namespace AnalysisExtension
 
         private void ShowNextWindow()
         {
-            var nextPage = new CheckInfoWindowControl(type, chooseAnalysis, this);
-
-            Window window = new Window
-            {
-                Title = "Choose Analysis Window",
-                Content = nextPage,
-                Width = 350,
-                Height = 200
-            };
-
-            window.ShowDialog();
+            StaticValue.WINDOW.Content = new CheckInfoWindowControl(type, chooseAnalysis, this);
         }
         //-----------Listener---------------------------------------
 
@@ -118,7 +111,6 @@ namespace AnalysisExtension
             else
             {
                 Refresh();
-                StaticValue.CloseWindow(this);
                 ShowNextWindow();          
             }
             
@@ -160,8 +152,7 @@ namespace AnalysisExtension
         private void OnClickBtPreviousListener(object sender, RoutedEventArgs e)
         {
             Refresh();
-            StaticValue.CloseWindow(this);
-            ChooseFileWindowCommand.command.ExecuteStartWin();
+            StaticValue.WINDOW.Content = this.previousControl;
         }
     }
 }

@@ -130,15 +130,7 @@ namespace AsyncToolWindowSample.ToolWindows
 
         private void ShowNextWindow()
         {
-            System.Windows.Window window = new System.Windows.Window
-            {
-                Title = "Choose Analysis Window",
-                Content = new ChooseAnalysisWindowControl(chooseNodeList),
-                Width = 800,
-                Height = 450
-            };
-
-            window.ShowDialog(); 
+            StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(chooseNodeList,this);
         }
         
         //-----------------listener-----------------------------
@@ -152,7 +144,7 @@ namespace AsyncToolWindowSample.ToolWindows
             else
             {
                 Refresh();
-                StaticValue.CloseWindow(this);
+               // StaticValue.CloseWindow(this);
                 ShowNextWindow();
                 chooseNodeList = new List<FileTreeNode>();
             }

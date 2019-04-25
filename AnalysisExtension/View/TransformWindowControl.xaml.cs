@@ -20,13 +20,15 @@ namespace AnalysisExtension.View
 
     public partial class TransformWindowControl : UserControl
     {
+        private UserControl previousControl;
         private List<CodeBlock> beforeList = null;
         private List<CodeBlock> afterList = null;
         private double beforeListWidth = 0;
         private double afterListWidth = 0;
 
-        public TransformWindowControl(List<CodeBlock> codeBefore, List<CodeBlock> codeAfter)
+        public TransformWindowControl(List<CodeBlock> codeBefore, List<CodeBlock> codeAfter, UserControl previousControl)
         {
+            this.previousControl = previousControl;
             beforeList = codeBefore;
             afterList = codeAfter;
 

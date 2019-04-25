@@ -13,7 +13,7 @@ namespace AnalysisExtension
         private Analysis analysisMode = null;
         private UserControl previousControl;
 
-        public CheckInfoWindowControl(List<string> fileType,Analysis analysisMode,UserControl previousControl)
+        public CheckInfoWindowControl(List<string> fileType,Analysis analysisMode, UserControl previousControl)
         {
             this.previousControl = previousControl;
             this.fileType = fileType;
@@ -25,7 +25,9 @@ namespace AnalysisExtension
         {
             InitializeComponent();
 
-            check_info_analysis_tb.Text += analysisMode.Name;
+            check_info_analysis_tb.Text = "Analysis mode : " + analysisMode.Name;
+
+            check_info_language_tb.Text = "Language : ";
 
             foreach (string type in fileType)
             {
@@ -35,9 +37,10 @@ namespace AnalysisExtension
         }
 
         //------------tool-------------
-        private void ShowNextWindow()
+        private void ShowWaitAnimationWindow()
         {
             LoadingAnimation loading = new LoadingAnimation(analysisMode);
+
             System.Windows.Window window = new System.Windows.Window
             {
                 Title = "wait",
@@ -47,6 +50,11 @@ namespace AnalysisExtension
             };
 
             window.ShowDialog();
+        }
+
+        private void ShowNextWindow(List<CodeBlock> beforeList, List<CodeBlock> afterList)
+        {
+            StaticValue.WINDOW.Content = new TransformWindowControl(beforeList, afterList,this);
         }
 
         private void GetTransferredResult()
@@ -71,23 +79,13 @@ namespace AnalysisExtension
                 afterList.Add(after);
             }
 
-            TransformWindowControl codeWindow = new TransformWindowControl(beforeList, afterList);
-            System.Windows.Window window = new System.Windows.Window
-            {
-                Title = "result",
-                Content = codeWindow,
-                Width = 800,
-                Height = 450
-            };
-
-            window.ShowDialog();
+            ShowNextWindow(beforeList, afterList);
         }
         //----------Listener---------------
         private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
         {
             Refresh();
-            StaticValue.CloseWindow(this);
-            ShowNextWindow();
+            ShowWaitAnimationWindow();
 
             GetTransferredResult();
         }
@@ -95,15 +93,7 @@ namespace AnalysisExtension
         private void OnClickBtPreviousListener(object sender, System.Windows.RoutedEventArgs e)
         {
             Refresh();
-            StaticValue.CloseWindow(this);
-            System.Windows.Window window = new System.Windows.Window
-            {
-                Title = "Choose Analysis Window",
-                Content = previousControl,
-                Width = 800,
-                Height = 450
-            };
-            window.ShowDialog();
+            StaticValue.WINDOW.Content = this.previousControl;
         }
 
         private void OnClickBtCancelListener(object sender, System.Windows.RoutedEventArgs e)
