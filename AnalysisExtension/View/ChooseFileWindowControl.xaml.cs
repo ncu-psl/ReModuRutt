@@ -1,133 +1,81 @@
 ﻿using AnalysisExtension;
-using EnvDTE;
-using EnvDTE80;
-using Microsoft.VisualStudio.Shell;
+using AnalysisExtension.PlugInMode;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Markup;
-using System.Windows.Media;
 
 namespace AsyncToolWindowSample.ToolWindows
 {
     public partial class ChooseFileWindowControl : UserControl
     {
-        private DTE2 dte;
-
+        private PlugInTool plugInTool = null;
         private List<FileTreeNode> chooseNodeList = null;
         
         public ChooseFileWindowControl()
         {
             chooseNodeList = new List<FileTreeNode>();
+            plugInTool = PlugInTool.GetInstancePlugInTool();
+
             Refresh();
+        }
+
+        private void InitTreeView()
+        {
+            while (fileTreeView.HasItems)
+            {
+                fileTreeView.Items.RemoveAt(0);
+            }
         }
 
         private void Refresh()
         {
-            dte = (DTE2)Package.GetGlobalService(typeof(DTE));
             InitializeComponent();
 
             //get file list in project
-            ThreadHelper.ThrowIfNotOnUIThread();
-           
-            ProjectItems projs = dte.Solution.Item(1).ProjectItems;
+            FileTreeNode fileList = plugInTool.GetFileList();
 
-            AddProjectItem(projs);
+            InitTreeView();       
+            
+            AddProjectItem(fileList,fileTreeView);
         }
 
-        private void AddProjectItem(ProjectItems projs)
+        private void AddProjectItem(FileTreeNode fileList,TreeViewItem treeView)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
-            while(fileTreeView.HasItems)
-            {
-                fileTreeView.Items.RemoveAt(0);
-            }
-
             //set header
-            if (!fileTreeView.HasHeader)
+            if (!treeView.HasHeader)
             {
-                fileTreeView.Header = GetNameFromPath(dte.Solution.FileName);
+                treeView.Header = fileList.Name;
             }
 
+            List<FileTreeNode> subFileNode = fileList.GetSubNode();
+            
             //add list
-            foreach (ProjectItem item in projs)
+            for (int i = 0; i < subFileNode.Count; i++)
             {
-                ProjectItem itemNow = item;
-                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);
-
-                //if have subitem and is file
-                if (itemNow.ProjectItems != null && !IsFile(node.Name))
+                if (subFileNode[i].HasSubNode())
                 {
-                    fileTreeView.Items.Add(AddProjectSubItem(itemNow.ProjectItems, node));
+                    treeView.Items.Add(AddProjectSubItem(subFileNode[i]));
                 }
                 else
                 {
-                    //add into list
-                    fileTreeView.Items.Add(node);
-                } 
-            }
+                    treeView.Items.Add(subFileNode[i]);
+                }
+            }          
         }
 
-        private TreeViewItem AddProjectSubItem(ProjectItems projs,FileTreeNode topNode)
+        private TreeViewItem AddProjectSubItem(FileTreeNode topNode)
         {
-            ThreadHelper.ThrowIfNotOnUIThread();
-
             TreeViewItem treeViewItem = new TreeViewItem();
             treeViewItem.ItemTemplate = fileTreeView.ItemTemplate;
 
-            if (!treeViewItem.HasHeader)
-            {
-                treeViewItem.Header = topNode.Name;
-            }
+            AddProjectItem(topNode, treeViewItem);
 
-            foreach (ProjectItem item in projs)
-            {
-                ProjectItem itemNow = item;
-                FileTreeNode node = new FileTreeNode(item.Name, item.FileNames[0]);
-
-                if (itemNow.ProjectItems != null && !IsFile(node.Name))
-                {
-                    treeViewItem.Items.Add(AddProjectSubItem(itemNow.ProjectItems,node));
-                }
-                else
-                {
-                    treeViewItem.Items.Add(node);
-                }
-            }
             return treeViewItem;
         }
 
         //-----------------tool--------------------------------
-        private string GetNameFromPath(string path)
-        {
-            string name = null;
-            string[] split = path.Split('\\');
-
-            name = split[split.Length - 1];
-
-            return name;
-        }
-
-        private bool IsFile(string fileName)
-        {
-            bool result = false;
-            string[] split = fileName.Split('.');
-
-            if (split.Length < 2)
-            {
-                result = false;
-            }
-            else
-            {
-                result = true;
-            }
-
-            return result;
-        }
-
+      
         private void ShowNextWindow()
         {
             StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(chooseNodeList,this);

@@ -61,19 +61,19 @@
     <Compile Include="LoadingControl\Block.xaml.cs" />
     <Compile Include="LoadingControl\LoadingAnimation.xaml.cs" />
     <Compile Include="Model\CodeBlock.cs" />
+    <Compile Include="PlugInMode\PlugInTool.cs" />
     <Compile Include="View\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="AnalysisMode\Analysis.cs" />
     <Compile Include="Tool\StaticValue.cs" />
-    <Compile Include="PlugInSetting\ToolListCommand.cs" />
+    <Compile Include="PlugInMode\ToolListCommand.cs" />
     <Compile Include="View\ChooseFileWindowControl.xaml.cs">
       <DependentUpon>ChooseFileWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PlugInSetting\ChooseFileWindowPackage.cs" />
+    <Compile Include="PlugInMode\ChooseFileWindowPackage.cs" />
     <Compile Include="Model\FileTreeNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PlugInSetting\ProvideToolboxControlAttribute.cs" />
     <Compile Include="View\ChooseAnalysisWindowControl.xaml.cs">
       <DependentUpon>ChooseAnalysisWindowControl.xaml</DependentUpon>
     </Compile>
