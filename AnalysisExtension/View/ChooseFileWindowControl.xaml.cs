@@ -24,19 +24,18 @@ namespace AsyncToolWindowSample.ToolWindows
         {
             while (fileTreeView.HasItems)
             {
-                fileTreeView.Items.RemoveAt(0);
+                fileTreeView.Items.RemoveAt(0);                
             }
         }
 
         private void Refresh()
         {
             InitializeComponent();
+            InitTreeView();
 
             //get file list in project
             FileTreeNode fileList = plugInTool.GetFileList();
 
-            InitTreeView();       
-            
             AddProjectItem(fileList,fileTreeView);
         }
 
@@ -53,7 +52,7 @@ namespace AsyncToolWindowSample.ToolWindows
             //add list
             for (int i = 0; i < subFileNode.Count; i++)
             {
-                if (subFileNode[i].HasSubNode())
+                if (subFileNode[i].HasSubNode() || !StaticValue.IsFile(subFileNode[i].Name))
                 {
                     treeView.Items.Add(AddProjectSubItem(subFileNode[i]));
                 }
