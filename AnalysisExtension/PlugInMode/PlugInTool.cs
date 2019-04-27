@@ -41,6 +41,7 @@ namespace AnalysisExtension.PlugInMode
         //-----get file list-----
         public FileTreeNode GetFileList()
         {
+            fileList.InitSubNode();
             AddProjectItem(projs,fileList);
             return fileList;
         }

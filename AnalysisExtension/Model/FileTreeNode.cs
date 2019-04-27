@@ -57,5 +57,10 @@ namespace AnalysisExtension
             }
         }
 
+        public void InitSubNode()
+        {
+            subNodeList = new List<FileTreeNode>(); 
+        }
+
     }
 }
