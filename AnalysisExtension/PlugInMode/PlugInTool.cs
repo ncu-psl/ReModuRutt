@@ -1,4 +1,5 @@
-﻿using EnvDTE;
+﻿using AnalysisExtension.ExceptionMode;
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using System.Windows;
@@ -18,9 +19,17 @@ namespace AnalysisExtension.PlugInMode
         private PlugInTool()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            dte = (DTE2)Package.GetGlobalService(typeof(DTE));
-            projs = dte.Solution.Item(1).ProjectItems;
+            
+            try
+            {
+                dte = (DTE2)Package.GetGlobalService(typeof(DTE));
+                projs = dte.Solution.Item(1).ProjectItems;
+            }
+            catch
+            {
+                throw new ProjectNotOpenException();
+            }
+            
             string projectPath = dte.Solution.FileName;
             string projectName = StaticValue.GetNameFromPath(projectPath);
 

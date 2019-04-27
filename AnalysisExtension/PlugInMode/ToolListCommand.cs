@@ -1,4 +1,5 @@
-﻿using AsyncToolWindowSample.ToolWindows;
+﻿using AnalysisExtension.ExceptionMode;
+using AsyncToolWindowSample.ToolWindows;
 using Microsoft.VisualStudio.Shell;
 using System;
 using System.ComponentModel.Design;
@@ -111,9 +112,9 @@ namespace AnalysisExtension
                 StaticValue.WINDOW.Content = new ChooseFileWindowControl();
                 StaticValue.WINDOW.ShowDialog();
             }
-            catch
+            catch(ProjectNotOpenException e)
             {
-                MessageBox.Show("not open project yet");
+                MessageBox.Show(e.Message);
             }
 
 }

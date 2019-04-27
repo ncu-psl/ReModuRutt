@@ -58,6 +58,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AnalysisMode\FtoC.cs" />
+    <Compile Include="ExceptionMode\ProjectNotOpenException.cs" />
     <Compile Include="LoadingControl\Block.xaml.cs" />
     <Compile Include="LoadingControl\LoadingAnimation.xaml.cs" />
     <Compile Include="Model\CodeBlock.cs" />
