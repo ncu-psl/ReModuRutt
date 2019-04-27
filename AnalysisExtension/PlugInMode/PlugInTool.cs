@@ -1,6 +1,7 @@
 ﻿using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using System.Windows;
 
 namespace AnalysisExtension.PlugInMode
 {
@@ -23,7 +24,7 @@ namespace AnalysisExtension.PlugInMode
             string projectPath = dte.Solution.FileName;
             string projectName = StaticValue.GetNameFromPath(projectPath);
 
-            fileList = new FileTreeNode(projectName, projectPath);
+            fileList = new FileTreeNode(projectName, projectPath);           
         }
 
         public static PlugInTool GetInstancePlugInTool()

@@ -100,15 +100,22 @@ namespace AnalysisExtension
         public void ExecuteStartWin()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-
-            StaticValue.WINDOW = new Window
+            try
             {
-                Width = StaticValue.WINDOW_WIDTH,
-                Height = StaticValue.WINDOW_HEIGHT
-            };
+                StaticValue.WINDOW = new Window
+                {
+                    Width = StaticValue.WINDOW_WIDTH,
+                    Height = StaticValue.WINDOW_HEIGHT
+                };
 
-            StaticValue.WINDOW.Content = new ChooseFileWindowControl();
-            StaticValue.WINDOW.ShowDialog();
-        }
+                StaticValue.WINDOW.Content = new ChooseFileWindowControl();
+                StaticValue.WINDOW.ShowDialog();
+            }
+            catch
+            {
+                MessageBox.Show("not open project yet");
+            }
+
+}
     }
 }
