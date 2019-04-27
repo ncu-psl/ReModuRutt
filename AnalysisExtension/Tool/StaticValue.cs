@@ -5,6 +5,7 @@ namespace AnalysisExtension
 {
     public class StaticValue
     {
+        //-----value-----
         public static int WINDOW_WIDTH = 600;
         public static int WINDOW_HEIGHT = 400;
 
@@ -12,7 +13,7 @@ namespace AnalysisExtension
 
         public static Window WINDOW = null;
 
-
+        //-----method-----
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {
             CloseWindow(control);
