@@ -9,14 +9,14 @@ namespace AnalysisExtension
 {
     public partial class CheckInfoWindowControl : UserControl
     {
-        private List<string> fileType = null;
+        private List<FileTreeNode> fileList = null;
         private Analysis analysisMode = null;
         private UserControl previousControl;
 
-        public CheckInfoWindowControl(List<string> fileType,Analysis analysisMode, UserControl previousControl)
+        public CheckInfoWindowControl(List<FileTreeNode> fileList,Analysis analysisMode, UserControl previousControl)
         {
             this.previousControl = previousControl;
-            this.fileType = fileType;
+            this.fileList = fileList;
             this.analysisMode = analysisMode;
             Refresh();
         }
@@ -29,7 +29,9 @@ namespace AnalysisExtension
 
             check_info_language_tb.Text = "Language : ";
 
-            foreach (string type in fileType)
+            List<string> typeList = StaticValue.GetFileType(fileList);
+
+            foreach (string type in typeList)
             {
                 check_info_language_tb.Text = check_info_language_tb.Text + " " + type + " ";
             }
@@ -39,6 +41,7 @@ namespace AnalysisExtension
         //------------tool-------------
         private void ShowWaitAnimationWindow()
         {
+            analysisMode.ReadFile(fileList);
             LoadingAnimation loading = new LoadingAnimation(analysisMode);
 
             System.Windows.Window window = new System.Windows.Window
@@ -52,42 +55,19 @@ namespace AnalysisExtension
             window.ShowDialog();
         }
 
-        private void ShowNextWindow(List<CodeBlock> beforeList, List<CodeBlock> afterList)
+        private void ShowNextWindow(Analysis analysisMode)
         {
-            StaticValue.WINDOW.Content = new TransformWindowControl(beforeList, afterList,this);
+            StaticValue.WINDOW.Content = new TransformWindowControl(analysisMode,this);
         }
 
-        private void GetTransferredResult()
-        {
-            //TODO : get transferred reslt
-            List<CodeBlock> beforeList = new List<CodeBlock>();
-            List<CodeBlock> afterList = new List<CodeBlock>();
-
-            for (int i = 0; i < 10; i++)
-            {
-                CodeBlock before = new CodeBlock();
-                CodeBlock after = new CodeBlock();
-
-                before.Content = "code before" + "\n" + "code Before" + i;
-                before.BlockId = i;
-                before.BackgroundColor = Colors.White;
-                after.Content = "code after" + "\n" + "code After" + i;
-                after.BlockId = i % 5;
-                after.BackgroundColor = Colors.White;
-
-                beforeList.Add(before);
-                afterList.Add(after);
-            }
-
-            ShowNextWindow(beforeList, afterList);
-        }
         //----------Listener---------------
         private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
         {
             Refresh();
             ShowWaitAnimationWindow();
 
-            GetTransferredResult();
+            ShowNextWindow(analysisMode);
+          //  GetTransferredResult();
         }
 
         private void OnClickBtPreviousListener(object sender, System.Windows.RoutedEventArgs e)

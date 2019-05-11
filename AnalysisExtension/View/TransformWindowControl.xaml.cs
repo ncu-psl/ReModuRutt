@@ -1,6 +1,7 @@
 ﻿using AnalysisExtension.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,83 +18,106 @@ using System.Windows.Shapes;
 
 namespace AnalysisExtension.View
 {
-
     public partial class TransformWindowControl : UserControl
     {
         private UserControl previousControl;
-        private List<CodeBlock> beforeList = null;
-        private List<CodeBlock> afterList = null;
-        private double beforeListWidth = 0;
-        private double afterListWidth = 0;
 
-        public TransformWindowControl(List<CodeBlock> codeBefore, List<CodeBlock> codeAfter, UserControl previousControl)
+        private Analysis analysisMode;
+        private int fileNum = 0;
+        
+        public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
         {
             this.previousControl = previousControl;
-            beforeList = codeBefore;
-            afterList = codeAfter;
+            this.analysisMode = analysisMode;
+            fileNum = analysisMode.GetFileList().Count();
 
             Refresh();
         }
 
         private void Refresh()
         {
-            InitializeComponent();
-
-            beforeListWidth = codeListBefore.Width;
-            afterListWidth = codeListAfter.Width;
-
-            ResetListViewItem();
-            
-         //   SetBackgroundColor();
+            InitializeComponent();           
+            SetTabView();
         }
 
-        private void ResetListViewItem()
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
-            //if org list is not null,remove all
-            if (codeListBefore.Items.Count > 0)
-            {
-                while(codeListBefore.Items.Count > 0)
-                {
-                    codeListBefore.Items.RemoveAt(0);
-                }
-            }
-
-            if (codeListAfter.Items.Count > 0)
-            {
-                while (codeListAfter.Items.Count > 0)
-                {
-                    codeListAfter.Items.RemoveAt(0);
-                }
-            }
-
-            //add item into each list
-            foreach (CodeBlock codeBlock in beforeList)
-            {
-                TextBlock item = new TextBlock();
-                item.DataContext = codeBlock;
-                item.Text = codeBlock.Content;
-                item.Width = beforeListWidth;
-
-                ListViewItem listViewItem = new ListViewItem();
-                listViewItem.Content = item;
-                listViewItem.Background = new SolidColorBrush(codeBlock.BackgroundColor);
-                codeListBefore.Items.Add(listViewItem);
-            }
-
-            foreach (CodeBlock codeBlock in afterList)
-            {
-                TextBlock item = new TextBlock();
-                item.DataContext = codeBlock;
-                item.Text = codeBlock.Content;
-                item.Width = afterListWidth;
-
-                ListViewItem listViewItem = new ListViewItem();
-                listViewItem.Content = item;
-                listViewItem.Background = new SolidColorBrush(codeBlock.BackgroundColor);
-                codeListAfter.Items.Add(listViewItem);
-            }
-
+            base.OnRenderSizeChanged(sizeInfo);
+            Refresh();
         }
+
+        private void SetTabView()
+        {
+            InitTabView();
+            string[] fileList = analysisMode.GetFileList();
+
+            for(int i = 0; i < fileList.Length; i++)
+            {
+                TabItem item = new TabItem();
+                item.Header = StaticValue.GetNameFromPath(fileList[i]);
+
+                SetTabControl(item, analysisMode.GetBeforeCode(i), analysisMode.GetAfterCode(i));
+
+                resultTabControl.Items.Add(item);
+                            
+            }
+        }
+
+        private void InitTabView()
+        {
+            while (resultTabControl.Items.Count > 0)
+            {
+                resultTabControl.Items.RemoveAt(0);
+            }
+        }
+
+        private void SetTabControl(TabItem item,List<CodeBlock> beforeCodeBlock, List<CodeBlock> afterCodeBlock)
+        {
+            DockPanel dockPanel = new DockPanel();
+
+            GroupBox btnGroup = new GroupBox();
+            btnGroup.Template = (ControlTemplate)FindResource("buttonGroup");
+            DockPanel.SetDock(btnGroup, Dock.Bottom);
+
+            GroupBox topBtnGroup = new GroupBox();
+            topBtnGroup.Template = (ControlTemplate)FindResource("topBtnGrop");
+            DockPanel.SetDock(topBtnGroup, Dock.Top);
+
+            ScrollViewer beforeScrollViewer = SetListView(beforeCodeBlock);
+            DockPanel.SetDock(beforeScrollViewer, Dock.Left);
+
+            ScrollViewer afterScrollViewer = SetListView(afterCodeBlock);
+            DockPanel.SetDock(afterScrollViewer, Dock.Right);
+
+            dockPanel.Children.Add(btnGroup);
+            dockPanel.Children.Add(topBtnGroup);
+            dockPanel.Children.Add(beforeScrollViewer);
+            dockPanel.Children.Add(afterScrollViewer);
+
+            item.Content = dockPanel;
+        }
+
+        private ScrollViewer SetListView(List<CodeBlock> content)
+        {
+            int padding = 15;
+            double width = StaticValue.WINDOW.Width / 2 ;
+
+            ListView listView = new ListView();
+            listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
+            listView.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+            listView.ItemsSource = content;
+            listView.SelectionChanged += CodeListBefore_SelectionChanged;
+
+            ScrollViewer scrollViewer = new ScrollViewer();
+            scrollViewer.Width = width - padding;
+            scrollViewer.Content = listView;
+            scrollViewer.PreviewMouseWheel += OnPreviewMouseWheelListener;
+            scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            
+            return scrollViewer;
+        }
+
 
         private void CodeListBefore_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -102,7 +126,7 @@ namespace AnalysisExtension.View
 
             if (index != -1)
             {
-                CodeBlock chooseBlock = ((listView.Items[index] as ListViewItem).Content as TextBlock).DataContext as CodeBlock;
+                /*CodeBlock chooseBlock = ((listView.Items[index] as ListViewItem).Content as TextBlock).DataContext as CodeBlock;
                 Color changeColor = Colors.Blue;
                 Color orgColor = Colors.White;
                 foreach (CodeBlock codeBlock in beforeList)
@@ -132,7 +156,7 @@ namespace AnalysisExtension.View
                 }
 
                 listView.UnselectAll();
-                Refresh();
+                Refresh();*/
             }
         }
 

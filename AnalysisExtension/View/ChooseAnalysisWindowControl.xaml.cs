@@ -23,7 +23,6 @@ namespace AnalysisExtension
             this.previousControl = previousControl;
             this.chooseFile = chooseFile;
             chooseAnalysis = null;
-            type = new List<string>();
 
             Refresh();
         }
@@ -33,6 +32,7 @@ namespace AnalysisExtension
             InitializeComponent();
 
             analysisListElement = new List<Analysis>();
+            type = StaticValue.GetFileType(chooseFile);
 
             SetTextInfo();
             SetAnalysisList();
@@ -41,14 +41,7 @@ namespace AnalysisExtension
 
         private void SetTextInfo()
         {
-            choose_analysis_info_tb.Text = "Select the analysis method that want to do.";
-            foreach (FileTreeNode node in chooseFile)
-            {
-                if (node.Type != null && !type.Contains(node.Type))
-                {
-                    type.Add(node.Type);
-                }
-            }
+            choose_analysis_info_tb.Text = "Select the analysis method that want to do.";            
 
             if (type.Count > 0)
             {
@@ -98,7 +91,7 @@ namespace AnalysisExtension
 
         private void ShowNextWindow()
         {
-            StaticValue.WINDOW.Content = new CheckInfoWindowControl(type, chooseAnalysis, this);
+            StaticValue.WINDOW.Content = new CheckInfoWindowControl(chooseFile, chooseAnalysis, this);
         }
         //-----------Listener---------------------------------------
 

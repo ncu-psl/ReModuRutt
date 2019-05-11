@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections.Generic;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace AnalysisExtension
@@ -6,7 +7,7 @@ namespace AnalysisExtension
     public class StaticValue
     {
         //-----value-----
-        public static int WINDOW_WIDTH = 600;
+        public static int WINDOW_WIDTH = 800;
         public static int WINDOW_HEIGHT = 400;
 
         public static string FOLDER_TYPE = "folder";
@@ -56,6 +57,20 @@ namespace AnalysisExtension
             }
 
             return result;
+        }
+
+        public static List<string> GetFileType(List<FileTreeNode> fileList)
+        {
+            List<string> fileTypeSet = new List<string>();
+
+            foreach (FileTreeNode file in fileList)
+            {
+                if (file.Type != null && !fileTypeSet.Contains(file.Type))
+                {
+                    fileTypeSet.Add(file.Type);
+                }
+            }
+            return fileTypeSet;
         }
     }
 
