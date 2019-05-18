@@ -74,11 +74,7 @@ namespace AnalysisExtension.View
         private void SetTabControl(TabItem item,List<CodeBlock> beforeCodeBlock, List<CodeBlock> afterCodeBlock)
         {
             DockPanel dockPanel = new DockPanel();
-
-            GroupBox btnGroup = new GroupBox();
-            btnGroup.Template = (ControlTemplate)FindResource("buttonGroup");
-            DockPanel.SetDock(btnGroup, Dock.Bottom);
-
+            
             GroupBox topBtnGroup = new GroupBox();
             topBtnGroup.Template = (ControlTemplate)FindResource("topBtnGrop");
             DockPanel.SetDock(topBtnGroup, Dock.Top);
@@ -89,12 +85,30 @@ namespace AnalysisExtension.View
             ScrollViewer afterScrollViewer = SetListView(afterCodeBlock);
             DockPanel.SetDock(afterScrollViewer, Dock.Right);
 
-            dockPanel.Children.Add(btnGroup);
+            DockPanel bottomBtnGroup = SetButtonGroup(afterScrollViewer);
+            DockPanel.SetDock(bottomBtnGroup, Dock.Bottom);
+
+            dockPanel.Children.Add(bottomBtnGroup);
             dockPanel.Children.Add(topBtnGroup);
             dockPanel.Children.Add(beforeScrollViewer);
             dockPanel.Children.Add(afterScrollViewer);
 
             item.Content = dockPanel;
+        }
+
+        private DockPanel SetButtonGroup(ScrollViewer rightPanel)
+        {
+            DockPanel dockPanel = new DockPanel();
+            GroupBox changeBtnGroup = new GroupBox();
+            changeBtnGroup.Template = (ControlTemplate)FindResource("centerButtonGroup");
+            GroupBox cancelBtnGroup = new GroupBox();
+            cancelBtnGroup.Template = (ControlTemplate)FindResource("rightButtonGroup");
+            DockPanel.SetDock(cancelBtnGroup, Dock.Right);
+
+            dockPanel.Children.Add(changeBtnGroup);
+            dockPanel.Children.Add(cancelBtnGroup);
+
+            return dockPanel;
         }
 
         private ScrollViewer SetListView(List<CodeBlock> content)
