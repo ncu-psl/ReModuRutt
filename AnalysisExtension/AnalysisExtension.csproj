@@ -96,6 +96,15 @@
     <Content Include="index.html" />
     <Content Include="Resources\ChooseFileWindowCommand.png" />
     <Content Include="Resources\ChooseFileWindowPackage.ico" />
+    <Resource Include="Resources\save_all.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\save_as.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Resources\save.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
     <Content Include="Resources\ToolListCommand.png" />
     <Content Include="stylesheet.css" />
   </ItemGroup>

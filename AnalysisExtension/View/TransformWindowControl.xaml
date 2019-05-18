@@ -1,12 +1,12 @@
 ﻿<UserControl x:Class="AnalysisExtension.View.TransformWindowControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:local="clr-namespace:AnalysisExtension"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
+
     <UserControl.Resources>
         <DataTemplate x:Key="codeListView">
             <TextBlock Text="{Binding Content}" Background="White" />
@@ -16,22 +16,28 @@
             <GroupBox>
                     <StackPanel Orientation="Horizontal"  HorizontalAlignment="Right" Margin="0,8,0,0">
                         <Button Content="cancel" Margin="2,0,0,0" Click="OnClickBtCancelListener"/>
-                        <Button Content="save" Margin="2,0,0,0"/>
-                        <Button Content="save as" Margin="2,0,0,0"/>
-                        <Button Content="save all" Margin="2,0,0,0"/>
+                        <Button Content="change all files" Margin="2,0,0,0"/>
+                        <Button Content="change all in this file" Margin="2,0,0,0"/>
+                        <Button Content="change choose" Margin="2,0,0,0"/>
                     </StackPanel>
                 </GroupBox>            
         </ControlTemplate>
 
         <ControlTemplate x:Key="topBtnGrop">
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right">
-                <Button Content="change all files" Margin="2,0,0,0"/>
-                <Button Content="change all in this file" Margin="2,0,0,0"/>
-                <Button Content="change choose" Margin="2,0,0,0"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save">
+                    <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save.png"></Image>
+                </Button>
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save as">
+                    <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save_as.png"></Image>
+                </Button>
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save all">
+                    <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save_all.png"></Image>
+                </Button>
             </StackPanel>
         </ControlTemplate>
-
     </UserControl.Resources>
+
 
     <TabControl x:Name="resultTabControl" />
 
