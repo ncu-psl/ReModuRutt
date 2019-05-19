@@ -1,19 +1,9 @@
 ﻿using AnalysisExtension.Model;
-using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 
 namespace AnalysisExtension.View
@@ -24,7 +14,10 @@ namespace AnalysisExtension.View
 
         private Analysis analysisMode;
         private int fileNum = 0;
-        
+        private bool isInit = false;
+
+        private List<ScrollViewer> scrollViewerList = new List<ScrollViewer>();
+
         public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
         {
             this.previousControl = previousControl;
@@ -32,18 +25,26 @@ namespace AnalysisExtension.View
             fileNum = analysisMode.GetFileList().Count();
 
             Refresh();
+
+            if (fileNum > 0 && !isInit)
+            {   //init tabItem to show the first item
+                resultTabControl.SelectedIndex = 0;                
+            }
+
+            isInit = true;
         }
 
         private void Refresh()
         {
             InitializeComponent();           
             SetTabView();
+            ResizeScrollViewer();
         }
 
         protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
         {
             base.OnRenderSizeChanged(sizeInfo);
-            Refresh();
+            ResizeScrollViewer();
         }
 
         private void SetTabView()
@@ -52,15 +53,15 @@ namespace AnalysisExtension.View
             string[] fileList = analysisMode.GetFileList();
 
             for(int i = 0; i < fileList.Length; i++)
-            {
+            {                
                 TabItem item = new TabItem();
                 item.Header = StaticValue.GetNameFromPath(fileList[i]);
 
                 SetTabControl(item, analysisMode.GetBeforeCode(i), analysisMode.GetAfterCode(i));
 
                 resultTabControl.Items.Add(item);
-                            
             }
+
         }
 
         private void InitTabView()
@@ -68,6 +69,11 @@ namespace AnalysisExtension.View
             while (resultTabControl.Items.Count > 0)
             {
                 resultTabControl.Items.RemoveAt(0);
+            }
+
+            if (scrollViewerList.Count > 0)
+            {
+                scrollViewerList = new List<ScrollViewer>();
             }
         }
 
@@ -79,19 +85,19 @@ namespace AnalysisExtension.View
             topBtnGroup.Template = (ControlTemplate)FindResource("topBtnGrop");
             DockPanel.SetDock(topBtnGroup, Dock.Top);
 
-            ScrollViewer beforeScrollViewer = SetListView(beforeCodeBlock);
-            DockPanel.SetDock(beforeScrollViewer, Dock.Left);
+            ScrollViewer leftScrollViewer = SetListView(beforeCodeBlock);
+            DockPanel.SetDock(leftScrollViewer, Dock.Left);
 
-            ScrollViewer afterScrollViewer = SetListView(afterCodeBlock);
-            DockPanel.SetDock(afterScrollViewer, Dock.Right);
+            ScrollViewer rightScrollViewer = SetListView(afterCodeBlock);
+            DockPanel.SetDock(rightScrollViewer, Dock.Right);
 
-            DockPanel bottomBtnGroup = SetButtonGroup(afterScrollViewer);
+            DockPanel bottomBtnGroup = SetButtonGroup(rightScrollViewer);
             DockPanel.SetDock(bottomBtnGroup, Dock.Bottom);
 
             dockPanel.Children.Add(bottomBtnGroup);
             dockPanel.Children.Add(topBtnGroup);
-            dockPanel.Children.Add(beforeScrollViewer);
-            dockPanel.Children.Add(afterScrollViewer);
+            dockPanel.Children.Add(leftScrollViewer);
+            dockPanel.Children.Add(rightScrollViewer);
 
             item.Content = dockPanel;
         }
@@ -113,9 +119,6 @@ namespace AnalysisExtension.View
 
         private ScrollViewer SetListView(List<CodeBlock> content)
         {
-            int padding = 15;
-            double width = StaticValue.WINDOW.Width / 2 ;
-
             ListView listView = new ListView();
             listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
             listView.HorizontalContentAlignment = HorizontalAlignment.Stretch;
@@ -123,16 +126,28 @@ namespace AnalysisExtension.View
             listView.SelectionChanged += CodeListBefore_SelectionChanged;
 
             ScrollViewer scrollViewer = new ScrollViewer();
-            scrollViewer.Width = width - padding;
             scrollViewer.Content = listView;
             scrollViewer.PreviewMouseWheel += OnPreviewMouseWheelListener;
             scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
             scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-            
+
+            scrollViewerList.Add(scrollViewer);
+
             return scrollViewer;
         }
 
+        private void ResizeScrollViewer()
+        {
+            int padding = 15;
+            double width = StaticValue.WINDOW.Width / 2;
 
+            foreach (ScrollViewer viewer in scrollViewerList)
+            {
+                viewer.Width = width - padding;
+            }            
+        }
+
+        //-----Listener-----
         private void CodeListBefore_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             ListView listView = sender as ListView;
