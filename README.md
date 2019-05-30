@@ -1,9 +1,5 @@
 # AnalysisExtension
 
-
-若 pull 時發生設定檔錯誤，可以[由此](https://drive.google.com/open?id=173WRiRNZ68zqdr65wC0-6hG7kSOEzudw)下載覆蓋後再進行 pull
-
-
 ## 簡介
 這是一個用於分析與轉換的工具，可以依照規則樣式自訂欲轉換或分析的規則。\
 此程式將分析轉換功能做成 visual studio 2017 的 plug in，使用者可以藉由 工具列->工具->( plug in 名稱 ) 來使用此功能。
