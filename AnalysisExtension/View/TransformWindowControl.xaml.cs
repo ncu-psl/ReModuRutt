@@ -14,54 +14,29 @@ namespace AnalysisExtension.View
 
         private Analysis analysisMode;
         private int fileNum = 0;
-        private bool isInit = false;
+        private int nowPageIndex = 0;
 
         private List<ScrollViewer> scrollViewerList = new List<ScrollViewer>();
+        private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
         public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
         {
             this.previousControl = previousControl;
             this.analysisMode = analysisMode;
             fileNum = analysisMode.GetFileList().Count();
-
             Refresh();
+        }
 
-            if (fileNum > 0 && !isInit)
-            {   //init tabItem to show the first item
-                resultTabControl.SelectedIndex = 0;                
+        //-----init-----
+        private void InitScrollViewIndex()
+        {
+            scrollViewIndex = new double[scrollViewerList.Count, 2];
+
+            for (int i = 0; i < scrollViewerList.Count; i++)
+            {
+                scrollViewIndex[i, 0] = 0;
+                scrollViewIndex[i, 1] = 0;
             }
-
-            isInit = true;
-        }
-
-        private void Refresh()
-        {
-            InitializeComponent();           
-            SetTabView();
-            ResizeScrollViewer();
-        }
-
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            base.OnRenderSizeChanged(sizeInfo);
-            ResizeScrollViewer();
-        }
-
-        private void SetTabView()
-        {
-            InitTabView();
-            string[] fileList = analysisMode.GetFileList();
-
-            for(int i = 0; i < fileList.Length; i++)
-            {                
-                TabItem item = new TabItem();
-                item.Header = StaticValue.GetNameFromPath(fileList[i]);
-
-                SetTabControl(item, analysisMode.GetBeforeCode(i), analysisMode.GetAfterCode(i));
-
-                resultTabControl.Items.Add(item);
-            }
-
         }
 
         private void InitTabView()
@@ -76,6 +51,70 @@ namespace AnalysisExtension.View
                 scrollViewerList = new List<ScrollViewer>();
             }
         }
+
+        //-----refersh-----
+        private void Refresh()
+        {
+            InitializeComponent();           
+            SetTabView();
+            ResizeScrollViewer();
+            SetScrollOffset();
+        }
+
+        //----scrollViewer----
+        private void ResizeScrollViewer()
+        {
+            int padding = 15;
+            double width = StaticValue.WINDOW.Width / 2;
+            foreach (ScrollViewer viewer in scrollViewerList)
+            {
+                viewer.Width = width - padding;
+            }
+        }
+
+        private void SetScrollOffset()
+        {
+            if (scrollViewIndex == null)
+            {
+                InitScrollViewIndex();
+            }
+            else
+            {
+                for (int i = 0; i < scrollViewerList.Count; i++)
+                {
+                    scrollViewerList[i].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
+                    scrollViewerList[i].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
+                }
+            }
+            
+        }
+
+        private void SaveScrollOffset()
+        {
+            for (int i = 0; i < scrollViewerList.Count; i++)
+            {
+                scrollViewIndex[i, 0] = scrollViewerList[i].HorizontalOffset;
+                scrollViewIndex[i, 1] = scrollViewerList[i].VerticalOffset;
+            }
+        }
+
+        //-----set view----
+        private void SetTabView()
+        {
+            InitTabView();
+            string[] fileList = analysisMode.GetFileList();
+
+            for(int i = 0; i < fileNum; i++)
+            {                
+                TabItem item = new TabItem();
+                item.Header = StaticValue.GetNameFromPath(fileList[i]);
+
+                SetTabControl(item, analysisMode.GetBeforeCode(i), analysisMode.GetAfterCode(i));
+
+                resultTabControl.Items.Add(item);
+            }
+            resultTabControl.SelectedIndex = nowPageIndex;
+        }       
 
         private void SetTabControl(TabItem item,List<CodeBlock> beforeCodeBlock, List<CodeBlock> afterCodeBlock)
         {
@@ -123,7 +162,7 @@ namespace AnalysisExtension.View
             listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
             listView.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             listView.ItemsSource = content;
-            listView.SelectionChanged += CodeListBefore_SelectionChanged;
+            listView.SelectionChanged += CodeList_SelectionChanged;
 
             ScrollViewer scrollViewer = new ScrollViewer();
             scrollViewer.Content = listView;
@@ -136,35 +175,21 @@ namespace AnalysisExtension.View
             return scrollViewer;
         }
 
-        private void ResizeScrollViewer()
-        {
-            int padding = 15;
-            double width = StaticValue.WINDOW.Width / 2;
-
-            foreach (ScrollViewer viewer in scrollViewerList)
-            {
-                viewer.Width = width - padding;
-            }            
-        }
-
         //-----Listener-----
-        private void CodeListBefore_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CodeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            nowPageIndex = resultTabControl.SelectedIndex;
+            SaveScrollOffset();
             ListView listView = sender as ListView;
             int index = listView.SelectedIndex;
 
             if (index != -1)
             {
-                //listView.ItemTemplateSelector.SelectTemplate.Background = changeColor;
-
                 CodeBlock chooseBlock = listView.SelectedItem as CodeBlock;
 
                 SolidColorBrush changeColor = new SolidColorBrush(Colors.Blue);
                 SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
 
-                //((listView.ge.FindResource("codeTextBlock") as TextBlock).Background = changeColor;
-                //textBlock.Background = changeColor;
-               // MessageBox.Show("");
                 for (int i = 0; i < fileNum; i++)
                 {
                     foreach (CodeBlock codeBlock in analysisMode.GetBeforeCode(i))
@@ -211,6 +236,12 @@ namespace AnalysisExtension.View
         {
             Refresh();
             StaticValue.CloseWindow(this);
+        }
+
+        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
+        {
+            base.OnRenderSizeChanged(sizeInfo);
+            ResizeScrollViewer();
         }
     }
 }

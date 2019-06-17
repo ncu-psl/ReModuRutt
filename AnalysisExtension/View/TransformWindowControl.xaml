@@ -9,7 +9,7 @@
 
     <UserControl.Resources>
         <DataTemplate x:Key="codeListView">
-            <TextBlock Text="{Binding Content}" Background="{Binding BackgroundColor}" />
+            <TextBlock Text="{Binding Content}" Background="{Binding BackgroundColor}"/>
         </DataTemplate>
 
         <ControlTemplate x:Key="centerButtonGroup">
@@ -43,6 +43,6 @@
     </UserControl.Resources>
 
 
-    <TabControl x:Name="resultTabControl" />
+    <TabControl x:Name="resultTabControl"/>
 
 </UserControl>
