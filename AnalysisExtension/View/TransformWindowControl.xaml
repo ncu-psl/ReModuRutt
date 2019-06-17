@@ -9,7 +9,7 @@
 
     <UserControl.Resources>
         <DataTemplate x:Key="codeListView">
-            <TextBlock Text="{Binding Content}" Background="White" />
+            <TextBlock Text="{Binding Content}" Background="{Binding BackgroundColor}" />
         </DataTemplate>
 
         <ControlTemplate x:Key="centerButtonGroup">

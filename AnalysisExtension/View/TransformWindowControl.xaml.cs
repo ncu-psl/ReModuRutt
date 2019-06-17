@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-
+using System.Windows.Media;
 
 namespace AnalysisExtension.View
 {
@@ -155,37 +155,50 @@ namespace AnalysisExtension.View
 
             if (index != -1)
             {
-                /*CodeBlock chooseBlock = ((listView.Items[index] as ListViewItem).Content as TextBlock).DataContext as CodeBlock;
-                Color changeColor = Colors.Blue;
-                Color orgColor = Colors.White;
-                foreach (CodeBlock codeBlock in beforeList)
+                //listView.ItemTemplateSelector.SelectTemplate.Background = changeColor;
+
+                CodeBlock chooseBlock = listView.SelectedItem as CodeBlock;
+
+                SolidColorBrush changeColor = new SolidColorBrush(Colors.Blue);
+                SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
+
+                //((listView.ge.FindResource("codeTextBlock") as TextBlock).Background = changeColor;
+                //textBlock.Background = changeColor;
+               // MessageBox.Show("");
+                for (int i = 0; i < fileNum; i++)
                 {
-                    if (codeBlock.BlockId == chooseBlock.BlockId)
+                    foreach (CodeBlock codeBlock in analysisMode.GetBeforeCode(i))
                     {
-                        chooseBlock.BackgroundColor = changeColor;
-                        codeBlock.BackgroundColor = changeColor;
-                    }
-                    else
-                    {
-                        codeBlock.BackgroundColor = orgColor;
+                        if (codeBlock.BlockId == chooseBlock.BlockId)
+                        {
+                            chooseBlock.BackgroundColor = changeColor;
+                            codeBlock.BackgroundColor = changeColor;
+                        }
+                        else
+                        {
+                            codeBlock.BackgroundColor = orgColor;
+                        }
                     }
                 }
 
-                foreach (CodeBlock codeBlock in afterList)
+                for (int i = 0; i < fileNum; i++)
                 {
-                    if (codeBlock.BlockId == chooseBlock.BlockId)
+                    foreach (CodeBlock codeBlock in analysisMode.GetAfterCode(i))
                     {
-                        chooseBlock.BackgroundColor = changeColor;
-                        codeBlock.BackgroundColor = changeColor;
-                    }
-                    else
-                    {
-                        codeBlock.BackgroundColor = orgColor;
+                        if (codeBlock.BlockId == chooseBlock.BlockId)
+                        {
+                            chooseBlock.BackgroundColor = changeColor;
+                            codeBlock.BackgroundColor = changeColor;
+                        }
+                        else
+                        {
+                            codeBlock.BackgroundColor = orgColor;
+                        }
                     }
                 }
 
                 listView.UnselectAll();
-                Refresh();*/
+                Refresh();
             }
         }
 
