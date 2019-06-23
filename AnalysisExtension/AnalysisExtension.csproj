@@ -62,7 +62,10 @@
     <Compile Include="LoadingControl\Block.xaml.cs" />
     <Compile Include="LoadingControl\LoadingAnimation.xaml.cs" />
     <Compile Include="Model\CodeBlock.cs" />
+    <Compile Include="Model\ICodeBlock.cs" />
+    <Compile Include="Model\ParameterBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
+    <Compile Include="Tool\AnalysisTool.cs" />
     <Compile Include="View\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>

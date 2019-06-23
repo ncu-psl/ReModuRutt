@@ -2,15 +2,15 @@
 
 namespace AnalysisExtension.Model
 {
-    public class CodeBlock : ICodeBlock
+    public class ParameterBlock : ICodeBlock
     {
         public string Content { get; set; }
-        public int BlockId { get; set;  }
+        public int BlockId { get; set; }
         public int LayerId { get; set; }
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName => StaticValue.CODE_BLOCK_TYPE_NAME;
-        
-        public CodeBlock()
+        public string TypeName => StaticValue.PARAMETER_BLOCK_TYPE_NAME;
+
+        public ParameterBlock()
         {
             Content = "";
             BlockId = -1;
@@ -18,7 +18,7 @@ namespace AnalysisExtension.Model
             BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
-        public CodeBlock(string content)
+        public ParameterBlock(string content)
         {
             Content = content;
             LayerId = -1;
@@ -26,7 +26,7 @@ namespace AnalysisExtension.Model
             SetBlockId();
         }
 
-        public CodeBlock(string content,int id)
+        public ParameterBlock(string content, int id)
         {
             Content = content;
             BlockId = id;
@@ -36,23 +36,23 @@ namespace AnalysisExtension.Model
 
         public CodeBlock GetCodeBlock()
         {
-            return this;
+            return null;
         }
 
         public ParameterBlock GetParameterCodeBlock()
         {
-            return null;
+            return this;
         }
 
         public string GetPrintInfo()
         {
-            return Content;
+            return "<$" + BlockId + ">";
         }
 
         public void SetBlockId()
         {
-            BlockId = StaticValue.CODE_BLOCK_ID_COUNT;
-            StaticValue.CODE_BLOCK_ID_COUNT++;
+            BlockId = StaticValue.PARAMETER_BLOCK_TYPE_ID_COUNT;
+            StaticValue.PARAMETER_BLOCK_TYPE_ID_COUNT++;
         }
     }
 }

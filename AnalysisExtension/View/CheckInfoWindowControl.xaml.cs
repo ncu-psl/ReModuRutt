@@ -9,15 +9,15 @@ namespace AnalysisExtension
 {
     public partial class CheckInfoWindowControl : UserControl
     {
-        private List<FileTreeNode> fileList = null;
         private Analysis analysisMode = null;
         private UserControl previousControl;
+        private List<string> typeList = null;
 
-        public CheckInfoWindowControl(List<FileTreeNode> fileList,Analysis analysisMode, UserControl previousControl)
+        public CheckInfoWindowControl(Analysis analysisMode, UserControl previousControl, List<string> type)
         {
             this.previousControl = previousControl;
-            this.fileList = fileList;
             this.analysisMode = analysisMode;
+            this.typeList = type;
             Refresh();
         }
 
@@ -28,9 +28,7 @@ namespace AnalysisExtension
             check_info_analysis_tb.Text = "Analysis mode : " + analysisMode.Name;
 
             check_info_language_tb.Text = "Language : ";
-
-            List<string> typeList = StaticValue.GetFileType(fileList);
-
+            
             foreach (string type in typeList)
             {
                 check_info_language_tb.Text = check_info_language_tb.Text + " " + type + " ";
@@ -41,7 +39,6 @@ namespace AnalysisExtension
         //------------tool-------------
         private void ShowWaitAnimationWindow()
         {
-            analysisMode.ReadFile(fileList);
             LoadingAnimation loading = new LoadingAnimation(analysisMode);
 
             System.Windows.Window window = new System.Windows.Window

@@ -12,6 +12,7 @@ namespace AnalysisExtension.AnalysisMode
         //override
         public override void AnalysisMethod()
         {
+            //TODO : save result to finalAfterBlockList
             System.Threading.Thread.Sleep(2000);
         }
     }

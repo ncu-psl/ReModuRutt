@@ -74,10 +74,24 @@ namespace AsyncToolWindowSample.ToolWindows
         }
 
         //-----------------tool--------------------------------
-      
+
+        public void ReadFile(List<FileTreeNode> list)
+        {
+            int fileCount = list.Count;
+            StaticValue.FILE_NUMBER = fileCount;
+            StaticValue.fileList = new string[fileCount];
+
+            for (int i = 0; i < fileCount; i++)
+            {
+                StaticValue.fileList[i] = list[i].Path;
+            }
+        }
+
         private void ShowNextWindow()
         {
-            StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(chooseNodeList,this);
+            ReadFile(chooseNodeList);
+            List<string> type = StaticValue.GetFileType(chooseNodeList);
+            StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(this, type);
         }
         
         //-----------------listener-----------------------------

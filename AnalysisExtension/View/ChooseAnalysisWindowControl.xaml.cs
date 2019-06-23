@@ -18,10 +18,10 @@ namespace AnalysisExtension
         private bool hasChoose = false;
 
         //----------------set------------------------
-        public ChooseAnalysisWindowControl(List<FileTreeNode> chooseFile, UserControl previousControl)
+        public ChooseAnalysisWindowControl(UserControl previousControl, List<string> type)
         {
             this.previousControl = previousControl;
-            this.chooseFile = chooseFile;
+            this.type = type;
             chooseAnalysis = null;
 
             Refresh();
@@ -31,8 +31,7 @@ namespace AnalysisExtension
         {
             InitializeComponent();
 
-            analysisListElement = new List<Analysis>();
-            type = StaticValue.GetFileType(chooseFile);
+            analysisListElement = new List<Analysis>();            
 
             SetTextInfo();
             SetAnalysisList();
@@ -91,7 +90,7 @@ namespace AnalysisExtension
 
         private void ShowNextWindow()
         {
-            StaticValue.WINDOW.Content = new CheckInfoWindowControl(chooseFile, chooseAnalysis, this);
+            StaticValue.WINDOW.Content = new CheckInfoWindowControl(chooseAnalysis, this, type);
         }
         //-----------Listener---------------------------------------
 

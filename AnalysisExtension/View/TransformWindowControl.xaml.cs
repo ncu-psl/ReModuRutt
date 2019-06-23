@@ -19,11 +19,15 @@ namespace AnalysisExtension.View
         private List<ScrollViewer> scrollViewerList = new List<ScrollViewer>();
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
+        private AnalysisTool analysisTool = AnalysisTool.GetInstance();
+
         public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
         {
             this.previousControl = previousControl;
             this.analysisMode = analysisMode;
-            fileNum = analysisMode.GetFileList().Count();
+            fileNum = StaticValue.FILE_NUMBER;
+            analysisTool.ReadFile();
+
             Refresh();
         }
 
@@ -102,21 +106,21 @@ namespace AnalysisExtension.View
         private void SetTabView()
         {
             InitTabView();
-            string[] fileList = analysisMode.GetFileList();
+            string[] fileList = StaticValue.fileList;
 
-            for(int i = 0; i < fileNum; i++)
+            for (int i = 0; i < fileNum; i++)
             {                
                 TabItem item = new TabItem();
                 item.Header = StaticValue.GetNameFromPath(fileList[i]);
 
-                SetTabControl(item, analysisMode.GetBeforeCode(i), analysisMode.GetAfterCode(i));
+                SetTabControl(item, analysisTool.GetFinalBeforeBlockList(i), analysisTool.GetFinalAfterBlockList(i));
 
                 resultTabControl.Items.Add(item);
             }
             resultTabControl.SelectedIndex = nowPageIndex;
-        }       
+        }
 
-        private void SetTabControl(TabItem item,List<CodeBlock> beforeCodeBlock, List<CodeBlock> afterCodeBlock)
+        private void SetTabControl(TabItem item, List<ICodeBlock> beforeCodeBlock, List<ICodeBlock> afterCodeBlock)
         {
             DockPanel dockPanel = new DockPanel();
             
@@ -156,7 +160,7 @@ namespace AnalysisExtension.View
             return dockPanel;
         }
 
-        private ScrollViewer SetListView(List<CodeBlock> content)
+        private ScrollViewer SetListView(List<ICodeBlock> content)
         {
             ListView listView = new ListView();
             listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
@@ -192,7 +196,7 @@ namespace AnalysisExtension.View
 
                 for (int i = 0; i < fileNum; i++)
                 {
-                    foreach (CodeBlock codeBlock in analysisMode.GetBeforeCode(i))
+                    foreach (CodeBlock codeBlock in analysisTool.GetFinalBeforeBlockList(i))
                     {
                         if (codeBlock.BlockId == chooseBlock.BlockId)
                         {
@@ -208,7 +212,7 @@ namespace AnalysisExtension.View
 
                 for (int i = 0; i < fileNum; i++)
                 {
-                    foreach (CodeBlock codeBlock in analysisMode.GetAfterCode(i))
+                    foreach (CodeBlock codeBlock in analysisTool.GetFinalAfterBlockList(i))
                     {
                         if (codeBlock.BlockId == chooseBlock.BlockId)
                         {

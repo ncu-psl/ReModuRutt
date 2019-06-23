@@ -13,7 +13,15 @@ namespace AnalysisExtension
         public static string FOLDER_TYPE = "folder";
 
         public static Window WINDOW = null;
+        public static string PARAMETER_BLOCK_TYPE_NAME = "parameter type";
+        public static string CODE_BLOCK_TYPE_NAME = "code block type";
+        
+        public static int CODE_BLOCK_ID_COUNT = 0;
+        public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
+        public static int FILE_NUMBER = 0;
+
+        public static string[] fileList = null;
         //-----method-----
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {
