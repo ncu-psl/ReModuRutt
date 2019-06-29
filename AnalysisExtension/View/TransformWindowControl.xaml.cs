@@ -1,4 +1,5 @@
 ﻿using AnalysisExtension.Model;
+using AnalysisExtension.Tool;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -13,20 +14,21 @@ namespace AnalysisExtension.View
         private UserControl previousControl;
 
         private Analysis analysisMode;
-        private int fileNum = 0;
+        private int fileNum;
         private int nowPageIndex = 0;
 
         private List<ScrollViewer> scrollViewerList = new List<ScrollViewer>();
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
         private AnalysisTool analysisTool = AnalysisTool.GetInstance();
+        private FileLoader fileLoader = FileLoader.GetInstance();
 
         public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
         {
             this.previousControl = previousControl;
             this.analysisMode = analysisMode;
-            fileNum = StaticValue.FILE_NUMBER;
-            analysisTool.ReadFile();
+            fileNum = fileLoader.FILE_NUMBER;
+            analysisTool.AddFileIntoCodeBlock();
 
             Refresh();
         }
@@ -106,7 +108,7 @@ namespace AnalysisExtension.View
         private void SetTabView()
         {
             InitTabView();
-            string[] fileList = StaticValue.fileList;
+            string[] fileList = fileLoader.GetFileList();
 
             for (int i = 0; i < fileNum; i++)
             {                

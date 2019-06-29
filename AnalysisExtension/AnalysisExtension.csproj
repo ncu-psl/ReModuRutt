@@ -66,6 +66,7 @@
     <Compile Include="Model\ParameterBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
     <Compile Include="Tool\AnalysisTool.cs" />
+    <Compile Include="Tool\FileLoader.cs" />
     <Compile Include="View\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>

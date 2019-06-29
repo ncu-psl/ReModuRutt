@@ -19,9 +19,6 @@ namespace AnalysisExtension
         public static int CODE_BLOCK_ID_COUNT = 0;
         public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
-        public static int FILE_NUMBER = 0;
-
-        public static string[] fileList = null;
         //-----method-----
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {

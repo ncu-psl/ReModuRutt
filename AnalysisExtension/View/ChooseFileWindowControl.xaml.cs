@@ -1,5 +1,6 @@
 ﻿using AnalysisExtension;
 using AnalysisExtension.PlugInMode;
+using AnalysisExtension.Tool;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -77,14 +78,8 @@ namespace AsyncToolWindowSample.ToolWindows
 
         public void ReadFile(List<FileTreeNode> list)
         {
-            int fileCount = list.Count;
-            StaticValue.FILE_NUMBER = fileCount;
-            StaticValue.fileList = new string[fileCount];
-
-            for (int i = 0; i < fileCount; i++)
-            {
-                StaticValue.fileList[i] = list[i].Path;
-            }
+            FileLoader fileLoader = FileLoader.GetInstance();
+            fileLoader.SetFileList(list);
         }
 
         private void ShowNextWindow()

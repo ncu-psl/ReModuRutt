@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AnalysisExtension.Tool;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,11 +13,12 @@ namespace AnalysisExtension.Model
         private static AnalysisTool codeBlockTool = null;
         private static List<ICodeBlock>[] finalBeforeBlockList = null;
         private static List<ICodeBlock>[] finalAfterBlockList = null;
+        private static FileLoader fileLoader = FileLoader.GetInstance();
 
         private AnalysisTool()
         {
-            finalBeforeBlockList = new List<ICodeBlock>[StaticValue.FILE_NUMBER];
-            finalAfterBlockList = new List<ICodeBlock>[StaticValue.FILE_NUMBER];
+            finalBeforeBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
+            finalAfterBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
             InitListValueInArray(finalBeforeBlockList);
             InitListValueInArray(finalAfterBlockList);
         }
@@ -80,9 +82,11 @@ namespace AnalysisExtension.Model
              }*/
 
         //-----read file-----
-        public void ReadFile()
-        {                
-            for (int i = 0; i < StaticValue.FILE_NUMBER; i++)
+        public void AddFileIntoCodeBlock()
+        {
+            string[] list = fileLoader.GetFileList();
+
+            for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
             {
                 /*fake data
                  * for (int j = 0; j < 10; j++)
@@ -99,7 +103,7 @@ namespace AnalysisExtension.Model
                     codeListAfter[i].Add(after);
                 }*/
 
-                string content = File.ReadAllText(StaticValue.fileList[i]);
+                string content = File.ReadAllText(list[i]);
 
                 //TODO : need to split codeBlock into before rule's block
                 CodeBlock codeBlock = new CodeBlock(content);
