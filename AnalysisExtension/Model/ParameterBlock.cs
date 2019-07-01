@@ -46,7 +46,7 @@ namespace AnalysisExtension.Model
 
         public string GetPrintInfo()
         {
-            return "<$" + BlockId + ">";
+            return "<para id=\"" + BlockId + "\"/>";
         }
 
         public void SetBlockId()

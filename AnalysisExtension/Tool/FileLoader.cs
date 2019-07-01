@@ -1,9 +1,7 @@
 ﻿using AnalysisExtension.Model;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
+using System.Windows;
 
 namespace AnalysisExtension.Tool
 {
@@ -11,12 +9,12 @@ namespace AnalysisExtension.Tool
     {
         private static FileLoader instanceFileLoader = null;
         private static string[] fileList = null;
-        private static List<ICodeBlock> ruleList = null;
+        private static List<RuleBlock> ruleList = null;
         public int FILE_NUMBER = 0;
 
         private FileLoader()
         {
-            ruleList = new List<ICodeBlock>();
+            ruleList = new List<RuleBlock>();
         }
 
         public static FileLoader GetInstance()
@@ -46,14 +44,24 @@ namespace AnalysisExtension.Tool
         }
 
         //-----rule-----
-        public void SetRuleList()
+        public void SetRuleList(Analysis analysis)
         {
             //TODO : set rule List
+            string[] rulePath = Directory.GetFiles(analysis.RuleFolderPath,"*.xml");
+
+            for (int i = 0; i < rulePath.Length; i++)
+            {
+                string ruleText = File.ReadAllText(rulePath[i]);
+                RuleBlock ruleBlock = new RuleBlock(ruleText);
+                ruleList.Add(ruleBlock);
+            }
+            
         }
 
-        public List<ICodeBlock> GetRuleList()
+        public List<RuleBlock> GetRuleList()
         {
             return ruleList;
         }
+
     }
 }

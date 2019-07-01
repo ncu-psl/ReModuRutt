@@ -64,6 +64,7 @@
     <Compile Include="Model\CodeBlock.cs" />
     <Compile Include="Model\ICodeBlock.cs" />
     <Compile Include="Model\ParameterBlock.cs" />
+    <Compile Include="Model\RuleBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
     <Compile Include="Tool\AnalysisTool.cs" />
     <Compile Include="Tool\FileLoader.cs" />

@@ -1,0 +1,17 @@
+﻿<rule id="1">
+  <before>
+    integer <para id="1"/>
+    open(<para id="1"/>, file=<para id="2"/>)
+    <block id="1"/>
+    close(<para id="1"/>)
+  </before>
+
+  <after>
+    File* file_ptr = fopen(<para id="2"/>,mode);
+    if(file_ptr == NULL){
+        //error
+    }
+    <block id="1"/>
+    fclose(file_ptr);
+  </after>
+</rule>

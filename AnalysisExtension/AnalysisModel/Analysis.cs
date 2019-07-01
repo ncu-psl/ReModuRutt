@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 
 namespace AnalysisExtension.Model
 {
@@ -8,12 +10,14 @@ namespace AnalysisExtension.Model
         public string Name { get; set; }
         public bool IsChoose { get; set; }
         public List<string> Type { get; set; }
+        public string RuleFolderPath { get; set; }
 
         public Analysis(string name)
         {
             this.Name = name;
             this.IsChoose = false;
             Type = new List<string>();
+            LoadRulePath();
         }
 
         public Analysis(string name,string type)
@@ -24,25 +28,11 @@ namespace AnalysisExtension.Model
             Type.Add(type);
         }
 
-    /*    public List<CodeBlock> GetBeforeCode(int fileIndex)
+
+        private void LoadRulePath()
         {
-            return codeListBefore[fileIndex];
+            RuleFolderPath = Path.Combine(@"..\..\Rule\", Name);
         }
-
-        public List<CodeBlock> GetAfterCode(int fileIndex)
-        {
-            return codeListAfter[fileIndex];
-        }*/
-
-        
-
-        /*private void InitListValueInArray(List<CodeBlock>[] list)
-        {
-            for(int i = 0; i < list.Length; i++)
-            {
-                list[i] = new List<CodeBlock>();
-            }
-        }*/
 
         public virtual void AnalysisMethod()
         {

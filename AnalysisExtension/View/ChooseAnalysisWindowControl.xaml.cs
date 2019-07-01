@@ -1,5 +1,6 @@
 ﻿using AnalysisExtension.AnalysisMode;
 using AnalysisExtension.Model;
+using AnalysisExtension.Tool;
 using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
 using System.Windows;
@@ -61,7 +62,7 @@ namespace AnalysisExtension
 
             for (int i = 0; i < 10; i++)
             {
-                string s = "FtoC" + i;
+                string s = "FtoC" ;
                 FtoC element = new FtoC(s);
 
                 //check type
@@ -90,8 +91,18 @@ namespace AnalysisExtension
 
         private void ShowNextWindow()
         {
+            ReadRule();
             StaticValue.WINDOW.Content = new CheckInfoWindowControl(chooseAnalysis, this, type);
         }
+
+        //-----tool-----
+
+        private void ReadRule()
+        {
+            FileLoader fileLoader = FileLoader.GetInstance();
+            fileLoader.SetRuleList(chooseAnalysis);
+        }
+
         //-----------Listener---------------------------------------
 
         private void OnClickBtNextListener(object sender, RoutedEventArgs e)
