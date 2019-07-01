@@ -76,9 +76,9 @@ namespace AnalysisExtension.Model
             var list = new List<ICodeBlock>(ruleList);
             foreach (ICodeBlock codeBlock in list.ToArray())
             {
-                SplitByCodeBlock(codeBlock, list, layer);
+                SplitByCodeBlock(codeBlock, ruleList, layer);
             }
-            ruleList = list;
+            //ruleList = list;
         }
 
         private void SplitByParameter(string rule, List<ICodeBlock> list, string layer)
@@ -118,12 +118,12 @@ namespace AnalysisExtension.Model
         private void SplitByCodeBlock(ICodeBlock ruleCodeBlock, List<ICodeBlock> list, string layer)
         {
             string content = ruleCodeBlock.GetPrintInfo();
-            int count = 1;// index/number of <block> in <layer>
+            int count = 1;// index/number of <block> in <layer>           
             int insertIndex = list.IndexOf(ruleCodeBlock);
 
+            list.Remove(ruleCodeBlock);//remove from list
             while (content.IndexOf("<block") > -1)
             {
-                list.Remove(ruleCodeBlock);
                 int startIndex = content.IndexOf("<block");
                 int endIndex = content.IndexOf("/>");
                 int endTokenLen = 2;
@@ -136,12 +136,11 @@ namespace AnalysisExtension.Model
                 content = content.Substring(endIndex + endTokenLen);
 
                 if (blockElement == null)
-                {
+                {                    
                     break;
                 }
                 else
                 {
-                    
                     int codeBlockId = int.Parse(GetAttributeInElement(blockElement, "id"));
                     CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
                     codeBlockList.Add(codeBlock);
@@ -151,8 +150,8 @@ namespace AnalysisExtension.Model
                     list.Insert(insertIndex, codeBlock);
                     insertIndex++;
                 }
-                list.Insert(insertIndex, new CodeBlock(content));
             }
+            list.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
         }
 
         //-----xml tool-----
