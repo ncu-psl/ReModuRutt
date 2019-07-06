@@ -36,7 +36,7 @@ namespace AnalysisExtension.Model
             SetRuleId();
             SetBeforeRule(rule);
             SetAfterRule(rule);
-            
+
             /* show rule content
             string text = "";
             var list = new List<ICodeBlock>(AfterRuleSliceList);
@@ -77,6 +77,12 @@ namespace AnalysisExtension.Model
             foreach (ICodeBlock codeBlock in list.ToArray())
             {
                 SplitByCodeBlock(codeBlock, ruleList, layer);
+            }
+
+            list = new List<ICodeBlock>(ruleList);
+            foreach (ICodeBlock codeBlock in list.ToArray())
+            {
+                SplitByLine(codeBlock, ruleList);
             }
             //ruleList = list;
         }
@@ -150,6 +156,42 @@ namespace AnalysisExtension.Model
                     list.Insert(insertIndex, codeBlock);
                     insertIndex++;
                 }
+            }
+            list.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
+        }
+
+        private void SplitByLine(ICodeBlock ruleCodeBlock, List<ICodeBlock> list)
+        {
+            string content = ruleCodeBlock.GetPrintInfo(); 
+            int insertIndex = list.IndexOf(ruleCodeBlock);
+
+            list.Remove(ruleCodeBlock);//remove from list
+            while (content.IndexOf("\r\n") > -1 || content.IndexOf("\n") > -1 || content.IndexOf("\r") > -1)
+            {                
+                string[] splitList = null;
+
+                if (content.IndexOf("\r\n") > -1)
+                {
+                    string[] stringSeparators = new string[] { "\r\n" };
+                    splitList = content.Split(stringSeparators,StringSplitOptions.None);
+                }
+                else if (content.IndexOf("\n") > -1)
+                {
+                    string[] stringSeparators = new string[] { "\n" };
+                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
+                }
+                else if (content.IndexOf("\r") > -1)
+                {
+                    string[] stringSeparators = new string[] { "\r" };
+                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
+                }
+
+                for(int i = 0; i < splitList.Length - 1; i++)
+                {
+                    list.Insert(insertIndex, new CodeBlock(splitList[i]));
+                    insertIndex++;
+                }
+                content = splitList[splitList.Length - 1];
             }
             list.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
         }
