@@ -24,6 +24,18 @@ namespace AnalysisExtension.Model
             AfterRuleSliceList = new List<ICodeBlock>();
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
+            CanSpaceIgnore = true;
+
+            InitRule(rule);
+        }
+
+        public RuleBlock(string rule,bool canSpaceIgnore)
+        {
+            BeforeRuleSliceList = new List<ICodeBlock>();
+            AfterRuleSliceList = new List<ICodeBlock>();
+            paraList = new List<ParameterBlock>();
+            codeBlockList = new List<CodeBlock>();
+            CanSpaceIgnore = canSpaceIgnore;
 
             InitRule(rule);
         }
@@ -59,113 +71,24 @@ namespace AnalysisExtension.Model
         {
             int index = 1;
             XmlElement node = FindElementByTag(index, ruleName, "");
-            SplitByParameter(node.InnerXml, ruleSliceList, ruleName + "/");
+
+            SplitByLine(node.InnerXml , ruleSliceList);
+            SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
         }
-        
-        private void SplitCodeBlockFromList(List<ICodeBlock> ruleList,string layer)
+
+        private void SplitByLine(string ruleText, List<ICodeBlock> list)
         {
-            var list = new List<ICodeBlock>(ruleList);
-            foreach (ICodeBlock codeBlock in list.ToArray())
+            string content = ruleText;
+
+            if (content.IndexOf("\r\n") > -1 || content.IndexOf("\n") > -1 || content.IndexOf("\r") > -1)
             {
-                SplitByCodeBlock(codeBlock, ruleList, layer);
-            }
-
-            list = new List<ICodeBlock>(ruleList);
-            foreach (ICodeBlock codeBlock in list.ToArray())
-            {
-                SplitByLine(codeBlock, ruleList);
-            }
-            //ruleList = list;
-        }
-
-        private void SplitByParameter(string rule, List<ICodeBlock> list, string layer)
-        {
-            string content = rule;
-            int count = 1;// index/number of <para> in <layer>
-
-            while (content.IndexOf("<para") > -1)
-            {
-                int startIndex = content.IndexOf("<para");
-                int endIndex = content.IndexOf("/>");
-                int endTokenLen = 2;
-
-                string stringBefore = content.Substring(0,startIndex);
-
-                XmlElement paraElement = FindElementByTag(count,"para",layer);
-                count++;
-
-                content = content.Substring(endIndex + endTokenLen);
-                if (paraElement == null)
-                {
-                    break;
-                }
-                else
-                {
-                    int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));
-                    ParameterBlock parameterBlock = new ParameterBlock("",paraId);
-                    paraList.Add(parameterBlock);
-
-                    list.Add(new CodeBlock(stringBefore));
-                    list.Add(parameterBlock);
-                }                
-            }
-            list.Add(new CodeBlock(content));
-        }
-
-        private void SplitByCodeBlock(ICodeBlock ruleCodeBlock, List<ICodeBlock> list, string layer)
-        {
-            string content = ruleCodeBlock.GetPrintInfo();
-            int count = 1;// index/number of <block> in <layer>           
-            int insertIndex = list.IndexOf(ruleCodeBlock);
-
-            list.Remove(ruleCodeBlock);//remove from list
-            while (content.IndexOf("<block") > -1)
-            {
-                int startIndex = content.IndexOf("<block");
-                int endIndex = content.IndexOf("/>");
-                int endTokenLen = 2;
-
-                string stringBefore = content.Substring(0, startIndex);
-                XmlElement blockElement = FindElementByTag(count, "block", layer);
-                count++;
-
-                string codeBlockString = content.Substring(startIndex, endIndex - startIndex + endTokenLen);
-                content = content.Substring(endIndex + endTokenLen);
-
-                if (blockElement == null)
-                {                    
-                    break;
-                }
-                else
-                {
-                    int codeBlockId = int.Parse(GetAttributeInElement(blockElement, "id"));
-                    CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
-                    codeBlockList.Add(codeBlock);
-
-                    list.Insert(insertIndex, new CodeBlock(stringBefore));
-                    insertIndex++;
-                    list.Insert(insertIndex, codeBlock);
-                    insertIndex++;
-                }
-            }
-            list.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
-        }
-
-        private void SplitByLine(ICodeBlock ruleCodeBlock, List<ICodeBlock> list)
-        {
-            string content = ruleCodeBlock.GetPrintInfo(); 
-            int insertIndex = list.IndexOf(ruleCodeBlock);
-
-            list.Remove(ruleCodeBlock);//remove from list
-            while (content.IndexOf("\r\n") > -1 || content.IndexOf("\n") > -1 || content.IndexOf("\r") > -1)
-            {                
                 string[] splitList = null;
 
                 if (content.IndexOf("\r\n") > -1)
                 {
                     string[] stringSeparators = new string[] { "\r\n" };
-                    splitList = content.Split(stringSeparators,StringSplitOptions.None);
+                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
                 }
                 else if (content.IndexOf("\n") > -1)
                 {
@@ -180,12 +103,99 @@ namespace AnalysisExtension.Model
 
                 for(int i = 0; i < splitList.Length - 1; i++)
                 {
-                    list.Insert(insertIndex, new CodeBlock(splitList[i]));
-                    insertIndex++;
-                }
+                    list.Add(new CodeBlock(splitList[i]));
+                }               
+
                 content = splitList[splitList.Length - 1];
             }
-            list.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
+            list.Add(new CodeBlock(content));//add remaining content to list
+        }
+
+        private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
+        {
+            var list = new List<ICodeBlock>(ruleList);
+            foreach (ICodeBlock ruleCodeBlock in list.ToArray())
+            {
+                string content = ruleCodeBlock.GetPrintInfo();
+                int blockCount = 1;// index/number of <block> in <layer>           
+                int insertIndex = ruleList.IndexOf(ruleCodeBlock);
+
+                ruleList.Remove(ruleCodeBlock);//remove from list
+                while (content.IndexOf("<block") > -1)
+                {
+                    int startIndex = content.IndexOf("<block");
+                    int endIndex = content.IndexOf("/>");
+                    int endTokenLen = 2;
+
+                    string stringBefore = content.Substring(0, startIndex);
+                    XmlElement blockElement = FindElementByTag(blockCount, "block", layer);
+                    blockCount++;
+
+                    string codeBlockString = content.Substring(startIndex, endIndex - startIndex + endTokenLen);
+                    content = content.Substring(endIndex + endTokenLen);
+
+                    if (blockElement == null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        int codeBlockId = int.Parse(GetAttributeInElement(blockElement, "id"));
+                        CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
+                        codeBlockList.Add(codeBlock);
+
+                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore));
+                        insertIndex++;
+                        ruleList.Insert(insertIndex, codeBlock);
+                        insertIndex++;
+                    }
+                }
+                ruleList.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
+            }
+        }
+
+        private void SplitParameterBlockFromList(List<ICodeBlock> ruleList, string layer)
+        {
+            var list = new List<ICodeBlock>(ruleList);
+            int paraCount = 1;// index/number of <para> in <layer>
+
+            foreach (ICodeBlock ruleCodeBlock in list.ToArray())
+            {
+                string content = ruleCodeBlock.GetPrintInfo();
+                int insertIndex = ruleList.IndexOf(ruleCodeBlock);
+
+                ruleList.Remove(ruleCodeBlock);//remove from list
+
+                while (content.IndexOf("<para") > -1)
+                {
+                    int startIndex = content.IndexOf("<para");
+                    int endIndex = content.IndexOf("/>");
+                    int endTokenLen = 2;
+
+                    string stringBefore = content.Substring(0, startIndex);
+
+                    XmlElement paraElement = FindElementByTag(paraCount, "para", layer);
+                    paraCount++;
+
+                    content = content.Substring(endIndex + endTokenLen);
+                    if (paraElement == null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));
+                        ParameterBlock parameterBlock = new ParameterBlock("", paraId);
+                        paraList.Add(parameterBlock);
+
+                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore));
+                        insertIndex++;
+                        ruleList.Insert(insertIndex, parameterBlock);
+                        insertIndex++;
+                    }
+                }
+                ruleList.Insert(insertIndex, new CodeBlock(content));                
+            }
         }
 
         //-----xml tool-----

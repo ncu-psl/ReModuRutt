@@ -35,7 +35,13 @@ namespace AnalysisExtension.Model
         }
 
         public virtual void AnalysisMethod()
-        {
+        {//TODO : add analysis template 
+            /*
+             IgnoreSpace();
+             GetRule();
+             Compare();//with stack to separate different layer of compare code
+             SaveResult();
+             */
         }
     }
 }
