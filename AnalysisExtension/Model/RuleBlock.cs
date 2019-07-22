@@ -34,10 +34,10 @@ namespace AnalysisExtension.Model
             xmlDocument.LoadXml(rule);
 
             SetRuleId();
-            SetBeforeRule(rule);
-            SetAfterRule(rule);
+            LoadRule("before" , BeforeRuleSliceList);
+            LoadRule("after" , AfterRuleSliceList);
 
-            /* show rule content
+           /*  show rule content
             string text = "";
             var list = new List<ICodeBlock>(AfterRuleSliceList);
             foreach (ICodeBlock codeBlock in list.ToArray())
@@ -48,29 +48,21 @@ namespace AnalysisExtension.Model
             MessageBox.Show(text);
             */
         }
-
+        
         private void SetRuleId()
         {
             XmlElement element = xmlDocument.DocumentElement;
-            RuleId = int.Parse(GetAttributeInElement(element,"id"));
+            RuleId = int.Parse(GetAttributeInElement(element, "id"));
         }
 
-        private void SetBeforeRule(string rule)
+        private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
             int index = 1;
-            XmlElement node = FindElementByTag(index,"before","");
-            SplitByParameter(node.InnerXml,BeforeRuleSliceList,"before/");
-            SplitCodeBlockFromList(BeforeRuleSliceList, "before/");
+            XmlElement node = FindElementByTag(index, ruleName, "");
+            SplitByParameter(node.InnerXml, ruleSliceList, ruleName + "/");
+            SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
         }
-
-        private void SetAfterRule(string rule)
-        {
-            int index = 1;
-            XmlElement node = FindElementByTag(index, "after", "");
-            SplitByParameter(node.InnerXml, AfterRuleSliceList, "after/");
-            SplitCodeBlockFromList(AfterRuleSliceList, "after/");
-        }
-
+        
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList,string layer)
         {
             var list = new List<ICodeBlock>(ruleList);
