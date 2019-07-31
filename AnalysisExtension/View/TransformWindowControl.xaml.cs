@@ -28,7 +28,6 @@ namespace AnalysisExtension.View
             this.previousControl = previousControl;
             this.analysisMode = analysisMode;
             fileNum = fileLoader.FILE_NUMBER;
-            analysisTool.AddFileIntoCodeBlock();
 
             Refresh();
         }

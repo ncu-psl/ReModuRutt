@@ -99,8 +99,7 @@ namespace AnalysisExtension
 
         private void ReadRule()
         {
-            FileLoader fileLoader = FileLoader.GetInstance();
-            fileLoader.SetRuleList(chooseAnalysis);
+            chooseAnalysis.SetRuleList();
         }
 
         //-----------Listener---------------------------------------

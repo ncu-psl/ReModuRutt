@@ -9,12 +9,10 @@ namespace AnalysisExtension.Tool
     {
         private static FileLoader instanceFileLoader = null;
         private static string[] fileList = null;
-        private static List<RuleBlock> ruleList = null;
         public int FILE_NUMBER = 0;
 
         private FileLoader()
         {
-            ruleList = new List<RuleBlock>();
         }
 
         public static FileLoader GetInstance()
@@ -36,6 +34,8 @@ namespace AnalysisExtension.Tool
             {
                 fileList[i] = list[i].Path;
             }
+
+            AddFileIntoCodeBlock();
         }
 
         public string[] GetFileList()
@@ -43,25 +43,38 @@ namespace AnalysisExtension.Tool
             return fileList;
         }
 
-        //-----rule-----
-        public void SetRuleList(Analysis analysis)
+        //-----read file-----
+        public void AddFileIntoCodeBlock()
         {
-            //TODO : set rule List
-            string[] rulePath = Directory.GetFiles(analysis.RuleFolderPath,"*.xml");
+            AnalysisTool analysisTool = AnalysisTool.GetInstance();
+            analysisTool.InitBlockList();
 
-            for (int i = 0; i < rulePath.Length; i++)
+            for (int i = 0; i < FILE_NUMBER; i++)
             {
-                string ruleText = File.ReadAllText(rulePath[i]);
-                RuleBlock ruleBlock = new RuleBlock(ruleText);
-                ruleList.Add(ruleBlock);
+                /*fake data
+                 * for (int j = 0; j < 10; j++)
+                {
+                    CodeBlock before = new CodeBlock();
+                    CodeBlock after = new CodeBlock();
+
+                    before.Content = "code before" + "\n" + "code Before" + j;
+                    before.BlockId = j;
+                    after.Content = "code after" + "\n" + "code After" + j;
+                    after.BlockId = j % 5;
+
+                    codeListBefore[i].Add(before);
+                    codeListAfter[i].Add(after);
+                }*/
+
+                string content = File.ReadAllText(fileList[i]);
+
+                //TODO : need to split codeBlock into before rule's block
+                CodeBlock codeBlock = new CodeBlock(content);
+
+                
+                analysisTool.AddIntoBeforeList(codeBlock, i);
+                analysisTool.AddIntoAfterList(codeBlock, i);
             }
-            
         }
-
-        public List<RuleBlock> GetRuleList()
-        {
-            return ruleList;
-        }
-
     }
 }

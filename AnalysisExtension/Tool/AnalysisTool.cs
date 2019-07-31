@@ -17,10 +17,7 @@ namespace AnalysisExtension.Model
 
         private AnalysisTool()
         {
-            finalBeforeBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
-            finalAfterBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
-            InitListValueInArray(finalBeforeBlockList);
-            InitListValueInArray(finalAfterBlockList);
+            InitBlockList();
         }
 
         public static AnalysisTool GetInstance()
@@ -33,6 +30,13 @@ namespace AnalysisExtension.Model
             return codeBlockTool;
         }
 
+        public void InitBlockList()
+        {
+            finalBeforeBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
+            finalAfterBlockList = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
+            InitListValueInArray(finalBeforeBlockList);
+            InitListValueInArray(finalAfterBlockList);
+        }
         //-----list method-----
         public void AddIntoBeforeList(ICodeBlock codeBlock,int fileIndex)
         {
@@ -80,38 +84,5 @@ namespace AnalysisExtension.Model
 
                  return layerId;
              }*/
-
-        //-----read file-----
-        public void AddFileIntoCodeBlock()
-        {
-            string[] list = fileLoader.GetFileList();
-
-            for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
-            {
-                /*fake data
-                 * for (int j = 0; j < 10; j++)
-                {
-                    CodeBlock before = new CodeBlock();
-                    CodeBlock after = new CodeBlock();
-
-                    before.Content = "code before" + "\n" + "code Before" + j;
-                    before.BlockId = j;
-                    after.Content = "code after" + "\n" + "code After" + j;
-                    after.BlockId = j % 5;
-
-                    codeListBefore[i].Add(before);
-                    codeListAfter[i].Add(after);
-                }*/
-
-                string content = File.ReadAllText(list[i]);
-
-                //TODO : need to split codeBlock into before rule's block
-                CodeBlock codeBlock = new CodeBlock(content);
-
-                AddIntoBeforeList(codeBlock, i);
-                AddIntoAfterList(codeBlock, i);
-            }
-        }
-
     }
 }
