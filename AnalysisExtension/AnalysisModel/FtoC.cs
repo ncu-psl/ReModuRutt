@@ -1,4 +1,5 @@
 ﻿using AnalysisExtension.Model;
+using System.Threading;
 
 namespace AnalysisExtension.AnalysisMode
 {
@@ -9,11 +10,5 @@ namespace AnalysisExtension.AnalysisMode
             Type.Add("f");
         }
 
-        //override
-        public override void AnalysisMethod()
-        {
-            //TODO : save result to finalAfterBlockList
-            System.Threading.Thread.Sleep(2000);
-        }
     }
 }

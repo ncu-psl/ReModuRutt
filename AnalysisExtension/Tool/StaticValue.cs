@@ -17,7 +17,7 @@ namespace AnalysisExtension
         public static string CODE_BLOCK_TYPE_NAME = "code block type";
         
         public static int CODE_BLOCK_ID_COUNT = 0;
-        public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
+      //  public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
         //-----method-----
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
@@ -64,19 +64,13 @@ namespace AnalysisExtension
             return result;
         }
 
-        public static List<string> GetFileType(List<FileTreeNode> fileList)
+        public static int GetNextBlockId()
         {
-            List<string> fileTypeSet = new List<string>();
-
-            foreach (FileTreeNode file in fileList)
-            {
-                if (file.Type != null && !fileTypeSet.Contains(file.Type))
-                {
-                    fileTypeSet.Add(file.Type);
-                }
-            }
-            return fileTypeSet;
+            int idNow = CODE_BLOCK_ID_COUNT;
+            CODE_BLOCK_ID_COUNT++;
+            return idNow;
         }
+
     }
 
 }

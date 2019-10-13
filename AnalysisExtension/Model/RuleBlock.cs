@@ -1,5 +1,7 @@
-﻿using System;
+﻿using AnalysisExtension.Tool;
+using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Xml;
 
@@ -17,6 +19,8 @@ namespace AnalysisExtension.Model
         private List<CodeBlock> codeBlockList;
 
         private XmlDocument xmlDocument = new XmlDocument();
+
+        private int ruleBlockId = StaticValue.GetNextBlockId();
 
         public RuleBlock(string rule)
         {
@@ -42,23 +46,23 @@ namespace AnalysisExtension.Model
 
         //-----ruleList-----
         private void InitRule(string rule)
-        {           
+        {
             xmlDocument.LoadXml(rule);
 
             SetRuleId();
             LoadRule("before" , BeforeRuleSliceList);
             LoadRule("after" , AfterRuleSliceList);
+            ReplaceWhitespaceToRegexToken(BeforeRuleSliceList);
 
-           /*  show rule content
-            string text = "";
-            var list = new List<ICodeBlock>(AfterRuleSliceList);
-            foreach (ICodeBlock codeBlock in list.ToArray())
-            {
-                text += codeBlock.GetPrintInfo() + "\n";
-                
-            }
-            MessageBox.Show(text);
-            */
+            /*  show rule content
+             string text = "";
+             var list = new List<ICodeBlock>(BeforeRuleSliceList);
+             foreach (ICodeBlock codeBlock in list.ToArray())
+             {
+                 text += codeBlock.BlockId + " : " + codeBlock.GetPrintInfo() + "\n";
+             }
+             MessageBox.Show(text);
+             */
         }
         
         private void SetRuleId()
@@ -73,42 +77,31 @@ namespace AnalysisExtension.Model
             XmlElement node = FindElementByTag(index, ruleName, "");
 
             SplitByLine(node.InnerXml , ruleSliceList);
+           // SplitPairTokenFromList(ruleSliceList);
             SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
-            SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
+            SplitCodeBlockFromList(ruleSliceList, ruleName + "/");            
+            RemoveEmptyRuleSlice(ruleSliceList);
         }
 
         private void SplitByLine(string ruleText, List<ICodeBlock> list)
         {
             string content = ruleText;
 
-            if (content.IndexOf("\r\n") > -1 || content.IndexOf("\n") > -1 || content.IndexOf("\r") > -1)
+            while (content.Length > 0)
             {
-                string[] splitList = null;
-
-                if (content.IndexOf("\r\n") > -1)
+                Match match = Regex.Match(content, "[\r\n]+");
+                if (match.Success)
                 {
-                    string[] stringSeparators = new string[] { "\r\n" };
-                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
+                    int index = match.Index + match.Length;
+                    list.Add(new CodeBlock(content.Substring(0, index),ruleBlockId,-1));//add with \n\r
+                    content = content.Substring(index);
                 }
-                else if (content.IndexOf("\n") > -1)
+                else
                 {
-                    string[] stringSeparators = new string[] { "\n" };
-                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
+                    list.Add(new CodeBlock(content, ruleBlockId, -1));
+                    break;
                 }
-                else if (content.IndexOf("\r") > -1)
-                {
-                    string[] stringSeparators = new string[] { "\r" };
-                    splitList = content.Split(stringSeparators, StringSplitOptions.None);
-                }
-
-                for(int i = 0; i < splitList.Length - 1; i++)
-                {
-                    list.Add(new CodeBlock(splitList[i]));
-                }               
-
-                content = splitList[splitList.Length - 1];
             }
-            list.Add(new CodeBlock(content));//add remaining content to list
         }
 
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
@@ -120,6 +113,10 @@ namespace AnalysisExtension.Model
                 int blockCount = 1;// index/number of <block> in <layer>           
                 int insertIndex = ruleList.IndexOf(ruleCodeBlock);
 
+                if (ruleCodeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                {
+                    continue;
+                }
                 ruleList.Remove(ruleCodeBlock);//remove from list
                 while (content.IndexOf("<block") > -1)
                 {
@@ -142,15 +139,14 @@ namespace AnalysisExtension.Model
                     {
                         int codeBlockId = int.Parse(GetAttributeInElement(blockElement, "id"));
                         CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
-                        codeBlockList.Add(codeBlock);
 
-                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore));
+                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
                         insertIndex++;
                         ruleList.Insert(insertIndex, codeBlock);
                         insertIndex++;
                     }
                 }
-                ruleList.Insert(insertIndex, new CodeBlock(content));//add remaining content to list
+                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));//add remaining content to list
             }
         }
 
@@ -186,18 +182,79 @@ namespace AnalysisExtension.Model
                     {
                         int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));
                         ParameterBlock parameterBlock = new ParameterBlock("", paraId);
-                        paraList.Add(parameterBlock);
 
-                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore));
+                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
                         insertIndex++;
                         ruleList.Insert(insertIndex, parameterBlock);
                         insertIndex++;
                     }
                 }
-                ruleList.Insert(insertIndex, new CodeBlock(content));                
+                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));                
             }
         }
 
+        private void SplitPairTokenFromList(List<ICodeBlock> ruleList)
+        {
+            var list = new List<ICodeBlock>(ruleList);
+
+            foreach (ICodeBlock ruleCodeBlock in list.ToArray())
+            {
+                string content = ruleCodeBlock.GetPrintInfo();
+                int insertIndex = ruleList.IndexOf(ruleCodeBlock);
+
+                ruleList.Remove(ruleCodeBlock);//remove from list
+                                
+                if (EscapeTokenSet.GetPairTokenIndex(content) > -1)
+                {
+                    int startIndex = EscapeTokenSet.GetPairTokenIndex(content);
+                    string token = EscapeTokenSet.GetToken(content);
+
+                    string stringBefore = content.Substring(0, startIndex);
+                    content = content.Substring(startIndex + token.Length);
+                    
+                    ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
+                    insertIndex++;
+                    ruleList.Insert(insertIndex, new CodeBlock(token, ruleBlockId, -1));
+                    insertIndex++;                    
+                }
+                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));
+            }
+        }
+
+        private void RemoveEmptyRuleSlice(List<ICodeBlock> list)
+        {
+            foreach (ICodeBlock ruleSlice in list.ToArray())
+            {
+                if (!(ruleSlice.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(ruleSlice.Content.Contains("<block")))
+                {
+                    Match match = Regex.Match(ruleSlice.Content, @"[\S]");
+                    if (!match.Success || ruleSlice.Content.Length == 0)
+                    {
+                        list.Remove(ruleSlice);
+                    }
+                }
+            }
+        }
+
+        private void ReplaceWhitespaceToRegexToken(List<ICodeBlock> list)
+        {///replace \n, \r, \t, and " " to regex simbol , and escape those content not include  in \n, \r, \t, \f, and " " 
+            string whitespacePattern = @"[\s\t]+";
+            string linePattern = @"[\n\r]+";
+            foreach (ICodeBlock ruleSlice in list)
+            {
+                if (!(ruleSlice.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(ruleSlice.Content.Contains("<block")))
+                {
+                    MatchCollection matches = Regex.Matches(ruleSlice.Content, @"[\S]");//not include 
+                    foreach (Match match in matches)
+                    {
+                        ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
+                    }
+                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
+                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, whitespacePattern, @"[\s\t]*");
+                }
+            }
+        }
+               
         //-----xml tool-----
         private XmlElement FindElementByTag(int index,string tag,string layer)
         {
@@ -217,18 +274,18 @@ namespace AnalysisExtension.Model
         {
             paraList.Add(parameterBlock);
         }      
+        
+        public ParameterBlock GetParameterById(int id)
+        {            
+            foreach (ParameterBlock parameter in paraList)
+            {
+                if (parameter.ParaListIndex == id)
+                {
+                    return parameter;
+                }
+            }
 
-        public ParameterBlock GetParameterFromIndex(int i)
-        {
-            if (i < paraList.Count)
-            {
-                return paraList[i];
-            }
-            else
-            {
-                //throw exception?
-                return null;
-            }
+            return null;
         }
 
         //-----code block-----
@@ -236,18 +293,57 @@ namespace AnalysisExtension.Model
         {
             codeBlockList.Add(codeBlock);
         }
-
-        public CodeBlock GetCodeBlockFromIndex(int i)
+        
+        public CodeBlock GetCodeBlockrById(int id)
         {
-            if (i < codeBlockList.Count)
+            foreach (CodeBlock codeBlock in codeBlockList)
             {
-                return codeBlockList[i];
+                if (codeBlock.BlockListIndex == id)
+                {
+                    return codeBlock;
+                }
             }
-            else
-            {
-                //throw exception?
-                return null;
-            }
+
+            return null;
         }
+
+        //-----init-----
+
+        public void InitRuleSetting()
+        {
+            InitCodeBlockList();
+            InitParameterList();
+            ruleBlockId = StaticValue.GetNextBlockId();
+            int maxId = -1;
+            foreach (ICodeBlock codeBlock in BeforeRuleSliceList)
+            {
+                codeBlock.BlockId = codeBlock.BlockId + ruleBlockId;
+                if (maxId < codeBlock.BlockId)
+                {
+                    maxId = codeBlock.BlockId;
+                }
+            }
+            foreach (ICodeBlock codeBlock in AfterRuleSliceList)
+            {
+                codeBlock.BlockId = codeBlock.BlockId + ruleBlockId;
+                if (maxId < codeBlock.BlockId)
+                {
+                    maxId = codeBlock.BlockId;
+                }
+            }
+
+            StaticValue.CODE_BLOCK_ID_COUNT = maxId;
+        }
+
+        private void InitCodeBlockList()
+        {
+            codeBlockList = new List<CodeBlock>();
+        }
+
+        private void InitParameterList()
+        {
+            paraList = new List<ParameterBlock>();
+        }
+
     }
 }

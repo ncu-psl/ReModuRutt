@@ -1,7 +1,6 @@
 ﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -13,7 +12,6 @@ namespace AnalysisExtension.View
     {
         private UserControl previousControl;
 
-        private Analysis analysisMode;
         private int fileNum;
         private int nowPageIndex = 0;
 
@@ -23,16 +21,26 @@ namespace AnalysisExtension.View
         private AnalysisTool analysisTool = AnalysisTool.GetInstance();
         private FileLoader fileLoader = FileLoader.GetInstance();
 
-        public TransformWindowControl(Analysis analysisMode,UserControl previousControl)
-        {
-            this.previousControl = previousControl;
-            this.analysisMode = analysisMode;
-            fileNum = fileLoader.FILE_NUMBER;
+        private List<ICodeBlock>[] beforeList;
+        private List<ICodeBlock>[] afterList;
 
+        //   private static readonly object colorLock = new object();
+
+        public TransformWindowControl(UserControl previousControl)
+        {        
+            this.previousControl = previousControl;
+            fileNum = fileLoader.FILE_NUMBER;
+            GetListFromAnalysisTool();
             Refresh();
         }
 
         //-----init-----
+        private void GetListFromAnalysisTool()
+        {
+            beforeList = analysisTool.GetFinalBeforeBlockList();
+            afterList = analysisTool.GetFinalAfterBlockList();
+        }
+
         private void InitScrollViewIndex()
         {
             scrollViewIndex = new double[scrollViewerList.Count, 2];
@@ -104,7 +112,7 @@ namespace AnalysisExtension.View
         }
 
         //-----set view----
-        private void SetTabView()
+        private async void SetTabView()
         {
             InitTabView();
             string[] fileList = fileLoader.GetFileList();
@@ -114,7 +122,8 @@ namespace AnalysisExtension.View
                 TabItem item = new TabItem();
                 item.Header = StaticValue.GetNameFromPath(fileList[i]);
 
-                SetTabControl(item, analysisTool.GetFinalBeforeBlockList(i), analysisTool.GetFinalAfterBlockList(i));
+                SetTabControl(item, beforeList[i], afterList[i]);
+              //  SetTabControl(item, analysisTool.GetResultBeforeBlockList(i), analysisTool.GetResultBeforeBlockList(i));
 
                 resultTabControl.Items.Add(item);
             }
@@ -167,6 +176,7 @@ namespace AnalysisExtension.View
             listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
             listView.HorizontalContentAlignment = HorizontalAlignment.Stretch;
             listView.ItemsSource = content;
+            
             listView.SelectionChanged += CodeList_SelectionChanged;
 
             ScrollViewer scrollViewer = new ScrollViewer();
@@ -176,8 +186,8 @@ namespace AnalysisExtension.View
             scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
 
             scrollViewerList.Add(scrollViewer);
-
             return scrollViewer;
+
         }
 
         //-----Listener-----
@@ -190,14 +200,14 @@ namespace AnalysisExtension.View
 
             if (index != -1)
             {
-                CodeBlock chooseBlock = listView.SelectedItem as CodeBlock;
+                ICodeBlock chooseBlock = listView.SelectedItem as ICodeBlock;
 
                 SolidColorBrush changeColor = new SolidColorBrush(Colors.Blue);
                 SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
 
                 for (int i = 0; i < fileNum; i++)
                 {
-                    foreach (CodeBlock codeBlock in analysisTool.GetFinalBeforeBlockList(i))
+                    foreach (ICodeBlock codeBlock in beforeList[i])
                     {
                         if (codeBlock.BlockId == chooseBlock.BlockId)
                         {
@@ -213,7 +223,7 @@ namespace AnalysisExtension.View
 
                 for (int i = 0; i < fileNum; i++)
                 {
-                    foreach (CodeBlock codeBlock in analysisTool.GetFinalAfterBlockList(i))
+                    foreach (ICodeBlock codeBlock in afterList[i])
                     {
                         if (codeBlock.BlockId == chooseBlock.BlockId)
                         {

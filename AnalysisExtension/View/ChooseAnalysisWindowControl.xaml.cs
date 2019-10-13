@@ -1,7 +1,6 @@
 ﻿using AnalysisExtension.AnalysisMode;
 using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
-using Microsoft.VisualStudio.Shell;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,17 +11,17 @@ namespace AnalysisExtension
     {
         private UserControl previousControl = null;
 
-        private List<FileTreeNode> chooseFile;
         private List<Analysis> analysisListElement;
-        private List<string> type;
+        private List<string> typeList;
         private Analysis chooseAnalysis;
         private bool hasChoose = false;
+        private FileLoader fileLoader = FileLoader.GetInstance();
 
         //----------------set------------------------
-        public ChooseAnalysisWindowControl(UserControl previousControl, List<string> type)
+        public ChooseAnalysisWindowControl(UserControl previousControl)
         {
             this.previousControl = previousControl;
-            this.type = type;
+            typeList = fileLoader.GetFileType();
             chooseAnalysis = null;
 
             Refresh();
@@ -43,13 +42,13 @@ namespace AnalysisExtension
         {
             choose_analysis_info_tb.Text = "Select the analysis method that want to do.";            
 
-            if (type.Count > 0)
+            if (typeList.Count > 0)
             {
                 string info = "\nType of Choose File :";
 
-                for(int i = 0;i < type.Count;i++)
+                for(int i = 0;i < typeList.Count;i++)
                 {
-                    info += " " + type[i] + " ";
+                    info += " " + typeList[i] + " ";
                 }
 
                 choose_analysis_info_tb.Text += info;
@@ -67,7 +66,7 @@ namespace AnalysisExtension
 
                 //check type
                 bool isFind = false;
-                foreach (string t in type)
+                foreach (string t in typeList)
                 {
                     if (element.Type.Contains(t))
                     {
@@ -91,15 +90,9 @@ namespace AnalysisExtension
 
         private void ShowNextWindow()
         {
-            ReadRule();
-            StaticValue.WINDOW.Content = new CheckInfoWindowControl(chooseAnalysis, this, type);
-        }
-
-        //-----tool-----
-
-        private void ReadRule()
-        {
-            chooseAnalysis.SetRuleList();
+            chooseAnalysis.LoadRuleList();
+            AnalysisTool.GetInstance().SetAnalysisMode(chooseAnalysis);
+            StaticValue.WINDOW.Content = new CheckInfoWindowControl(this);
         }
 
         //-----------Listener---------------------------------------

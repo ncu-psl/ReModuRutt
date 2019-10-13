@@ -1,7 +1,6 @@
 ﻿using AnalysisExtension.Model;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows;
 
 namespace AnalysisExtension.Tool
 {
@@ -10,6 +9,9 @@ namespace AnalysisExtension.Tool
         private static FileLoader instanceFileLoader = null;
         private static string[] fileList = null;
         public int FILE_NUMBER = 0;
+        private static List<string> fileTypeSet = new List<string>();
+
+        private static string[] fileContent = null;
 
         private FileLoader()
         {
@@ -29,7 +31,7 @@ namespace AnalysisExtension.Tool
         {
             FILE_NUMBER = list.Count;
             fileList = new string[FILE_NUMBER];
-
+            fileContent = new string[FILE_NUMBER];
             for (int i = 0; i < FILE_NUMBER; i++)
             {
                 fileList[i] = list[i].Path;
@@ -41,6 +43,22 @@ namespace AnalysisExtension.Tool
         public string[] GetFileList()
         {
             return fileList;
+        }
+
+        public void SetFileType(List<FileTreeNode> fileList)
+        {
+            foreach (FileTreeNode file in fileList)
+            {
+                if (file.Type != null && !fileTypeSet.Contains(file.Type))
+                {
+                    fileTypeSet.Add(file.Type);
+                }
+            }            
+        }
+
+        public List<string> GetFileType()
+        {
+            return fileTypeSet;
         }
 
         //-----read file-----
@@ -66,15 +84,14 @@ namespace AnalysisExtension.Tool
                     codeListAfter[i].Add(after);
                 }*/
 
-                string content = File.ReadAllText(fileList[i]);
-
-                //TODO : need to split codeBlock into before rule's block
-                CodeBlock codeBlock = new CodeBlock(content);
-
-                
-                analysisTool.AddIntoBeforeList(codeBlock, i);
-                analysisTool.AddIntoAfterList(codeBlock, i);
+                fileContent[i] = File.ReadAllText(fileList[i]);                
             }
+        }
+
+        //-----get content -----
+        public string[] GetFileContent()
+        {
+            return fileContent;
         }
     }
 }

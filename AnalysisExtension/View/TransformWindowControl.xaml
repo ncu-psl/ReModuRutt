@@ -12,6 +12,15 @@
             <TextBlock Text="{Binding Content}" Background="{Binding BackgroundColor}"/>
         </DataTemplate>
 
+        
+        <!--ItemsPanelTemplate x:Key="horizonalListViewTemplate">
+            <StackPanel Orientation="Horizontal" ScrollViewer.CanContentScroll="False" />
+        </-->
+        <!--DataTemplate x:Key="codeListView">
+            <http://www.aspphp.online/bianchen/dnet/gydnet/201701/169101.html>
+            <ListView FlowDirection="LeftToRight" />
+        </-->
+
         <ControlTemplate x:Key="centerButtonGroup">
             <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                 <Button Content="change all files" Margin="2,0,0,0"/>

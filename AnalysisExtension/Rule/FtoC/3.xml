@@ -1,6 +1,6 @@
 <rule id="3">
   <before>
-    if(<block id="1"/>)then
+    if (<block id="1"/>) then
     <block id="2"/>
     endif
   </before>

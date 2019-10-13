@@ -80,13 +80,13 @@ namespace AsyncToolWindowSample.ToolWindows
         {
             FileLoader fileLoader = FileLoader.GetInstance();
             fileLoader.SetFileList(list);
+            fileLoader.SetFileType(list);
         }
 
         private void ShowNextWindow()
         {
             ReadFile(chooseNodeList);
-            List<string> type = StaticValue.GetFileType(chooseNodeList);
-            StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(this, type);
+            StaticValue.WINDOW.Content = new ChooseAnalysisWindowControl(this);
         }
         
         //-----------------listener-----------------------------

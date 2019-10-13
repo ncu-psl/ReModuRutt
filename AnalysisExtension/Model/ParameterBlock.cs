@@ -6,31 +6,45 @@ namespace AnalysisExtension.Model
     {
         public string Content { get; set; }
         public int BlockId { get; set; }
-        public int LayerId { get; set; }
+        public int ParaListIndex { get; set; }//the id in the ruleBlock's parameterList
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName => StaticValue.PARAMETER_BLOCK_TYPE_NAME;
+        public string TypeName { get { return StaticValue.PARAMETER_BLOCK_TYPE_NAME;} }
+
+        public bool IsMatchRule { get; set; }
 
         public ParameterBlock()
         {
             Content = "";
             BlockId = -1;
-            LayerId = -1;
+            ParaListIndex = -1;
             BackgroundColor = new SolidColorBrush(Colors.White);
+            IsMatchRule = true;
         }
 
         public ParameterBlock(string content)
         {
             Content = content;
-            LayerId = -1;
+            BlockId = StaticValue.GetNextBlockId();
+            ParaListIndex = -1;
             BackgroundColor = new SolidColorBrush(Colors.White);
-            SetBlockId();
+            IsMatchRule = true;
         }
 
-        public ParameterBlock(string content, int id)
+        public ParameterBlock(string content, int paraListIndex)
         {
             Content = content;
-            BlockId = id;
-            LayerId = -1;
+            BlockId = StaticValue.GetNextBlockId();
+            ParaListIndex = paraListIndex;
+            IsMatchRule = true;
+            BackgroundColor = new SolidColorBrush(Colors.White);
+        }
+
+        public ParameterBlock(string content, int blockId,int paraListIndex)
+        {
+            Content = content;
+            BlockId = blockId;
+            ParaListIndex = paraListIndex;
+            IsMatchRule = true;
             BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
@@ -47,12 +61,6 @@ namespace AnalysisExtension.Model
         public string GetPrintInfo()
         {
             return "<para id=\"" + BlockId + "\"/>";
-        }
-
-        public void SetBlockId()
-        {
-            BlockId = StaticValue.PARAMETER_BLOCK_TYPE_ID_COUNT;
-            StaticValue.PARAMETER_BLOCK_TYPE_ID_COUNT++;
         }
     }
 }
