@@ -1,11 +1,6 @@
 ﻿using AnalysisExtension.Tool;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 
 namespace AnalysisExtension.Model
 {
@@ -159,14 +154,11 @@ namespace AnalysisExtension.Model
         public List<ICodeBlock>[][] AnalysisMethod(BackgroundWorker backgroundWorker)
         {
             backgroundWorker.ReportProgress(0);
-            analysisMode.AnalysisMethod();
-            backgroundWorker.ReportProgress(50);
-            List<ICodeBlock>[][] result =// MergeBlock(backgroundWorker);
-                new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
+            analysisMode.AnalysisMethod(backgroundWorker);
+            List<ICodeBlock>[][] result = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
             for (int i = 0; i < result.Length; i++)
             {
                 result[i] = new List<ICodeBlock>[2];
-                // result[i][0] = new List<ICodeBlock>();
                 List<ICodeBlock> beforeCodeBlockList = finalBeforeBlockList[i];
                 List<ICodeBlock> afterCodeBlockList = finalAfterBlockList[i];
                 result[i][0] = beforeCodeBlockList;

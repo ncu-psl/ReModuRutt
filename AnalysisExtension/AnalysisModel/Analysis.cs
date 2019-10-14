@@ -1,5 +1,6 @@
 ﻿using AnalysisExtension.Tool;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -53,20 +54,23 @@ namespace AnalysisExtension.Model
         }
 
         //-----analysis method-----
-        public void AnalysisMethod()
+        public void AnalysisMethod(BackgroundWorker backgroundWorker)
         {
             string[] orgContentList = FileLoader.GetInstance().GetFileContent();
-                           
+            
             for (int fileCount = 0; fileCount < orgContentList.Length; fileCount++)
             {
                 bool isMatch = false;
-                foreach (RuleBlock ruleBlock in ruleList)
+
+                backgroundWorker.ReportProgress((int)((float)(fileCount + 1) / orgContentList.Length) * 80);
+
+                foreach(RuleBlock ruleBlock in ruleList)
                 {
                     isMatch = MatchRule(ruleBlock, fileCount, orgContentList[fileCount]);
                     if (isMatch)
                     {
                         break;
-                    }
+                    }                    
                 }
 
                 if (!isMatch)
