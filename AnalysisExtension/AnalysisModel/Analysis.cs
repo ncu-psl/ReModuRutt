@@ -63,8 +63,7 @@ namespace AnalysisExtension.Model
                 bool isMatch = false;
 
                 backgroundWorker.ReportProgress((int)((float)(fileCount + 1) / orgContentList.Length) * 80);
-
-                foreach(RuleBlock ruleBlock in ruleList)
+                foreach (RuleBlock ruleBlock in ruleList)
                 {
                     isMatch = MatchRule(ruleBlock, fileCount, orgContentList[fileCount]);
                     if (isMatch)
@@ -470,8 +469,8 @@ namespace AnalysisExtension.Model
             }
             else
             {
-                indexAfterStartToken = Regex.Match(orgContent, startToken).Index + Regex.Match(orgContent, startToken).Length;
                 Match match = Regex.Match(content, startToken);
+                indexAfterStartToken = match.Index + match.Length;
                 startTokenContent = match.Value;
                 front = content.Substring(0, match.Index);
                 content = content.Substring(match.Index);
