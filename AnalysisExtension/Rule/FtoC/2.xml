@@ -1,13 +1,13 @@
 <rule id="2">
   <before>
-    do i = 1, <para id="1"/>
+    do <para id="1"/> = 1, <para id="2"/>
     <block id="1"/>
     enddo
   </before>
   
 
   <after>
-    for(int i = 0; i lt <para id="1"/>; i++)
+    for(int <para id="1"/> = 0; <para id="1"/> lt <para id="2"/>; <para id="1"/>++)
     {
         <block id="1"/>
     }

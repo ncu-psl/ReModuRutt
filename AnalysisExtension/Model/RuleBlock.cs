@@ -238,7 +238,7 @@ namespace AnalysisExtension.Model
 
         private void ReplaceWhitespaceToRegexToken(List<ICodeBlock> list)
         {///replace \n, \r, \t, and " " to regex simbol , and escape those content not include  in \n, \r, \t, \f, and " " 
-            string whitespacePattern = @"[\s\t]+";
+            string whitespacePattern = @"[ \t]+";
             string linePattern = @"[\n\r]+";
             foreach (ICodeBlock ruleSlice in list)
             {
@@ -250,7 +250,7 @@ namespace AnalysisExtension.Model
                         ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
                     }
                     ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
-                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, whitespacePattern, @"[\s\t]*");
+                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, whitespacePattern, @"[ \t]+");
                 }
             }
         }
