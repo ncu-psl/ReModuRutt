@@ -249,8 +249,39 @@ namespace AnalysisExtension.Model
                     {
                         ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
                     }
+
+                    MatchCollection whitespaceMatches = Regex.Matches(ruleSlice.Content, whitespacePattern);
+                    int indexShift = 0;
+                    foreach (Match match in whitespaceMatches)
+                    {
+                        string changePattern = "";
+                        int actualIndex = match.Index + indexShift;
+                        if (actualIndex > 0 && actualIndex < ruleSlice.Content.Length - 1)
+                        {
+                            if ((Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\w]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\w]").Success) &&
+                                !(Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\W]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\W]").Success ))
+                            {
+                                changePattern = @"[ \t]+";
+                            }
+                            else
+                            {
+                                changePattern = @"[ \t]*";
+                            }
+                        }
+                        else if (list.IndexOf(ruleSlice) == 0 && actualIndex == 0)
+                        {//start at whitespace
+                            changePattern = @"\b[ \t]*";
+                        }
+                        else
+                        {
+                            changePattern = @"[ \t]*";
+                        }
+
+                        ruleSlice.Content = ruleSlice.Content.Remove(actualIndex, match.Length);
+                        ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
+                        indexShift = indexShift - match.Length + changePattern.Length;
+                    }
                     ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
-                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, whitespacePattern, @"[ \t]+");
                 }
             }
         }
