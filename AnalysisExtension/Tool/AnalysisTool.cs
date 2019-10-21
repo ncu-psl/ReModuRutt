@@ -140,10 +140,16 @@ namespace AnalysisExtension.Model
             }
         }
 
-        //--------
+        //--------init analysis mode 
         public void SetAnalysisMode(Analysis analysis)
         {
             analysisMode = analysis;
+            LoadRuleList();
+        }
+
+        public void LoadRuleList()
+        {
+            analysisMode.RuleList = fileLoader.LoadRuleList(analysisMode.RuleFolderPath);
         }
 
         public Analysis GetAnalysisMode()
@@ -151,6 +157,7 @@ namespace AnalysisExtension.Model
             return analysisMode;
         }
 
+        //-----
         public List<ICodeBlock>[][] AnalysisMethod(BackgroundWorker backgroundWorker)
         {
             backgroundWorker.ReportProgress(0);

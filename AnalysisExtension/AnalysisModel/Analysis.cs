@@ -12,7 +12,7 @@ namespace AnalysisExtension.Model
         public bool IsChoose { get; set; }
         public List<string> Type { get; set; }
         public string RuleFolderPath { get; set; }
-        public static List<RuleBlock> ruleList = null;
+        public List<RuleBlock> RuleList { get; set; }
 
         AnalysisTool analysisTool = AnalysisTool.GetInstance();
         bool needCheck = false;
@@ -22,7 +22,6 @@ namespace AnalysisExtension.Model
             this.Name = name;
             this.IsChoose = false;
             Type = new List<string>();
-            ruleList = new List<RuleBlock>();
 
             LoadRulePath();
         }
@@ -40,19 +39,7 @@ namespace AnalysisExtension.Model
         {
             RuleFolderPath = Path.Combine(@"..\..\Rule\", Name);
         }
-
-        public void LoadRuleList()
-        {
-            string[] rulePath = Directory.GetFiles(RuleFolderPath, "*.xml");
-
-            for (int i = 0; i < rulePath.Length; i++)
-            {
-                string ruleText = File.ReadAllText(rulePath[i]);
-                RuleBlock ruleBlock = new RuleBlock(ruleText);
-                ruleList.Add(ruleBlock);
-            }
-        }
-
+        
         //-----analysis method-----
         public void AnalysisMethod(BackgroundWorker backgroundWorker)
         {
@@ -63,7 +50,7 @@ namespace AnalysisExtension.Model
                 bool isMatch = false;
 
                 backgroundWorker.ReportProgress((int)((float)(fileCount + 1) / orgContentList.Length) * 80);
-                foreach (RuleBlock ruleBlock in ruleList)
+                foreach (RuleBlock ruleBlock in RuleList)
                 {
                     isMatch = MatchRule(ruleBlock, fileCount, orgContentList[fileCount]);
                     if (isMatch)

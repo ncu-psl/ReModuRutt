@@ -88,6 +88,21 @@ namespace AnalysisExtension.Tool
             }
         }
 
+        public List<RuleBlock> LoadRuleList(string ruleFolderPath)
+        {
+            string[] rulePath = Directory.GetFiles(ruleFolderPath, "*.xml");
+            List<RuleBlock> ruleList = new List<RuleBlock>();
+
+            for (int i = 0; i < rulePath.Length; i++)
+            {
+                string ruleText = File.ReadAllText(rulePath[i]);
+                RuleBlock ruleBlock = new RuleBlock(ruleText);
+                ruleList.Add(ruleBlock);
+            }
+
+            return ruleList;
+        }
+
         //-----get content -----
         public string[] GetFileContent()
         {
