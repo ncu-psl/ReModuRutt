@@ -130,6 +130,8 @@ namespace AnalysisExtension.Model
                 isMatch = true;
             }
 
+            ruleBlock.InitRuleSetting();
+
             return isMatch;                       
         }
 
@@ -144,12 +146,7 @@ namespace AnalysisExtension.Model
             string orgContent = analysisContent;
             int startRuleIndex = 0;
             int endRuleIndex = ruleBlock.BeforeRuleSliceList.Count - 1;
-
-            ruleBlock.InitRuleSetting();
-
-
             int ruleSlicIndex = startRuleIndex;// compare from the second ruleSlice to the penultimate ruleSlice
-
             bool hasFront = false;
 
             while (analysisContent.Length > 0 && ruleSlicIndex < endRuleIndex)
@@ -206,8 +203,6 @@ namespace AnalysisExtension.Model
                                 isMatch = false;
                                 break;
                             }
-                            /*isMatch = false;
-                            break;*/
                         }
                     }
                     else
@@ -258,8 +253,6 @@ namespace AnalysisExtension.Model
                             isMatch = false;
                             break;
                         }
-                        /*isMatch = false;
-                        break;*/
                     }
                     else if (scope[0].Length > 0 && ruleSlicIndex == 0)
                     {
@@ -344,7 +337,6 @@ namespace AnalysisExtension.Model
                 codeBlock.IsMatchRule = true;
                 result[0].Add(codeBlock);
                 analysisContent = analysisContent.Substring(match.Index + match.Length);
-
 
                 //-----set after rule-----
                 if (hasFront)
