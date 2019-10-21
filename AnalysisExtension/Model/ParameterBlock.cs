@@ -60,7 +60,7 @@ namespace AnalysisExtension.Model
 
         public string GetPrintInfo()
         {
-            return "<para id=\"" + BlockId + "\"/>";
+            return "<para id=\"" + ParaListIndex + "\"/>";
         }
     }
 }
