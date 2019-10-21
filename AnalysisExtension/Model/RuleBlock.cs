@@ -107,10 +107,11 @@ namespace AnalysisExtension.Model
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
         {
             var list = new List<ICodeBlock>(ruleList);
+            int blockCount = 1;// index/number of <block> in <layer>      
+
             foreach (ICodeBlock ruleCodeBlock in list.ToArray())
             {
-                string content = ruleCodeBlock.GetPrintInfo();
-                int blockCount = 1;// index/number of <block> in <layer>           
+                string content = ruleCodeBlock.GetPrintInfo();     
                 int insertIndex = ruleList.IndexOf(ruleCodeBlock);
 
                 if (ruleCodeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
