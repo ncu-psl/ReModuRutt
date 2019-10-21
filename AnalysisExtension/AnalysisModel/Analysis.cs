@@ -130,7 +130,6 @@ namespace AnalysisExtension.Model
                 isMatch = true;
             }
 
-            ruleBlock.InitRuleSetting();
 
             return isMatch;                       
         }
@@ -148,6 +147,8 @@ namespace AnalysisExtension.Model
             int endRuleIndex = ruleBlock.BeforeRuleSliceList.Count - 1;
             int ruleSlicIndex = startRuleIndex;// compare from the second ruleSlice to the penultimate ruleSlice
             bool hasFront = false;
+
+            ruleBlock.InitRuleSetting();
 
             while (analysisContent.Length > 0 && ruleSlicIndex < endRuleIndex)
             {
@@ -218,17 +219,19 @@ namespace AnalysisExtension.Model
                 else if (ruleSlice[ruleSlicIndex].Content.Contains("<block"))
                 {//is block next
                     string startToken = "";
+                    string inputContent;
                     if (ruleSlice[ruleSlicIndex - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
                     {
-                        startToken = Regex.Escape(result[0][result[0].Count - 1].Content);
+                        startToken = "[ ]+" + Regex.Escape(result[0][result[0].Count - 1].Content);
+                        inputContent = " " + result[0][result[0].Count - 1].Content + analysisContent;
                     }
                     else
                     {
                         startToken = ruleSlice[ruleSlicIndex - 1].Content;
+                        inputContent = result[0][result[0].Count - 1].Content + analysisContent;
                     }
                     string endToken = ruleSlice[ruleSlicIndex + 1].Content;
 
-                    string inputContent = result[0][result[0].Count - 1].Content + analysisContent;
                     if (EscapeTokenSet.IsPairToken(startToken))
                     {
                         startToken = Regex.Escape(result[0][result[0].Count - 2].Content) + startToken;
@@ -421,6 +424,7 @@ namespace AnalysisExtension.Model
             {
                 startToken = "\n";
             }
+
             if (Regex.Match(endToken, "<block").Success)
             {
                 endToken = "\n";
