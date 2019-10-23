@@ -1,6 +1,7 @@
 ﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,9 +24,7 @@ namespace AnalysisExtension.View
 
         private List<ICodeBlock>[] beforeList;
         private List<ICodeBlock>[] afterList;
-
-        //   private static readonly object colorLock = new object();
-
+        
         public TransformWindowControl(UserControl previousControl)
         {        
             this.previousControl = previousControl;
@@ -98,8 +97,7 @@ namespace AnalysisExtension.View
                     scrollViewerList[i].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
                     scrollViewerList[i].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
                 }
-            }
-            
+            }            
         }
 
         private void SaveScrollOffset()
@@ -112,7 +110,7 @@ namespace AnalysisExtension.View
         }
 
         //-----set view----
-        private async void SetTabView()
+        private void SetTabView()
         {
             InitTabView();
             string[] fileList = fileLoader.GetFileList();
@@ -123,7 +121,6 @@ namespace AnalysisExtension.View
                 item.Header = StaticValue.GetNameFromPath(fileList[i]);
 
                 SetTabControl(item, beforeList[i], afterList[i]);
-              //  SetTabControl(item, analysisTool.GetResultBeforeBlockList(i), analysisTool.GetResultBeforeBlockList(i));
 
                 resultTabControl.Items.Add(item);
             }
@@ -172,15 +169,41 @@ namespace AnalysisExtension.View
 
         private ScrollViewer SetListView(List<ICodeBlock> content)
         {
-            ListView listView = new ListView();
-            listView.ItemTemplate = (DataTemplate)FindResource("codeListView");
-            listView.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-            listView.ItemsSource = content;
-            
-            listView.SelectionChanged += CodeList_SelectionChanged;
+            StackPanel outerPanel = new StackPanel();
+            outerPanel.Orientation = Orientation.Vertical;
+
+            List<ICodeBlock> codeBlockInLine = new List<ICodeBlock>();
+
+            foreach (ICodeBlock codeBlock in content)
+            {
+                if (Regex.IsMatch(codeBlock.Content, @"\A[ \t]*[\n\r]+") && Regex.IsMatch(codeBlock.Content, @"[\n\r]+[ \t]*\Z"))//start and end by line
+                {
+                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
+                    codeBlockInLine = new List<ICodeBlock>();
+                    codeBlockInLine.Add(codeBlock);
+                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
+                    codeBlockInLine = new List<ICodeBlock>();
+                }
+                else if (Regex.IsMatch(codeBlock.Content, @"\A[ \t]*[\n\r]+"))//start by new line
+                {
+                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
+                    codeBlockInLine = new List<ICodeBlock>();
+                    codeBlockInLine.Add(codeBlock);
+                }                
+                else if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+[ \t]*\Z"))//end by new line
+                {
+                    codeBlockInLine.Add(codeBlock);
+                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
+                    codeBlockInLine = new List<ICodeBlock>();
+                }
+                else
+                {
+                    codeBlockInLine.Add(codeBlock);
+                }
+            }
 
             ScrollViewer scrollViewer = new ScrollViewer();
-            scrollViewer.Content = listView;
+            scrollViewer.Content = outerPanel;
             scrollViewer.PreviewMouseWheel += OnPreviewMouseWheelListener;
             scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
             scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -190,58 +213,67 @@ namespace AnalysisExtension.View
 
         }
 
+        private StackPanel SetInnerStackPanel(List<ICodeBlock> codeBlockInLine)
+        {
+            StackPanel stackPanel = new StackPanel();
+            stackPanel.Orientation = Orientation.Horizontal;
+            foreach (ICodeBlock codeBlock in codeBlockInLine)
+            {
+                TextBlock textBlock = new TextBlock();
+                textBlock.DataContext = codeBlock;
+                textBlock.Text = codeBlock.Content;
+                textBlock.Background = codeBlock.BackgroundColor;
+                textBlock.MouseDown += CodeList_SelectionChanged;
+                stackPanel.Children.Add(textBlock);
+            }
+
+            return stackPanel;
+        }
         //-----Listener-----
-        private void CodeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void CodeList_SelectionChanged(object sender, MouseButtonEventArgs e)
         {
             nowPageIndex = resultTabControl.SelectedIndex;
             SaveScrollOffset();
-            ListView listView = sender as ListView;
-            int index = listView.SelectedIndex;
+            TextBlock textBlock = sender as TextBlock;
 
-            if (index != -1)
+            ICodeBlock chooseBlock = textBlock.DataContext as ICodeBlock;
+
+            SolidColorBrush changeColor = new SolidColorBrush(Colors.LightSkyBlue);
+            SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
+
+            for (int i = 0; i < fileNum; i++)
             {
-                ICodeBlock chooseBlock = listView.SelectedItem as ICodeBlock;
-
-                SolidColorBrush changeColor = new SolidColorBrush(Colors.Blue);
-                SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
-
-                for (int i = 0; i < fileNum; i++)
+                foreach (ICodeBlock codeBlock in beforeList[i])
                 {
-                    foreach (ICodeBlock codeBlock in beforeList[i])
+                    if (codeBlock.BlockId == chooseBlock.BlockId)
                     {
-                        if (codeBlock.BlockId == chooseBlock.BlockId)
-                        {
-                            chooseBlock.BackgroundColor = changeColor;
-                            codeBlock.BackgroundColor = changeColor;
-                        }
-                        else
-                        {
-                            codeBlock.BackgroundColor = orgColor;
-                        }
+                        chooseBlock.BackgroundColor = changeColor;
+                        codeBlock.BackgroundColor = changeColor;
+                    }
+                    else
+                    {
+                        codeBlock.BackgroundColor = orgColor;
                     }
                 }
-
-                for (int i = 0; i < fileNum; i++)
-                {
-                    foreach (ICodeBlock codeBlock in afterList[i])
-                    {
-                        if (codeBlock.BlockId == chooseBlock.BlockId)
-                        {
-                            chooseBlock.BackgroundColor = changeColor;
-                            codeBlock.BackgroundColor = changeColor;
-                        }
-                        else
-                        {
-                            codeBlock.BackgroundColor = orgColor;
-                        }
-                    }
-                }
-
-                listView.UnselectAll();
-                Refresh();
             }
-        }
 
+            for (int i = 0; i < fileNum; i++)
+            {
+                foreach (ICodeBlock codeBlock in afterList[i])
+                {
+                    if (codeBlock.BlockId == chooseBlock.BlockId)
+                    {
+                        chooseBlock.BackgroundColor = changeColor;
+                        codeBlock.BackgroundColor = changeColor;
+                    }
+                    else
+                    {
+                        codeBlock.BackgroundColor = orgColor;
+                    }
+                }
+            }
+            Refresh();            
+        }
         private void OnPreviewMouseWheelListener(object sender, MouseWheelEventArgs e)
         {
             StaticValue.OnPreviewMouseWheelListener(sender, e);
