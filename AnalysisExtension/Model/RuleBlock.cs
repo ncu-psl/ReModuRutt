@@ -20,7 +20,7 @@ namespace AnalysisExtension.Model
 
         private XmlDocument xmlDocument = new XmlDocument();
 
-        private int ruleBlockId = StaticValue.GetNextBlockId();
+        public int ruleBlockId = StaticValue.GetNextBlockId();
 
         public RuleBlock(string rule)
         {
@@ -181,7 +181,7 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
-                        int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));
+                        int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));                        
                         ParameterBlock parameterBlock = new ParameterBlock("", paraId);
 
                         ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
@@ -402,11 +402,11 @@ namespace AnalysisExtension.Model
         {
             InitCodeBlockList();
             InitParameterList();
-            ruleBlockId = StaticValue.GetNextBlockId();
             int maxId = -1;
+            int needToAdd = StaticValue.GetNextBlockId() - BeforeRuleSliceList[0].BlockId;
             foreach (ICodeBlock codeBlock in BeforeRuleSliceList)
             {
-                codeBlock.BlockId = codeBlock.BlockId + ruleBlockId;
+                codeBlock.BlockId = codeBlock.BlockId + needToAdd;
                 if (maxId < codeBlock.BlockId)
                 {
                     maxId = codeBlock.BlockId;
@@ -414,7 +414,7 @@ namespace AnalysisExtension.Model
             }
             foreach (ICodeBlock codeBlock in AfterRuleSliceList)
             {
-                codeBlock.BlockId = codeBlock.BlockId + ruleBlockId;
+                codeBlock.BlockId = codeBlock.BlockId + needToAdd;
                 if (maxId < codeBlock.BlockId)
                 {
                     maxId = codeBlock.BlockId;
