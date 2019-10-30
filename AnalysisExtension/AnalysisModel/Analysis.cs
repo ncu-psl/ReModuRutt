@@ -68,9 +68,9 @@ namespace AnalysisExtension.Model
                 }
             }
 
-          /*  while (needCheck)
+            while (needCheck)
             {
-                foreach (RuleBlock ruleBlock in ruleList)
+                foreach (RuleBlock ruleBlock in RuleList)
                 {
                     for (int fileCount = 0; fileCount < orgContentList.Length; fileCount++)
                     {
@@ -78,7 +78,7 @@ namespace AnalysisExtension.Model
                     }
                 }
             }
-            */
+            
         }
 
         private void MatchNeedCheck(RuleBlock ruleBlock, int fileCount)
@@ -91,21 +91,26 @@ namespace AnalysisExtension.Model
             {
                 if (!beforeCodeBlock[i].IsMatchRule)
                 {
+                    int blockId = beforeCodeBlock[i].BlockId;
                     List<ICodeBlock>[] result = CompareToSingleRule(ruleBlock, beforeCodeBlock[i].Content);//0 : beforeResult , 1 : afterResult
                     if (result != null)
                     {
-                        int orgIndex = analysisTool.GetFinalBeforeBlockList()[fileCount].IndexOf(beforeCodeBlock[i]);
+                        analysisTool.RefreshNotMatchBlock(blockId, result);
+                        /*int orgIndex = analysisTool.GetFinalBeforeBlockList()[fileCount].IndexOf(beforeCodeBlock[i]);
+                        int orgAfterIndex = analysisTool.GetNotMatchAfterBlockIndexById((beforeCodeBlock[i] as CodeBlock).BlockListIndex, fileCount);
                         //save result
+                        foreach()
                         analysisTool.RemoveFromBeforeList(fileCount, orgIndex);
                         analysisTool.InsertIntoBeforeList(result[0], fileCount, orgIndex);
 
                         //TODO : replace token in after rule , add into after list
-                        // analysisTool.AddIntoAfterList()
-
+                        analysisTool.RemoveFromAfterList(fileCount, orgAfterIndex);
+                        analysisTool.InsertIntoAfterList(result[1],fileCount,orgAfterIndex);
+                        */
                         changeCount++;
-                    }
-                    i++;
-                }               
+                    }                   
+                }
+                i++;            
             }
 
             if (changeCount == 0)
@@ -355,6 +360,7 @@ namespace AnalysisExtension.Model
                         {
                             return null;
                         }
+                        parameter.IsMatchRule = true;
                         result[1].Add(parameter);
                     }
                     else if (afterBlock.Content.Contains("<block"))
@@ -365,12 +371,14 @@ namespace AnalysisExtension.Model
                         {
                             return null;
                         }
+                        block.IsMatchRule = false;
                         result[1].Add(block);
                     }
                     else
                     {
                         int blockListIndex = (afterBlock as CodeBlock).BlockListIndex;
                         CodeBlock block = new CodeBlock(afterBlock.Content,afterBlock.BlockId,blockListIndex);
+                        block.IsMatchRule = true;
                         result[1].Add(block);
                     }
                 }

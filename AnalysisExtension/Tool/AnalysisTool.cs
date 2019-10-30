@@ -97,6 +97,15 @@ namespace AnalysisExtension.Model
             finalAfterBlockList[fileIndex].Insert(insertIndex, codeBlock);            
         }
 
+        public void InsertIntoAfterList(List<ICodeBlock> codeBlockList, int fileIndex, int insertIndex)
+        {
+            foreach (ICodeBlock codeBlock in codeBlockList)
+            {
+                InsertIntoAfterList(codeBlock, fileIndex, insertIndex);
+                insertIndex++;
+            }
+        }
+
         public void RemoveFromBeforeList(int fileIndex, int index)
         {
             finalBeforeBlockList[fileIndex].RemoveAt(index);                      
@@ -139,6 +148,42 @@ namespace AnalysisExtension.Model
                 list[i] = new List<ICodeBlock>();
             }
         }
+
+        public void RefreshNotMatchBlock(int blockId,List<ICodeBlock>[] newBlockList)
+        {
+            for (int fileCount = 0; fileCount < fileLoader.FILE_NUMBER; fileCount++)
+            {
+                SetBeforeNotMatchBlock(blockId, fileCount, newBlockList[0]);
+                SetAfterNotMatchBlock(blockId, fileCount, newBlockList[1]);
+            }
+        }
+
+        private void SetBeforeNotMatchBlock(int blockId, int fileCount, List<ICodeBlock> newBlockList)
+        {
+            foreach (ICodeBlock codeBlock in finalBeforeBlockList[fileCount].ToArray())
+            {
+                if (codeBlock.BlockId == blockId)
+                {
+                    int index = finalBeforeBlockList[fileCount].IndexOf(codeBlock);
+                    RemoveFromBeforeList(fileCount, index);
+                    InsertIntoBeforeList(newBlockList, fileCount, index);
+                }
+            }
+        }
+
+        private void SetAfterNotMatchBlock(int blockId, int fileCount, List<ICodeBlock> newBlockList)
+        {
+            foreach (ICodeBlock codeBlock in finalAfterBlockList[fileCount].ToArray())
+            {
+                if (codeBlock.BlockId == blockId)
+                {
+                    int index = finalAfterBlockList[fileCount].IndexOf(codeBlock);
+                    RemoveFromAfterList(fileCount, index);
+                    InsertIntoAfterList(newBlockList, fileCount, index);
+                }
+            }
+        }
+
 
         //--------init analysis mode 
         public void SetAnalysisMode(Analysis analysis)
