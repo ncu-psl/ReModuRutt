@@ -96,17 +96,6 @@ namespace AnalysisExtension.Model
                     if (result != null)
                     {
                         analysisTool.RefreshNotMatchBlock(blockId, result);
-                        /*int orgIndex = analysisTool.GetFinalBeforeBlockList()[fileCount].IndexOf(beforeCodeBlock[i]);
-                        int orgAfterIndex = analysisTool.GetNotMatchAfterBlockIndexById((beforeCodeBlock[i] as CodeBlock).BlockListIndex, fileCount);
-                        //save result
-                        foreach()
-                        analysisTool.RemoveFromBeforeList(fileCount, orgIndex);
-                        analysisTool.InsertIntoBeforeList(result[0], fileCount, orgIndex);
-
-                        //TODO : replace token in after rule , add into after list
-                        analysisTool.RemoveFromAfterList(fileCount, orgAfterIndex);
-                        analysisTool.InsertIntoAfterList(result[1],fileCount,orgAfterIndex);
-                        */
                         changeCount++;
                     }                   
                 }
