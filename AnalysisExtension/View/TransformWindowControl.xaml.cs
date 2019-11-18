@@ -1,11 +1,13 @@
 ﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Text;
 
 namespace AnalysisExtension.View
 {
@@ -289,6 +291,72 @@ namespace AnalysisExtension.View
         {
             base.OnRenderSizeChanged(sizeInfo);
             ResizeScrollViewer();
+        }
+
+        private void OnClickSaveAsListener(object sender, RoutedEventArgs e)
+        {
+            string afterString = "";
+
+            foreach (ICodeBlock codeBlock in afterList[nowPageIndex])
+            {
+                afterString += codeBlock.Content;
+            }
+
+            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog.Filter = "(*.*)|*.*";
+            saveFileDialog.Title = "save as";
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName != "")
+            {
+                UnicodeEncoding unicode = new UnicodeEncoding();
+                
+                FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                fileStream.Write(unicode.GetBytes(afterString), 0, unicode.GetByteCount(afterString));
+                fileStream.Close();
+                MessageBox.Show("file save");
+            }
+            
+        }
+
+        private void OnClickSaveListener(object sender, RoutedEventArgs e)
+        {
+            string afterString = "";
+
+            foreach (ICodeBlock codeBlock in afterList[nowPageIndex])
+            {
+                afterString += codeBlock.Content;
+            }
+
+            MessageBoxResult result = MessageBox.Show("sure to overwrite the file now choose?","Save File",MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                string path = fileLoader.GetFileList()[nowPageIndex];
+                File.WriteAllText(path, afterString);
+                MessageBox.Show("file save");
+            }
+        }
+
+        private void OnClickSaveAllListener(object sender, RoutedEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show("sure to overwrite all file?", "Save File", MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
+                {
+                    string afterString = "";
+                    foreach (ICodeBlock codeBlock in afterList[i])
+                    {
+                        afterString += codeBlock.Content;
+                    }
+                    string path = fileLoader.GetFileList()[i];
+                    File.WriteAllText(path, afterString);
+                }
+                
+                MessageBox.Show("all file save");
+            }
         }
     }
 }

@@ -25,13 +25,13 @@
 
         <ControlTemplate x:Key="topBtnGrop">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Left">
-                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save">
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save" Click="OnClickSaveListener">
                     <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save.png"></Image>
                 </Button>
-                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save as">
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save as" Click="OnClickSaveAsListener">
                     <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save_as.png"></Image>
                 </Button>
-                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save all">
+                <Button Margin="2,0,0,0" Height="25" Width="25" ToolTip="save all" Click="OnClickSaveAllListener">
                     <Image Source="pack://application:,,,/AnalysisExtension;component/Resources/save_all.png"></Image>
                 </Button>
             </StackPanel>
