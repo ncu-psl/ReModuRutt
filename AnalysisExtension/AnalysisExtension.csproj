@@ -64,28 +64,33 @@
     <Compile Include="Model\ParameterBlock.cs" />
     <Compile Include="Model\RuleBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
+    <Compile Include="View\CreateRule\CreateRuleToolWindow.cs" />
+    <Compile Include="PlugInModel\CreateRuleToolWindowCommand.cs" />
+    <Compile Include="ToolWindow1Control.xaml.cs">
+      <DependentUpon>ToolWindow1Control.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tool\AnalysisTool.cs" />
     <Compile Include="Tool\EscapeTokenSet.cs" />
     <Compile Include="Tool\FileLoader.cs" />
-    <Compile Include="View\CheckInfoWindowControl.xaml.cs">
+    <Compile Include="View\AnalysisView\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="AnalysisModel\Analysis.cs" />
     <Compile Include="Tool\StaticValue.cs" />
     <Compile Include="PlugInModel\ToolListCommand.cs" />
-    <Compile Include="View\ChooseFileWindowControl.xaml.cs">
+    <Compile Include="View\AnalysisView\ChooseFileWindowControl.xaml.cs">
       <DependentUpon>ChooseFileWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="PlugInModel\ToolListPackage.cs" />
     <Compile Include="Model\FileTreeNode.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="View\ChooseAnalysisWindowControl.xaml.cs">
+    <Compile Include="View\AnalysisView\ChooseAnalysisWindowControl.xaml.cs">
       <DependentUpon>ChooseAnalysisWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\TransformWindowControl.xaml.cs">
+    <Compile Include="View\AnalysisView\TransformWindowControl.xaml.cs">
       <DependentUpon>TransformWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="View\LoadingWindowControl.xaml.cs">
+    <Compile Include="View\AnalysisView\LoadingWindowControl.xaml.cs">
       <DependentUpon>LoadingWindowControl.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
@@ -215,23 +220,27 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="View\CheckInfoWindowControl.xaml">
+    <Page Include="ToolWindow1Control.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\ChooseFileWindowControl.xaml">
+    <Page Include="View\AnalysisView\CheckInfoWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\ChooseAnalysisWindowControl.xaml">
+    <Page Include="View\AnalysisView\ChooseFileWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\TransformWindowControl.xaml">
+    <Page Include="View\AnalysisView\ChooseAnalysisWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="View\LoadingWindowControl.xaml">
+    <Page Include="View\AnalysisView\TransformWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\AnalysisView\LoadingWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

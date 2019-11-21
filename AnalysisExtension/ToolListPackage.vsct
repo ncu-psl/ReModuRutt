@@ -7,20 +7,30 @@
   <Commands package="guidChooseFileWindowPackage">
     
     <Buttons>
-      <Button guid="guidChooseFileWindowPackageCmdSet1" id="cmdidToolListCommand" priority="0x0100" type="Button">
-        <Parent guid="guidChooseFileWindowPackageCmdSet1" id="MyMenuGroup" />
-        <Icon guid="guidImages1" id="bmpPic1" />
+      <Button guid="analysisWindowPackageCmdSet" id="cmdidToolListCommand" priority="0x0100" type="Button">
+        <Parent guid="analysisWindowPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
         <Strings>
           <ButtonText>Analysis and transferred</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="createRuleWindowPackageCmdSet" id="cmdidToolListCommand" priority="0x0100" type="Button">
+        <Parent guid="createRuleWindowPackageCmdSet" id="MyMenuGroup" />
+        <Icon guid="guidImages" id="bmpPic1" />
+        <Strings>
+          <ButtonText>create rule</ButtonText>
         </Strings>
       </Button>
     </Buttons>
     
     <Bitmaps>
-      <Bitmap guid="guidImages1" href="Resources\ToolListCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
+      <Bitmap guid="guidImages" href="Resources\ToolListCommand.png" usedList="bmpPic1, bmpPic2, bmpPicSearch, bmpPicX, bmpPicArrows, bmpPicStrikethrough" />
     </Bitmaps>
     <Groups>
-      <Group guid="guidChooseFileWindowPackageCmdSet1" id="MyMenuGroup" priority="0x0600">
+      <Group guid="analysisWindowPackageCmdSet" id="MyMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+      <Group guid="createRuleWindowPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
     </Groups>
@@ -38,18 +48,15 @@
       <IDSymbol name="bmpPicStrikethrough" value="6" />
     </GuidSymbol>
 
-    <GuidSymbol value="{8b7b8f9b-d057-41bb-99f9-4d1a12203118}" name="guidChooseFileWindowPackageCmdSet1">
+    <GuidSymbol value="{8b7b8f9b-d057-41bb-99f9-4d1a12203118}" name="analysisWindowPackageCmdSet">
+      <IDSymbol value="4128" name="MyMenuGroup" />
+      <IDSymbol value="256" name="cmdidToolListCommand" />
+    </GuidSymbol>
+    
+    <GuidSymbol value="{e00980c2-f7db-404a-b194-7e78577f93eb}" name="createRuleWindowPackageCmdSet">
       <IDSymbol value="4128" name="MyMenuGroup" />
       <IDSymbol value="256" name="cmdidToolListCommand" />
     </GuidSymbol>
   
-    <GuidSymbol value="{6bc211e4-c37a-4af6-9237-097321888a18}" name="guidImages1">
-      <IDSymbol name="bmpPic1" value="1" />
-      <IDSymbol name="bmpPic2" value="2" />
-      <IDSymbol name="bmpPicSearch" value="3" />
-      <IDSymbol name="bmpPicX" value="4" />
-      <IDSymbol name="bmpPicArrows" value="5" />
-      <IDSymbol name="bmpPicStrikethrough" value="6" />
-    </GuidSymbol>
   </Symbols>
 </CommandTable>

@@ -29,6 +29,7 @@ namespace AnalysisExtension
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [Guid(ChooseFileWindowPackage.PackageGuidString)]
     [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1650:ElementDocumentationMustBeSpelledCorrectly", Justification = "pkgdef, VS and vsixmanifest are valid VS terms")]
+    [ProvideToolWindow(typeof(CreateRuleToolWindow))]
     public sealed class ChooseFileWindowPackage : AsyncPackage
     {
         /// <summary>
@@ -62,6 +63,7 @@ namespace AnalysisExtension
             // Do any initialization that requires the UI thread after switching to the UI thread.
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ToolListCommand.InitializeAsync(this);
+            await CreateRuleToolWindowCommand.InitializeAsync(this);
         }
 
         #endregion
