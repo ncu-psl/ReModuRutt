@@ -66,8 +66,8 @@
     <Compile Include="PlugInModel\PlugInTool.cs" />
     <Compile Include="View\CreateRule\CreateRuleToolWindow.cs" />
     <Compile Include="PlugInModel\CreateRuleToolWindowCommand.cs" />
-    <Compile Include="ToolWindow1Control.xaml.cs">
-      <DependentUpon>ToolWindow1Control.xaml</DependentUpon>
+    <Compile Include="View\CreateRule\CreateRuleWindowControl.xaml.cs">
+      <DependentUpon>CreateRuleWindowControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tool\AnalysisTool.cs" />
     <Compile Include="Tool\EscapeTokenSet.cs" />
@@ -220,7 +220,7 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
-    <Page Include="ToolWindow1Control.xaml">
+    <Page Include="View\CreateRule\CreateRuleWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
