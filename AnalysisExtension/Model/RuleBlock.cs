@@ -52,8 +52,7 @@ namespace AnalysisExtension.Model
             SetRuleId();
             LoadRule("before" , BeforeRuleSliceList);
             LoadRule("after" , AfterRuleSliceList);
-            ReplaceWhitespaceToRegexToken(BeforeRuleSliceList);
-
+            ReplaceTokenToRegex(BeforeRuleSliceList);
             /*  show rule content
              string text = "";
              var list = new List<ICodeBlock>(BeforeRuleSliceList);
@@ -237,113 +236,123 @@ namespace AnalysisExtension.Model
             }
         }
 
-        private void ReplaceWhitespaceToRegexToken(List<ICodeBlock> list)
-        {///replace \n, \r, \t, and " " to regex simbol , and escape those content not include  in \n, \r, \t, \f, and " " 
-            string whitespacePattern = @"[ \t]+";
-            string linePattern = @"[\n\r]+";
-            for(int i = 0; i < list.Count;i++)//foreach (ICodeBlock ruleSlice in list)
+        private void ReplaceTokenToRegex(List<ICodeBlock> list)
+        {
+            for(int i = 0; i < list.Count;i++)
             {
                 ICodeBlock ruleSlice = list[i];
                 if (!(ruleSlice.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(ruleSlice.Content.Contains("<block")))
                 {
                     MatchCollection matches = Regex.Matches(ruleSlice.Content, @"[\S]");//not include 
                     foreach (Match match in matches)
-                    {
+                    {//escape those content not include  in \n, \r, \t, \f, and " " 
                         ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
                     }
 
-                    MatchCollection whitespaceMatches = Regex.Matches(ruleSlice.Content, whitespacePattern);
-                    int indexShift = 0;
-                    foreach (Match match in whitespaceMatches)
-                    {
-                        string changePattern = "";
-                        int actualIndex = match.Index + indexShift;
-                        if (actualIndex == 0)
-                        {//whitespace at first
-                            if (i == 0)
-                            {//not have front ruleSlice
-                                changePattern = @"\b[ \t]*";
-                            }
-                            else if (list[i - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
-                            {
-                                if (Regex.Match(list[i].Content[actualIndex + match.Length].ToString(), @"\w").Success)
-                                {
-                                    changePattern = @"[ \t]+";
-                                }
-                                else
-                                {
-                                    changePattern = @"[ \t]*";
-                                }
-                            }
-                            else if (Regex.Match(list[i - 1].Content, @"(\w)\Z").Success)
-                            {
-                                changePattern = @"[ \t]+";
-                            }
-                            else if (Regex.Match(list[i - 1].Content, @"(\W)\Z").Success || list[i - 1].Content.Contains("<block"))
-                            {
-                                changePattern = @"[ \t]*";
-                            }
-                        }
-                        else if (actualIndex == ruleSlice.Content.Length - 1)
-                        {//whitespace at end
-                            if (i == list.Count - 1)
-                            {//is last ruleSlice
-                                changePattern = @"[ \t]*\b";
-                            }
-                            else if (list[i + 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
-                            {
-                                int contentLen = list[i].Content.Length;
-                                if (Regex.Match(list[i].Content[actualIndex - 1].ToString(), @"\w").Success)
-                                {
-                                    changePattern = @"[ \t]+";
-                                }
-                                else
-                                {
-                                    changePattern = @"[ \t]*";
-                                }
-                            }
-                            else if (Regex.Match(list[i + 1].Content, @"\A(\w)").Success)
-                            {
-                                changePattern = @"[ \t]+";
-                            }
-                            else if (Regex.Match(list[i + 1].Content, @"\A(\W)").Success || list[i + 1].Content.Contains("<block"))
-                            {
-                                changePattern = @"[ \t]*";
-                            }
-                        }
-                        else
-                        {//whitespace in the middle
-                            if (actualIndex > 0 && actualIndex < ruleSlice.Content.Length - 1)
-                            {
-                                if ((Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\w]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\w]").Success) &&
-                                    !(Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\W]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\W]").Success ))
-                                {
-                                    changePattern = @"[ \t]+";
-                                }
-                                else
-                                {
-                                    changePattern = @"[ \t]*";
-                                }
-                            }
-                            else if (list.IndexOf(ruleSlice) == 0 && actualIndex == 0)
-                            {//start at whitespace
-                                changePattern = @"\b[ \t]*";
-                            }
-                            else
-                            {
-                                changePattern = @"[ \t]*";
-                            }
-                        }                        
-
-                        ruleSlice.Content = ruleSlice.Content.Remove(actualIndex, match.Length);
-                        ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
-                        indexShift = indexShift - match.Length + changePattern.Length;
+                    if (CanSpaceIgnore)
+                    {//replace \n, \r, \t, and " " to regex simbol
+                        ReplaceWhitespaceToRegex(i,list);
                     }
-                    ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
                 }
             }
         }
-               
+
+        private void ReplaceWhitespaceToRegex(int ruleSliceCount, List<ICodeBlock> list)
+        {
+            ICodeBlock ruleSlice = list[ruleSliceCount];
+            string whitespacePattern = @"[ \t]+";
+            string linePattern = @"[\n\r]+";
+            MatchCollection whitespaceMatches = Regex.Matches(ruleSlice.Content, whitespacePattern);
+            int indexShift = 0;
+            foreach (Match match in whitespaceMatches)
+            {
+                string changePattern = "";
+                int actualIndex = match.Index + indexShift;
+                if (actualIndex == 0)
+                {//whitespace at first
+                    if (ruleSliceCount == 0)
+                    {//not have front ruleSlice
+                        changePattern = @"\b[ \t]*";
+                    }
+                    else if (list[ruleSliceCount - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    {
+                        if (Regex.Match(list[ruleSliceCount].Content[actualIndex + match.Length].ToString(), @"\w").Success)
+                        {
+                            changePattern = @"[ \t]+";
+                        }
+                        else
+                        {
+                            changePattern = @"[ \t]*";
+                        }
+                    }
+                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\w)\Z").Success)
+                    {
+                        changePattern = @"[ \t]+";
+                    }
+                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1].Content.Contains("<block"))
+                    {
+                        changePattern = @"[ \t]*";
+                    }
+                }
+                else if (actualIndex == ruleSlice.Content.Length - 1)
+                {//whitespace at end
+                    if (ruleSliceCount == list.Count - 1)
+                    {//is last ruleSlice
+                        changePattern = @"[ \t]*\b";
+                    }
+                    else if (list[ruleSliceCount + 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    {
+                        int contentLen = list[ruleSliceCount].Content.Length;
+                        if (Regex.Match(list[ruleSliceCount].Content[actualIndex - 1].ToString(), @"\w").Success)
+                        {
+                            changePattern = @"[ \t]+";
+                        }
+                        else
+                        {
+                            changePattern = @"[ \t]*";
+                        }
+                    }
+                    else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\w)").Success)
+                    {
+                        changePattern = @"[ \t]+";
+                    }
+                    else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\W)").Success || list[ruleSliceCount + 1].Content.Contains("<block"))
+                    {
+                        changePattern = @"[ \t]*";
+                    }
+                }
+                else
+                {//whitespace in the middle
+                    if (actualIndex > 0 && actualIndex < ruleSlice.Content.Length - 1)
+                    {
+                        if ((Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\w]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\w]").Success) &&
+                            !(Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\W]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\W]").Success))
+                        {
+                            changePattern = @"[ \t]+";
+                        }
+                        else
+                        {
+                            changePattern = @"[ \t]*";
+                        }
+                    }
+                    else if (list.IndexOf(ruleSlice) == 0 && actualIndex == 0)
+                    {//start at whitespace
+                        changePattern = @"\b[ \t]*";
+                    }
+                    else
+                    {
+                        changePattern = @"[ \t]*";
+                    }
+                }
+
+                ruleSlice.Content = ruleSlice.Content.Remove(actualIndex, match.Length);
+                ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
+                indexShift = indexShift - match.Length + changePattern.Length;
+            }
+            ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
+
+        }
+
         //-----xml tool-----
         private XmlElement FindElementByTag(int index,string tag,string layer)
         {
