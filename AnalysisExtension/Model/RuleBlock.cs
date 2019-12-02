@@ -9,6 +9,7 @@ namespace AnalysisExtension.Model
 {
     public class RuleBlock
     {
+        public string RuleName { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
 
@@ -49,7 +50,7 @@ namespace AnalysisExtension.Model
         {
             xmlDocument.LoadXml(rule);
 
-            SetRuleId();
+            SetRuleInfo();
             LoadRule("before" , BeforeRuleSliceList);
             LoadRule("after" , AfterRuleSliceList);
             ReplaceTokenToRegex(BeforeRuleSliceList);
@@ -64,10 +65,11 @@ namespace AnalysisExtension.Model
              */
         }
         
-        private void SetRuleId()
+        private void SetRuleInfo()
         {
             XmlElement element = xmlDocument.DocumentElement;
             RuleId = int.Parse(GetAttributeInElement(element, "id"));
+            RuleName = GetAttributeInElement(element, "name");
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
