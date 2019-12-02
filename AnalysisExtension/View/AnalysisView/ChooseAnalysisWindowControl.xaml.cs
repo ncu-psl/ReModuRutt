@@ -91,6 +91,7 @@ namespace AnalysisExtension
         private void ShowNextWindow()
         {
             AnalysisTool.GetInstance().SetAnalysisMode(chooseAnalysis);
+            AnalysisTool.GetInstance().LoadRuleList();
             StaticValue.WINDOW.Content = new CheckInfoWindowControl(this);
         }
 

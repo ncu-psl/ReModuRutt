@@ -90,7 +90,7 @@ namespace AnalysisExtension.Tool
 
         public List<RuleBlock> LoadRuleList(string ruleFolderPath)
         {
-            string[] rulePath = Directory.GetFiles(ruleFolderPath, "*.xml");
+            string[] rulePath = GetRuleListByPath(ruleFolderPath);
             List<RuleBlock> ruleList = new List<RuleBlock>();
 
             for (int i = 0; i < rulePath.Length; i++)
@@ -101,6 +101,16 @@ namespace AnalysisExtension.Tool
             }
 
             return ruleList;
+        }
+
+        public string[] GetRuleListByPath(string ruleFolderPath)
+        {
+            return Directory.GetFiles(ruleFolderPath, "*.xml");
+        }
+
+        public string[] GetAllFileName(string ruleFolderPath)
+        {
+            return Directory.GetDirectories(ruleFolderPath);
         }
 
         //-----get content -----

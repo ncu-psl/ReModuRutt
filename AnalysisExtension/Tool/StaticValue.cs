@@ -19,6 +19,8 @@ namespace AnalysisExtension
         public static int CODE_BLOCK_ID_COUNT = 0;
       //  public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
+        public static string RULE_FOLDER_PATH = @"..\..\Rule";
+
         //-----method-----
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {

@@ -8,7 +8,7 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
              Name="MyToolWindow">
-
+   
     <DockPanel LastChildFill="False">
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" DockPanel.Dock="Bottom">
             <Button Content="save" Margin="2,0,0,0"/>
@@ -19,8 +19,14 @@
             <Button Content="create new rule set"  Height="20" TextBlock.FontSize="10"/>
             <Button Content="add new rule" Height="20" TextBlock.FontSize="10"/>
         </StackPanel>
-        <Menu DockPanel.Dock="Left" Width="50"/>
         
+        <TreeView x:Name="ruleTreeView" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" >
+            <TreeViewItem x:Name="allRuleSetTreeView" Header="all rule list"/>
+            <TreeViewItem x:Name="ruleListTreeView" Header="rule list" />
+            <TreeViewItem x:Name="paraListTreeView" Header="parameter list" />
+            <TreeViewItem x:Name="blockListTreeView" Header="block list"  />
+        </TreeView>
+
         <StackPanel Orientation="Vertical"  DockPanel.Dock="Right" x:Name="ruleCreateStackPanel">
             <TextBox x:Name="ruleBefore" Background="WhiteSmoke" AcceptsReturn="True" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
             <Label />

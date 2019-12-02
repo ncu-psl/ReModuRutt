@@ -37,6 +37,22 @@ namespace AnalysisExtension.Model
             InitListValueInArray(finalAfterBlockList);
         }
 
+        //--------init analysis mode 
+        public void SetAnalysisMode(Analysis analysis)
+        {
+            analysisMode = analysis;
+        }
+
+        public void LoadRuleList()
+        {
+            analysisMode.RuleList = fileLoader.LoadRuleList(analysisMode.RuleFolderPath);
+        }
+
+        public Analysis GetAnalysisMode()
+        {
+            return analysisMode;
+        }
+
         //-----list method-----
         public void SetFinalList(List<ICodeBlock>[][] list)
         {
@@ -184,23 +200,6 @@ namespace AnalysisExtension.Model
             }
         }
 
-
-        //--------init analysis mode 
-        public void SetAnalysisMode(Analysis analysis)
-        {
-            analysisMode = analysis;
-            LoadRuleList();
-        }
-
-        public void LoadRuleList()
-        {
-            analysisMode.RuleList = fileLoader.LoadRuleList(analysisMode.RuleFolderPath);
-        }
-
-        public Analysis GetAnalysisMode()
-        {
-            return analysisMode;
-        }
 
         //-----
         public List<ICodeBlock>[][] AnalysisMethod(BackgroundWorker backgroundWorker)
