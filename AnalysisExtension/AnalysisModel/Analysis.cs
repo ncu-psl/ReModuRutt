@@ -458,6 +458,14 @@ namespace AnalysisExtension.Model
                 indexInOrgContent = orgContent.IndexOf(content);
             }
 
+            if (startToken == "\n")
+            {
+                startToken = @"[\n\r]+";
+            }
+            if (endToken == "\n")
+            {
+                endToken = @"[\n\r]+";
+            }
 
             while (content.Length > 0)
             {
