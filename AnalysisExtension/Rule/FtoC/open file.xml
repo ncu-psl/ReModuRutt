@@ -1,4 +1,4 @@
-﻿<rule id="1" name="open file">
+﻿<rule id="1" name="open file" ruleSetId="1">
   <before>
     integer <para id="1"/>
     <block id = "1"/>

@@ -10,6 +10,7 @@ namespace AnalysisExtension.Model
     public class RuleBlock
     {
         public string RuleName { get; set; }
+        public int RuleSetId { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
 
@@ -70,6 +71,7 @@ namespace AnalysisExtension.Model
             XmlElement element = xmlDocument.DocumentElement;
             RuleId = int.Parse(GetAttributeInElement(element, "id"));
             RuleName = GetAttributeInElement(element, "name");
+            RuleSetId = int.Parse(GetAttributeInElement(element, "ruleSetId"));
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)

@@ -1,4 +1,4 @@
-<rule id="3" name="if">
+<rule id="3" name="if" ruleSetId="1">
   <before>
     if (<block id="1"/>) then
     <block id="2"/>
