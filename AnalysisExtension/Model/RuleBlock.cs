@@ -22,6 +22,7 @@ namespace AnalysisExtension.Model
 
         private XmlDocument xmlDocument = new XmlDocument();
 
+        //TODO : remove ruleBlockId , use metadata to replace
         public int ruleBlockId = StaticValue.GetNextBlockId();
 
         public RuleBlock(string rule)
@@ -44,6 +45,12 @@ namespace AnalysisExtension.Model
             CanSpaceIgnore = canSpaceIgnore;
 
             InitRule(rule);
+        }
+        //-----get org text----
+        public string GetOrgText(string tag)
+        {
+            XmlElement node = FindElementByTag(1, tag, "");
+            return node.InnerXml;
         }
 
         //-----ruleList-----
@@ -71,15 +78,12 @@ namespace AnalysisExtension.Model
             XmlElement element = xmlDocument.DocumentElement;
             RuleId = int.Parse(GetAttributeInElement(element, "id"));
             RuleName = GetAttributeInElement(element, "name");
-            RuleSetId = int.Parse(GetAttributeInElement(element, "ruleSetId"));
+         //   RuleSetId = int.Parse(GetAttributeInElement(element, "ruleSetId"));
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
-            int index = 1;
-            XmlElement node = FindElementByTag(index, ruleName, "");
-
-            SplitByLine(node.InnerXml , ruleSliceList);
+            SplitByLine(GetOrgText(ruleName) , ruleSliceList);
            // SplitPairTokenFromList(ruleSliceList);
             SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");            
