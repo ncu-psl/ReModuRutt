@@ -53,7 +53,7 @@ namespace AnalysisExtension.Tool
                 {
                     fileTypeSet.Add(file.Type);
                 }
-            }            
+            }
         }
 
         public List<string> GetFileType()
@@ -84,7 +84,7 @@ namespace AnalysisExtension.Tool
                     codeListAfter[i].Add(after);
                 }*/
 
-                fileContent[i] = File.ReadAllText(fileList[i]);                
+                fileContent[i] = File.ReadAllText(fileList[i]);
             }
         }
 
@@ -95,12 +95,18 @@ namespace AnalysisExtension.Tool
 
             for (int i = 0; i < rulePath.Length; i++)
             {
-                string ruleText = File.ReadAllText(rulePath[i]);
-                RuleBlock ruleBlock = new RuleBlock(ruleText);
+                RuleBlock ruleBlock = LoadSingleRuleByPath(rulePath[i]);
                 ruleList.Add(ruleBlock);
             }
 
             return ruleList;
+        }
+
+        public RuleBlock LoadSingleRuleByPath(string rulePath)
+        {
+            string ruleText = File.ReadAllText(rulePath);
+            RuleBlock ruleBlock = new RuleBlock(ruleText);
+            return ruleBlock;
         }
 
         public string[] GetRuleListByPath(string ruleFolderPath)
