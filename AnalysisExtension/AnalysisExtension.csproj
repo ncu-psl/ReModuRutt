@@ -57,13 +57,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AnalysisModel\FtoC.cs" />
     <Compile Include="ExceptionMode\ProjectNotOpenException.cs" />
     <Compile Include="Model\CodeBlock.cs" />
     <Compile Include="Model\ICodeBlock.cs" />
     <Compile Include="Model\ParameterBlock.cs" />
     <Compile Include="Model\RuleBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
+    <Compile Include="Model\RuleSet.cs" />
+    <Compile Include="Tool\RuleMetadata.cs" />
+    <Compile Include="View\CreateRule\ChooseEditRuleSetWindowControl.xaml.cs">
+      <DependentUpon>ChooseEditRuleSetWindowControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\CreateRule\CreateRuleToolWindow.cs" />
     <Compile Include="PlugInModel\CreateRuleToolWindowCommand.cs" />
     <Compile Include="View\CreateRule\CreateRuleWindowControl.xaml.cs">
@@ -92,6 +96,9 @@
     </Compile>
     <Compile Include="View\AnalysisView\LoadingWindowControl.xaml.cs">
       <DependentUpon>LoadingWindowControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\InputDialog.xaml.cs">
+      <DependentUpon>InputDialog.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +227,10 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="View\CreateRule\ChooseEditRuleSetWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\CreateRule\CreateRuleWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -241,6 +252,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="View\AnalysisView\LoadingWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\InputDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,0 +1,7 @@
+<metadata>
+<ruleSet name="FtoC" id="1">
+    <rule name="open file" id="1"/>
+    <rule name="dowhile" id="2"/>
+    <rule name="if" id="3"/>
+</ruleSet>
+</metadata>

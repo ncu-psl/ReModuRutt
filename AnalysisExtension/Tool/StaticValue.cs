@@ -1,6 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using System.Xml;
 
 namespace AnalysisExtension
 {
@@ -73,6 +73,40 @@ namespace AnalysisExtension
             return idNow;
         }
 
+        //----xml tool-----
+        public static string GetAttributeInElement(XmlElement element, string attributeName)
+        {
+            if (element.HasAttribute(attributeName))
+            {
+                return element.GetAttribute(attributeName);
+            }
+            return null;
+        }
+
+        public static XmlElement FindElementByTag(XmlDocument xmlDocument,int index, string tag, string layer)
+        {
+            return (XmlElement)xmlDocument.DocumentElement.SelectSingleNode(layer + tag + "[" + index + "]");
+        }
+
+        public static XmlNodeList FindAllElementByTag(XmlDocument xmlDocument, int index, string tag, string layer)
+        {
+            return xmlDocument.DocumentElement.SelectNodes(layer + tag + "[" + index + "]");
+        }
+
+        public static string GetXmlTextByTag(XmlDocument xmlDocument, string tag)
+        {
+            string result = "";
+            XmlElement node = FindElementByTag(xmlDocument, 1, tag, "");
+            if (node.InnerXml.StartsWith("\n") || node.InnerXml.StartsWith("\r\n"))
+            {
+                result = node.InnerXml.Remove(0, 1);
+            }
+            else
+            {
+                result = node.InnerXml;
+            }
+            return result;
+        }
     }
 
 }

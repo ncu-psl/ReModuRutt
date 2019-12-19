@@ -9,7 +9,6 @@ namespace AnalysisExtension.Tool
         private static FileLoader instanceFileLoader = null;
         private static string[] fileList = null;
         public int FILE_NUMBER = 0;
-        private static List<string> fileTypeSet = new List<string>();
 
         private static string[] fileContent = null;
 
@@ -44,23 +43,6 @@ namespace AnalysisExtension.Tool
         {
             return fileList;
         }
-
-        public void SetFileType(List<FileTreeNode> fileList)
-        {
-            foreach (FileTreeNode file in fileList)
-            {
-                if (file.Type != null && !fileTypeSet.Contains(file.Type))
-                {
-                    fileTypeSet.Add(file.Type);
-                }
-            }
-        }
-
-        public List<string> GetFileType()
-        {
-            return fileTypeSet;
-        }
-
         //-----read file-----
         public void AddFileIntoCodeBlock()
         {
@@ -69,22 +51,7 @@ namespace AnalysisExtension.Tool
 
             for (int i = 0; i < FILE_NUMBER; i++)
             {
-                /*fake data
-                 * for (int j = 0; j < 10; j++)
-                {
-                    CodeBlock before = new CodeBlock();
-                    CodeBlock after = new CodeBlock();
-
-                    before.Content = "code before" + "\n" + "code Before" + j;
-                    before.BlockId = j;
-                    after.Content = "code after" + "\n" + "code After" + j;
-                    after.BlockId = j % 5;
-
-                    codeListBefore[i].Add(before);
-                    codeListAfter[i].Add(after);
-                }*/
-
-                fileContent[i] = File.ReadAllText(fileList[i]);
+                fileContent[i] = GetFileText(fileList[i]);
             }
         }
 
@@ -104,7 +71,7 @@ namespace AnalysisExtension.Tool
 
         public RuleBlock LoadSingleRuleByPath(string rulePath)
         {
-            string ruleText = File.ReadAllText(rulePath);
+            string ruleText = GetFileText(rulePath);
             RuleBlock ruleBlock = new RuleBlock(ruleText);
             return ruleBlock;
         }
@@ -117,6 +84,11 @@ namespace AnalysisExtension.Tool
         public string[] GetAllFileName(string ruleFolderPath)
         {
             return Directory.GetDirectories(ruleFolderPath);
+        }
+
+        public string GetFileText(string filePath)
+        {
+            return File.ReadAllText(filePath);
         }
 
         //-----get content -----

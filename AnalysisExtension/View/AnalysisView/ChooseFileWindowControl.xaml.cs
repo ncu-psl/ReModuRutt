@@ -80,7 +80,6 @@ namespace AsyncToolWindowSample.ToolWindows
         {
             FileLoader fileLoader = FileLoader.GetInstance();
             fileLoader.SetFileList(list);
-            fileLoader.SetFileType(list);
         }
 
         private void ShowNextWindow()
@@ -100,7 +99,6 @@ namespace AsyncToolWindowSample.ToolWindows
             else
             {
                 Refresh();
-               // StaticValue.CloseWindow(this);
                 ShowNextWindow();
                 chooseNodeList = new List<FileTreeNode>();
             }

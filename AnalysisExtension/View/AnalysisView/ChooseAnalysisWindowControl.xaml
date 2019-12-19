@@ -7,21 +7,23 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <UserControl.Resources>
+
         <DataTemplate x:Key="analysisTemplate">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                 <CheckBox Content="{Binding Name}"
-                          x:Name="analysis_check_box"
+                          IsChecked="{Binding IsChoose}"
                           Checked="OnAnalysisChooseListener"
-                          Unchecked="OnAnalysisDisChooseListener"/>
+                          Unchecked="OnAnalysisDisChooseListener"
+                          />
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
 
 
     <Grid Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
-        <TextBlock x:Name="choose_analysis_info_tb" VerticalAlignment="Top" Padding="4,4,4,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"  Height="39" />
+        <TextBlock Text="Select the analysis method that want to do." VerticalAlignment="Top" Padding="4,4,4,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"  Height="39" />
         <ScrollViewer Margin="0,39,0,19" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" PreviewMouseWheel="OnPreviewMouseWheelListener">
-            <ListBox x:Name="analysisList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource analysisTemplate}"/>
+            <ListBox x:Name="analysisList" ScrollViewer.CanContentScroll="True" ItemTemplate="{StaticResource analysisTemplate}" SelectionMode="Single"/>
         </ScrollViewer>
         <Button Content="Next" Click="OnClickBtNextListener" Width="76" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
         <Button Content="Previous" Click="OnClickBtPreviousListener" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="76" Margin="0,0,76,0"/>

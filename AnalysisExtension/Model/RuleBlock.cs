@@ -10,7 +10,6 @@ namespace AnalysisExtension.Model
     public class RuleBlock
     {
         public string RuleName { get; set; }
-        public int RuleSetId { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
 
@@ -22,7 +21,6 @@ namespace AnalysisExtension.Model
 
         private XmlDocument xmlDocument = new XmlDocument();
 
-        //TODO : remove ruleBlockId , use metadata to replace
         public int ruleBlockId = StaticValue.GetNextBlockId();
 
         public RuleBlock(string rule)
@@ -49,8 +47,7 @@ namespace AnalysisExtension.Model
         //-----get org text----
         public string GetOrgText(string tag)
         {
-            XmlElement node = FindElementByTag(1, tag, "");
-            return node.InnerXml;
+            return StaticValue.GetXmlTextByTag(xmlDocument,tag);
         }
 
         //-----ruleList-----
@@ -76,9 +73,8 @@ namespace AnalysisExtension.Model
         private void SetRuleInfo()
         {
             XmlElement element = xmlDocument.DocumentElement;
-            RuleId = int.Parse(GetAttributeInElement(element, "id"));
-            RuleName = GetAttributeInElement(element, "name");
-         //   RuleSetId = int.Parse(GetAttributeInElement(element, "ruleSetId"));
+            RuleId = int.Parse(StaticValue.GetAttributeInElement(element, "id"));
+            RuleName = StaticValue.GetAttributeInElement(element, "name");
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
@@ -133,7 +129,7 @@ namespace AnalysisExtension.Model
                     int endTokenLen = 2;
 
                     string stringBefore = content.Substring(0, startIndex);
-                    XmlElement blockElement = FindElementByTag(blockCount, "block", layer);
+                    XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument,blockCount, "block", layer);
                     blockCount++;
 
                     string codeBlockString = content.Substring(startIndex, endIndex - startIndex + endTokenLen);
@@ -145,7 +141,7 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
-                        int codeBlockId = int.Parse(GetAttributeInElement(blockElement, "id"));
+                        int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
                         CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
 
                         ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
@@ -178,7 +174,7 @@ namespace AnalysisExtension.Model
 
                     string stringBefore = content.Substring(0, startIndex);
 
-                    XmlElement paraElement = FindElementByTag(paraCount, "para", layer);
+                    XmlElement paraElement = StaticValue.FindElementByTag(xmlDocument,paraCount, "para", layer);
                     paraCount++;
 
                     content = content.Substring(endIndex + endTokenLen);
@@ -188,7 +184,7 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
-                        int paraId = int.Parse(GetAttributeInElement(paraElement, "id"));                        
+                        int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));                        
                         ParameterBlock parameterBlock = new ParameterBlock("", paraId);
 
                         ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
@@ -362,19 +358,11 @@ namespace AnalysisExtension.Model
         }
 
         //-----xml tool-----
-        private XmlElement FindElementByTag(int index,string tag,string layer)
+     /*   private XmlElement FindElementByTag(int index,string tag,string layer)
         {
             return (XmlElement)xmlDocument.DocumentElement.SelectSingleNode(layer+tag+"["+index+"]");
-        }
+        }*/
 
-        private string GetAttributeInElement(XmlElement element, string attributeName)
-        {
-            if (element.HasAttribute(attributeName))
-            {
-                return element.GetAttribute(attributeName);
-            }
-            return null;
-        }
         //-----para block-----
         public void AddParameter(ParameterBlock parameterBlock)
         {

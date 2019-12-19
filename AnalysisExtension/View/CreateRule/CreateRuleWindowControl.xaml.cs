@@ -2,30 +2,29 @@
 {
     using AnalysisExtension.Model;
     using AnalysisExtension.Tool;
+    using AnalysisExtension.View;
+    using AnalysisExtension.View.CreateRule;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
 
-    /// <summary>
-    /// Interaction logic for ToolWindow1Control.
-    /// </summary>
     public partial class CreateRuleToolWindow1Control : UserControl
-    {
-        /// <summary>
-        /// Initializes a new instance of the <see cref="CreateRuleToolWindow1Control"/> class.
-        /// </summary>
-        private string[][] ruleList;
+    {        
+        //TODO : save whitespaceIgnore
         private FileLoader fileLoader = FileLoader.GetInstance();
-        private string[] ruleNameList;
-        private int ruleSetIndexOpenNow;
+        private RuleMetadata ruleMetadata = RuleMetadata.GetInstance();
+
+        private RuleSet ruleSetOpenNow;
+        private RuleBlock ruleBlockEditNow;
         private string ruleNameOpenNow;
 
         private TextBox ruleBefore = new TextBox();
         private TextBox ruleAfter = new TextBox();
+        private TextBlock ruleSetName = new TextBlock();
 
-        private RuleBlock ruleBlockEditNow;
+        private bool IsEditViewChange = false;
 
         public CreateRuleToolWindow1Control()
         {            
@@ -35,49 +34,64 @@
         }
 
         private void Refresh()
-        {       
-            
-            ruleSetIndexOpenNow = -1;
-
-            ruleNameOpenNow = null;
-            SetRuleListView();
-            //TODO : set rule set index open now
-
+        {  
+            RefreshRuleListView();           
         }
 
-        private void SetRuleListView()
+        private void RefreshRuleListView()
         {
-            //TODO : clean
-            allRuleSetTreeView.Items.Clear();
-            ruleNameList = fileLoader.GetAllFileName(StaticValue.RULE_FOLDER_PATH);
-            ruleList = new string[ruleNameList.Length][];
+            ruleMetadata.Refresh();
 
-            for (int i = 0; i < ruleNameList.Length; i++)
+            allRuleSetTreeView.Items.Clear();
+            for (int i = 0; i < ruleMetadata.GetRuleSetList().Count; i++)
             {
-                TreeViewItem treeViewItem = new TreeViewItem();
-                treeViewItem.Header = StaticValue.GetNameFromPath(ruleNameList[i]);
-                allRuleSetTreeView.Items.Add(treeViewItem);
-                ruleList[i] = fileLoader.GetRuleListByPath(ruleNameList[i]);
-                AddRuleListIntoTreeViewByName(treeViewItem, ruleList[i]);
+                RuleSet ruleSet = ruleMetadata.GetRuleSetList()[i];
+                TreeViewItem ruleSetTreeView = new TreeViewItem();
+                ruleSetTreeView.Header = StaticValue.GetNameFromPath(ruleSet.Name);
+                /*store ruleSet in ruleSetTreeView*/
+                ruleSetTreeView.DataContext = ruleSet;
+
+                allRuleSetTreeView.Items.Add(ruleSetTreeView);
+                AddRuleListIntoTreeViewByName(ruleSetTreeView, ruleSet);
             }
         }
 
-        private void AddRuleListIntoTreeViewByName(TreeViewItem treeViewItem,string[] ruleList)
-        {       
-            for (int i = 0; i < ruleList.Length; i++)
+        private void AddRuleListIntoTreeViewByName(TreeViewItem treeViewItem, RuleSet ruleSet)
+        {
+            foreach(Dictionary<string, string> ruleContent in ruleSet.RuleList)
             {
                 TreeViewItem rule = new TreeViewItem();
-                rule.Header = StaticValue.GetNameFromPath(ruleList[i]);
-                rule.DataContext = ruleList[i];
+                rule.Header = ruleContent["name"];
+                /*store rule path in rule tree view*/
+                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"],ruleSet);
                 rule.MouseDoubleClick += OnDoubleClickRuleListListener;
                 treeViewItem.Items.Add(rule);
-            }            
+            }
         }
 
         private void AddRuleEditView(string filePath)
         {
             string beforeContent = "";
             string afterContent = "";
+            if (IsEditViewChange)
+            {
+                MessageBoxResult result = MessageBox.Show("save file open now?", "Save File", MessageBoxButton.YesNoCancel);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveNewRule();
+                }
+                else if (result == MessageBoxResult.No)
+                {
+                    ruleBefore.Text = "";
+                    ruleAfter.Text = "";
+                }
+                else
+                {
+                    return;
+                }
+            }
+
             if (filePath != null)
             {
                 ruleBlockEditNow = fileLoader.LoadSingleRuleByPath(filePath);
@@ -85,19 +99,36 @@
                 beforeContent = ruleBlockEditNow.GetOrgText("before");
                 afterContent = ruleBlockEditNow.GetOrgText("after");
                 whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
-                //TODO : set rule id
+            }
+            else
+            {
+                Window window = new Window();
+                window.Width = 200;
+                window.Height = 200;
+                ChooseEditRuleSetWindowControl chooseEditRuleSetWindow = new ChooseEditRuleSetWindowControl();
+                window.Content = chooseEditRuleSetWindow;
+                window.ShowDialog();
+                ruleSetOpenNow = chooseEditRuleSetWindow.chooseRuleSet;
             }
 
-            SetRuleEditView(beforeContent, afterContent);
+            if (ruleSetOpenNow != null)
+            {
+                SetRuleEditView(beforeContent, afterContent);
+                IsEditViewChange = false;
+            }
         }
 
         private void SetRuleEditView(string beforeContent,string afterContent)
         {
+            IsEditViewChange = false;
             ruleCreateStackPanel.Children.Clear();
 
             SetEditTextBoxTemplate(ruleBefore, beforeContent);
             SetEditTextBoxTemplate(ruleAfter, afterContent);
 
+            ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
+            ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
+            ruleCreateStackPanel.Children.Add(ruleSetName);
             ruleCreateStackPanel.Children.Add(ruleBefore);
             ruleCreateStackPanel.Children.Add(new Label());
             ruleCreateStackPanel.Children.Add(ruleAfter);
@@ -111,36 +142,80 @@
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
             textBox.Text = content;
+            textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
 
 
         //-----tool-----
-        private string GetFilePathInRuleSet(string name,int ruleSetIndex)
+        private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
         {
-            string filePath = null;
-            for (int i = 0; i < ruleList[ruleSetIndex].Length; i++)
-            {
-                if (ruleList[ruleSetIndex][i].Equals(name))
-                {
-                    return ruleList[ruleSetIndex] + "//" + name;
-                }
-            }
-            return filePath;
+            return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
         }
 
-        private string GetFinalRule()
+        private void AddRuleCreateNowIntoMetadata(int ruleId)
         {
-            int id = -1;//TODO : get by Metadata 
-            string head = @"<rule id=" + "\"" + id +"\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + @">"+"\n" ;
+            ruleMetadata.AddRuleIntoRuleSet(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
+            ruleMetadata.RewriteMetadata();
+            RefreshRuleListView();
+        }
+
+        private string GetFinalRule(int ruleId)
+        {
+            string head = @"<rule id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + @">"+"\n" ;
             string before = @"<before>" + "\n" + ruleBefore.Text + "\n" + @"</before>"+"\n";
             string after = @"<after>" + "\n" + ruleAfter.Text + "\n" + @"</after>"+"\n";
             string end = @"</rule>";
 
-
             return head + before + after + end;
         }
 
-        //listener
+        private void SaveNewRule()
+        {
+            string final;
+            int ruleId;
+            if (ruleNameOpenNow == null)
+            {
+                ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.Filter = "(*.xml)|*.xml";
+                saveFileDialog.Title = "save as";
+                saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (saveFileDialog.FileName != "")
+                {
+                    ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
+                    final = GetFinalRule(ruleId);
+
+                    FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                    fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+                    fileStream.Close();
+
+                    AddRuleCreateNowIntoMetadata(ruleId);
+                    IsEditViewChange = false;
+                    MessageBox.Show("file save");
+                }
+            }
+            else if (GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
+            {
+                MessageBoxResult result = MessageBox.Show("file is exist , sure to overwrite this file?", "Save File", MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    ruleId = ruleBlockEditNow.RuleId;
+                    final = GetFinalRule(ruleId);
+                    string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
+                    File.WriteAllText(path, final);
+
+                    AddRuleCreateNowIntoMetadata(ruleId);
+                    IsEditViewChange = false;
+                    MessageBox.Show("file save");
+                }
+            }
+        }
+
+        //-----listener-----
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
             double newWindowHeight = e.NewSize.Height;
@@ -148,10 +223,10 @@
             int padding = 20;
             ruleCreateStackPanel.Width = newWindowWidth - ruleTreeView.ActualWidth;
             ruleCreateStackPanel.Height = newWindowHeight - padding;
-            ruleBefore.Height = ruleCreateStackPanel.Height / 2 - padding;
-            ruleBefore.Width = ruleCreateStackPanel.Width - padding;
-            ruleAfter.Height = ruleCreateStackPanel.Height / 2 - padding;
-            ruleAfter.Width = ruleCreateStackPanel.Width - padding;
+            ruleBefore.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
+            ruleBefore.Width = ruleCreateStackPanel.Width - padding/2;
+            ruleAfter.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
+            ruleAfter.Width = ruleCreateStackPanel.Width - padding/2;
         }
         
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
@@ -162,51 +237,63 @@
 
         private void OnClickBtSaveListener(object sender, RoutedEventArgs e)
         {
-            if (ruleNameOpenNow == null)
-            {
-                //enter rule name                
-                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-                saveFileDialog.Filter = "(*.xml)|*.xml";
-                saveFileDialog.Title = "save as";
-                saveFileDialog.ShowDialog();
-
-                if (saveFileDialog.FileName != "")
-                {
-                    ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
-                    string final = GetFinalRule();
-                    FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
-                    fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
-                    fileStream.Close();
-                    MessageBox.Show("file save");
-                }
-            }
-            else if (GetFilePathInRuleSet(ruleNameOpenNow,ruleSetIndexOpenNow) != null)
-            {
-                /*TODO : check and save*/
-                MessageBoxResult result = MessageBox.Show("file is exist , sure to overwrite this file?", "Save File", MessageBoxButton.YesNo);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetIndexOpenNow);
-                   // File.WriteAllText(path, /*text*/);
-                    MessageBox.Show("file save");
-                }
-            }
+            SaveNewRule();
             Refresh();
         }
 
-        private void OnClickBtCreateNewListener(object sender, RoutedEventArgs e)
+        private void OnClickBtCreateNewRuleListener(object sender, RoutedEventArgs e)
         {
             string filePath = null;
             ruleNameOpenNow = null;
             AddRuleEditView(filePath);          
         }
 
+        private void OnClickBtCreateNewRuleSetListener(object sender, RoutedEventArgs e)
+        {
+            Window window = new Window();
+            window.Width = 350;
+            window.Height = 150;
+            InputDialog inputDialog = new InputDialog("enter folder name","folder name");
+            window.Content = inputDialog;
+            window.ShowDialog();
+
+            //create rule set
+            if (inputDialog.HasInput)
+            {
+
+                string folderName = inputDialog.Input;
+                string filePath = StaticValue.RULE_FOLDER_PATH + "\\" + inputDialog.Input;
+                //check if folder is exsts or not
+                if (Directory.Exists(Path.GetFullPath(filePath)))
+                {
+                    MessageBox.Show("the rule set is exists , please use other name ");
+                }
+                else
+                {
+                    //add rule set
+                    RuleSet ruleSet = new RuleSet(ruleMetadata.GetNextRuleSetId(), folderName);
+                    ruleMetadata.AddRuleSet(ruleSet);
+                    //create folder
+                    DirectoryInfo directoryInfo = Directory.CreateDirectory(filePath);
+                    MessageBox.Show("create rule set " + ruleSet.Name + " successfully");
+                    //refresh list
+                    Refresh();
+                }
+                
+            }      
+        }
+
         private void OnDoubleClickRuleListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             TreeViewItem rule = (TreeViewItem)sender;
+            ruleSetOpenNow = (RuleSet)((TreeViewItem)rule.Parent).DataContext;
             string path = (string)rule.DataContext;
             AddRuleEditView(path);
+        }
+
+        private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
+        {
+            IsEditViewChange = true;
         }
     }
 }

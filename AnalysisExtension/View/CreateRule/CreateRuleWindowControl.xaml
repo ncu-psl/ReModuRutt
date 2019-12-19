@@ -11,13 +11,13 @@
    
     <DockPanel LastChildFill="False">
         <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" DockPanel.Dock="Bottom">
-            <Button Content="save" Margin="2,0,0,0" Click="OnClickBtSaveListener"/>
             <Button Content="cancel" Margin="2,0,0,0"  Click="OnClickBtCancelListener"/>
+            <Button Content="save" Margin="2,0,0,0" Click="OnClickBtSaveListener"/>
         </StackPanel>
 
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-            <Button Content="create new rule set"  Height="20" TextBlock.FontSize="10" Click="OnClickBtCreateNewListener"/>
-            <Button Content="add new rule" Height="20" TextBlock.FontSize="10" />
+            <Button Content="create new rule set"  Height="20" TextBlock.FontSize="10" Click="OnClickBtCreateNewRuleSetListener"/>
+            <Button Content="add new rule" Height="20" TextBlock.FontSize="10" Click="OnClickBtCreateNewRuleListener"/>
             <CheckBox Content="can whitespace ignore" x:Name="whitespaceIgnoreCheckBox"/>
         </StackPanel>
         
@@ -29,6 +29,7 @@
         </TreeView>
 
         <StackPanel Orientation="Vertical"  DockPanel.Dock="Right" x:Name="ruleCreateStackPanel"/>
+
     </DockPanel>
 
 </UserControl>

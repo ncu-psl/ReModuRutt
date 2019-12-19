@@ -24,7 +24,6 @@ namespace AnalysisExtension
         {
             this.previousControl = previousControl;
             analysisMode = analysisTool.GetAnalysisMode();
-            typeList = fileLoader.GetFileType();
 
             backgroundWorker.DoWork += BackgroundWorker_DoWork;
             backgroundWorker.RunWorkerCompleted += BackgroundWorker_RunWorkerCompletedAsync;
@@ -38,14 +37,7 @@ namespace AnalysisExtension
         {
             InitializeComponent();
 
-            check_info_analysis_tb.Text = "Analysis mode : " + analysisMode.Name;
-
-            check_info_language_tb.Text = "Language : ";
-            
-            foreach (string type in typeList)
-            {
-                check_info_language_tb.Text = check_info_language_tb.Text + " " + type + " ";
-            }            
+            check_info_analysis_tb.Text = "Analysis mode : " + analysisMode.Name;      
         }
 
         //------------tool-------------

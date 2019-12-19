@@ -9,36 +9,26 @@ namespace AnalysisExtension.Model
     public class Analysis
     {
         public string Name { get; set; }
-        public bool IsChoose { get; set; }
-        public List<string> Type { get; set; }
+        public RuleSet AnalysisRuleSet { get; set; }
         public string RuleFolderPath { get; set; }
         public List<RuleBlock> RuleList { get; set; }
 
         AnalysisTool analysisTool = AnalysisTool.GetInstance();
         bool needCheck = false;
 
-        public Analysis(string name)
-        {
-            this.Name = name;
-            this.IsChoose = false;
-            Type = new List<string>();
 
+        public Analysis(RuleSet ruleSet)
+        {
+            AnalysisRuleSet = ruleSet;
+            Name = AnalysisRuleSet.Name;
             LoadRulePath();
-        }
-
-        public Analysis(string name,string type)
-        {
-            this.Name = "name";
-            this.IsChoose = false;
-            Type = new List<string>();
-            Type.Add(type);
         }
 
         //-----set rule-----
         private void LoadRulePath()
         {
             string path = @"\" + Name;
-            RuleFolderPath = StaticValue.RULE_FOLDER_PATH+path;
+            RuleFolderPath = StaticValue.RULE_FOLDER_PATH + path;
         }
         
         //-----analysis method-----

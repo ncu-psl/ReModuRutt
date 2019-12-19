@@ -1,5 +1,4 @@
-﻿using AnalysisExtension.AnalysisMode;
-using AnalysisExtension.Model;
+﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using System.Collections.Generic;
 using System.Windows;
@@ -11,17 +10,16 @@ namespace AnalysisExtension
     {
         private UserControl previousControl = null;
 
-        private List<Analysis> analysisListElement;
-        private List<string> typeList;
-        private Analysis chooseAnalysis;
+        //private List<Analysis> analysisListElement;
+        private RuleSet chooseAnalysis;
         private bool hasChoose = false;
         private FileLoader fileLoader = FileLoader.GetInstance();
+        private List<RuleSet> ruleSetList;
 
         //----------------set------------------------
         public ChooseAnalysisWindowControl(UserControl previousControl)
         {
             this.previousControl = previousControl;
-            typeList = fileLoader.GetFileType();
             chooseAnalysis = null;
 
             Refresh();
@@ -30,67 +28,24 @@ namespace AnalysisExtension
         private void Refresh()
         {
             InitializeComponent();
+            ruleSetList = RuleMetadata.GetInstance().GetRuleSetList();
+           // analysisListElement = new List<Analysis>();            
 
-            analysisListElement = new List<Analysis>();            
-
-            SetTextInfo();
             SetAnalysisList();
             hasChoose = false;
         }
-
-        private void SetTextInfo()
-        {
-            choose_analysis_info_tb.Text = "Select the analysis method that want to do.";            
-
-            if (typeList.Count > 0)
-            {
-                string info = "\nType of Choose File :";
-
-                for(int i = 0;i < typeList.Count;i++)
-                {
-                    info += " " + typeList[i] + " ";
-                }
-
-                choose_analysis_info_tb.Text += info;
-            }
-        }
-
+        
         private void SetAnalysisList()
         {
-            //TODO : get real list
-
-            for (int i = 0; i < 10; i++)
-            {
-                string s = "FtoC" ;
-                FtoC element = new FtoC(s);
-
-                //check type
-                bool isFind = false;
-                foreach (string t in typeList)
-                {
-                    if (element.Type.Contains(t))
-                    {
-                        isFind = true;
-                        break;
-                    }
-                }
-
-                if (isFind)
-                {
-                    //add
-                    analysisListElement.Add(element);
-                }
-            }
-            
             //set
-            analysisList.ItemsSource = analysisListElement;
-            analysisList.UnselectAll();
+            analysisList.ItemsSource = ruleSetList;
+           // analysisList.UnselectAll();
            
         }
 
         private void ShowNextWindow()
         {
-            AnalysisTool.GetInstance().SetAnalysisMode(chooseAnalysis);
+            AnalysisTool.GetInstance().SetAnalysisMode(new Analysis(chooseAnalysis));
             AnalysisTool.GetInstance().LoadRuleList();
             StaticValue.WINDOW.Content = new CheckInfoWindowControl(this);
         }
@@ -113,14 +68,18 @@ namespace AnalysisExtension
 
         private void OnAnalysisChooseListener(object sender, RoutedEventArgs args)
         {
+            foreach (RuleSet ruleSet in ruleSetList)
+            {
+                ruleSet.IsChoose = false;
+            }
+
             if (!hasChoose)
             {
                 CheckBox checkBox = sender as CheckBox;
-                Analysis analysis = checkBox.DataContext as Analysis;
-                analysis.IsChoose = true;
+                chooseAnalysis = checkBox.DataContext as RuleSet;
+                chooseAnalysis.IsChoose = true;
                 hasChoose = true;
-                chooseAnalysis = analysis;
-            }            
+            }
         }
 
         private void OnAnalysisDisChooseListener(object sender, RoutedEventArgs args)
@@ -128,8 +87,10 @@ namespace AnalysisExtension
             if (hasChoose)
             {
                 CheckBox checkBox = sender as CheckBox;
-                Analysis analysis = checkBox.DataContext as Analysis;
-                analysis.IsChoose = false;
+                chooseAnalysis = checkBox.DataContext as RuleSet;
+                chooseAnalysis.IsChoose = false;
+                hasChoose = false;
+                chooseAnalysis = null;
             }            
         }
 
@@ -152,5 +113,3 @@ namespace AnalysisExtension
     }
 }
 
-
-//TODO : single choose
