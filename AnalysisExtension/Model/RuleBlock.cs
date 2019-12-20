@@ -75,6 +75,7 @@ namespace AnalysisExtension.Model
             XmlElement element = xmlDocument.DocumentElement;
             RuleId = int.Parse(StaticValue.GetAttributeInElement(element, "id"));
             RuleName = StaticValue.GetAttributeInElement(element, "name");
+            CanSpaceIgnore = bool.Parse(StaticValue.GetAttributeInElement(element, "canWhitespaceIgnore"));
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)

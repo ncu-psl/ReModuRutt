@@ -1,4 +1,4 @@
-<rule id="2" name="dowhile" ruleSetId="1">
+<rule id="2" name="dowhile" canWhitespaceIgnore="True">
   <before>
     do <para id="1"/> = 1, <para id="2"/>
     <block id="1"/>

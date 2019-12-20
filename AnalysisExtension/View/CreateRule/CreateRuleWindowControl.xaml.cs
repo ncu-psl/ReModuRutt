@@ -9,10 +9,10 @@
     using System.Text;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Xml;
 
     public partial class CreateRuleToolWindow1Control : UserControl
     {        
-        //TODO : save whitespaceIgnore
         private FileLoader fileLoader = FileLoader.GetInstance();
         private RuleMetadata ruleMetadata = RuleMetadata.GetInstance();
 
@@ -77,13 +77,20 @@
             AddRuleListIntoTreeViewByName(ruleSetOpenNow);
         }
 
+        //-----tool-----
+        private void SetRuleInfoList(string ruleContent)
+        {
+         /*   paraListTreeView ;
+            blockListTreeView;
+        */}
+
         private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
         {
             foreach (Dictionary<string, string> ruleContent in ruleSet.RuleList)
-            {                
+            {
                 TreeViewItem rule = new TreeViewItem();
                 rule.Header = ruleContent["name"];
-                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet); 
+                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
                 rule.MouseDoubleClick += OnDoubleClickRuleListener;
                 ruleListTreeView.Items.Add(rule);
             }
@@ -147,7 +154,7 @@
             }
         }
 
-        private void SetRuleEditView(string beforeContent,string afterContent)
+        private void SetRuleEditView(string beforeContent, string afterContent)
         {
             IsEditViewChange = false;
             ruleCreateStackPanel.Children.Clear();
@@ -163,7 +170,7 @@
             ruleCreateStackPanel.Children.Add(ruleAfter);
         }
 
-        private void SetEditTextBoxTemplate(TextBox textBox,string content)
+        private void SetEditTextBoxTemplate(TextBox textBox, string content)
         {
             textBox.AcceptsReturn = true;
             textBox.AcceptsTab = true;
@@ -175,7 +182,6 @@
         }
 
 
-        //-----tool-----
         private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
         {
             return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
@@ -190,7 +196,8 @@
 
         private string GetFinalRule(int ruleId)
         {
-            string head = @"<rule id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + @">"+"\n" ;
+
+            string head = @"<rule id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
             string before = @"<before>" + "\n" + ruleBefore.Text + "\n" + @"</before>"+"\n";
             string after = @"<after>" + "\n" + ruleAfter.Text + "\n" + @"</after>"+"\n";
             string end = @"</rule>";
