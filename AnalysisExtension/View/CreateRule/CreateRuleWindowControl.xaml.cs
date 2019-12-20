@@ -35,10 +35,19 @@
 
         private void Refresh()
         {  
-            RefreshRuleListView();           
+            RefreshRuleSetListView();
+            //  ruleCreateStackPanel.Children.Clear();
+            if (ruleSetOpenNow != null)
+            {
+                ruleCreateStackPanel.Children.Clear();
+
+                ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
+                ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
+                ruleCreateStackPanel.Children.Add(ruleSetName);
+            }
         }
 
-        private void RefreshRuleListView()
+        private void RefreshRuleSetListView()
         {
             ruleMetadata.Refresh();
 
@@ -50,22 +59,33 @@
                 ruleSetTreeView.Header = StaticValue.GetNameFromPath(ruleSet.Name);
                 /*store ruleSet in ruleSetTreeView*/
                 ruleSetTreeView.DataContext = ruleSet;
+                ruleSetTreeView.MouseDoubleClick += OnDoubleClickRuleListListener;
 
                 allRuleSetTreeView.Items.Add(ruleSetTreeView);
-                AddRuleListIntoTreeViewByName(ruleSetTreeView, ruleSet);
+            }
+
+            if (ruleSetOpenNow != null)
+            {
+                ruleSetOpenNow = ruleMetadata.GetRuleSetById(ruleSetOpenNow.Id);
+                RefreshRuleList();
             }
         }
 
-        private void AddRuleListIntoTreeViewByName(TreeViewItem treeViewItem, RuleSet ruleSet)
+        private void RefreshRuleList()
         {
-            foreach(Dictionary<string, string> ruleContent in ruleSet.RuleList)
-            {
+            ruleListTreeView.Items.Clear();
+            AddRuleListIntoTreeViewByName(ruleSetOpenNow);
+        }
+
+        private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
+        {
+            foreach (Dictionary<string, string> ruleContent in ruleSet.RuleList)
+            {                
                 TreeViewItem rule = new TreeViewItem();
                 rule.Header = ruleContent["name"];
-                /*store rule path in rule tree view*/
-                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"],ruleSet);
-                rule.MouseDoubleClick += OnDoubleClickRuleListListener;
-                treeViewItem.Items.Add(rule);
+                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet); 
+                rule.MouseDoubleClick += OnDoubleClickRuleListener;
+                ruleListTreeView.Items.Add(rule);
             }
         }
 
@@ -99,6 +119,15 @@
                 beforeContent = ruleBlockEditNow.GetOrgText("before");
                 afterContent = ruleBlockEditNow.GetOrgText("after");
                 whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
+            }
+            else if (ruleSetOpenNow != null)
+            {
+                MessageBoxResult result = MessageBox.Show("create new rule in rule set " + ruleSetOpenNow.Name, "create new rule", MessageBoxButton.YesNo);
+
+                if (result == MessageBoxResult.No)
+                {
+                    return;
+                }
             }
             else
             {
@@ -156,7 +185,7 @@
         {
             ruleMetadata.AddRuleIntoRuleSet(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
             ruleMetadata.RewriteMetadata();
-            RefreshRuleListView();
+            RefreshRuleSetListView();
         }
 
         private string GetFinalRule(int ruleId)
@@ -245,7 +274,7 @@
         {
             string filePath = null;
             ruleNameOpenNow = null;
-            AddRuleEditView(filePath);          
+            AddRuleEditView(filePath);            
         }
 
         private void OnClickBtCreateNewRuleSetListener(object sender, RoutedEventArgs e)
@@ -260,7 +289,6 @@
             //create rule set
             if (inputDialog.HasInput)
             {
-
                 string folderName = inputDialog.Input;
                 string filePath = StaticValue.RULE_FOLDER_PATH + "\\" + inputDialog.Input;
                 //check if folder is exsts or not
@@ -278,17 +306,22 @@
                     MessageBox.Show("create rule set " + ruleSet.Name + " successfully");
                     //refresh list
                     Refresh();
-                }
-                
+                }                
             }      
         }
 
         private void OnDoubleClickRuleListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            TreeViewItem ruleSet = (TreeViewItem)sender;
+            ruleSetOpenNow = ruleSet.DataContext as RuleSet;
+            Refresh();
+        }
+
+        private void OnDoubleClickRuleListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
             TreeViewItem rule = (TreeViewItem)sender;
-            ruleSetOpenNow = (RuleSet)((TreeViewItem)rule.Parent).DataContext;
-            string path = (string)rule.DataContext;
-            AddRuleEditView(path);
+             string path = (string)rule.DataContext;
+             AddRuleEditView(path);
         }
 
         private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
