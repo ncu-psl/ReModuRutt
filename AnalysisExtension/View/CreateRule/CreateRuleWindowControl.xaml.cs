@@ -7,8 +7,10 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Windows;
     using System.Windows.Controls;
+    using System.Windows.Documents;
     using System.Xml;
 
     public partial class CreateRuleToolWindow1Control : UserControl
@@ -20,8 +22,8 @@
         private RuleBlock ruleBlockEditNow;
         private string ruleNameOpenNow;
 
-        private TextBox ruleBefore = new TextBox();
-        private TextBox ruleAfter = new TextBox();
+        private RichTextBox ruleBefore = new RichTextBox();
+        private RichTextBox ruleAfter = new RichTextBox();
         private TextBlock ruleSetName = new TextBlock();
 
         private bool IsEditViewChange = false;
@@ -78,11 +80,67 @@
         }
 
         //-----tool-----
-        private void SetRuleInfoList(string ruleContent)
+        private string ChangeBlockToColor(string orgText)
         {
-         /*   paraListTreeView ;
-            blockListTreeView;
-        */}
+            int blockCount = 1;// index/number of <block> in <layer>      
+
+            XmlDocument xmlDocument = new XmlDocument();
+            xmlDocument.LoadXml("<xml xml:space=\"" + "preserve\"" + ">" + orgText + "</xml>");
+
+            while (orgText.IndexOf("<block") > -1)
+            {
+                int startIndex = orgText.IndexOf("<block");
+                int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
+                int endTokenLen = 2;                
+
+                XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument, blockCount, "block", "");
+                blockCount++;
+
+                string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen+1);
+
+                if (blockElement == null)
+                {
+                    break;
+                }
+                else
+                {
+                    int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
+                    orgText = orgText.Replace(codeBlockString,"("+codeBlockId+")");
+                }
+            }
+
+            return orgText;
+        }
+
+        private string ChangeBlockToXmlText(string orgText)
+        {
+            return Regex.Replace(orgText,"[(]" + @"(\d+)"+ "[)]","<block id="+"\"$1\"/>");
+        }
+
+        private string RemoveLineAtFirstAndEnd(string orgText)
+        {
+            if (orgText.StartsWith("\r\n"))
+            {
+                orgText = orgText.Remove(0, 2);
+            }
+            else if(orgText.StartsWith("\n"))
+            {
+                orgText = orgText.Remove(0, 1);
+            }
+
+            if(orgText.EndsWith("\r\n"))
+            {
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 2, 2);
+            }
+            else if (orgText.EndsWith("\n"))
+            {
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 1, 1);
+            }
+
+            return orgText;
+        }
 
         private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
         {
@@ -110,8 +168,8 @@
                 }
                 else if (result == MessageBoxResult.No)
                 {
-                    ruleBefore.Text = "";
-                    ruleAfter.Text = "";
+                    ruleBefore.Document.Blocks.Clear();
+                    ruleAfter.Document.Blocks.Clear();
                 }
                 else
                 {
@@ -123,8 +181,12 @@
             {
                 ruleBlockEditNow = fileLoader.LoadSingleRuleByPath(filePath);
                 ruleNameOpenNow = ruleBlockEditNow.RuleName;
-                beforeContent = ruleBlockEditNow.GetOrgText("before");
-                afterContent = ruleBlockEditNow.GetOrgText("after");
+                beforeContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("before"));
+                beforeContent = ChangeBlockToColor(beforeContent);
+
+                afterContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("after"));
+                afterContent = ChangeBlockToColor(afterContent);
+
                 whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
             }
             else if (ruleSetOpenNow != null)
@@ -170,14 +232,19 @@
             ruleCreateStackPanel.Children.Add(ruleAfter);
         }
 
-        private void SetEditTextBoxTemplate(TextBox textBox, string content)
+        private void SetEditTextBoxTemplate(RichTextBox textBox, string content)
         {
+            textBox.Document.Blocks.Clear();
             textBox.AcceptsReturn = true;
             textBox.AcceptsTab = true;
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
-            textBox.Text = content;
+
+            Paragraph paragraph = new Paragraph(new Run(content));
+            paragraph.Margin = new Thickness(0,0,0,0);
+            textBox.Document.Blocks.Add(paragraph);
+
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
 
@@ -196,10 +263,13 @@
 
         private string GetFinalRule(int ruleId)
         {
-
-            string head = @"<rule id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
-            string before = @"<before>" + "\n" + ruleBefore.Text + "\n" + @"</before>"+"\n";
-            string after = @"<after>" + "\n" + ruleAfter.Text + "\n" + @"</after>"+"\n";
+            string beforeText = ChangeBlockToXmlText(new TextRange(ruleBefore.Document.ContentStart, ruleBefore.Document.ContentEnd).Text);
+            beforeText = RemoveLineAtFirstAndEnd(beforeText);
+            string afterText = ChangeBlockToXmlText(new TextRange(ruleAfter.Document.ContentStart, ruleAfter.Document.ContentEnd).Text);
+            afterText = RemoveLineAtFirstAndEnd(afterText);
+            string head = @"<rule  xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
+            string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>"+"\n";
+            string after = @"<after>" + "\n" + afterText + "\n" + @"</after>"+"\n";
             string end = @"</rule>";
 
             return head + before + after + end;

@@ -95,17 +95,7 @@ namespace AnalysisExtension
 
         public static string GetXmlTextByTag(XmlDocument xmlDocument, string tag)
         {
-            string result = "";
-            XmlElement node = FindElementByTag(xmlDocument, 1, tag, "");
-            if (node.InnerXml.StartsWith("\n") || node.InnerXml.StartsWith("\r\n"))
-            {
-                result = node.InnerXml.Remove(0, 1);
-            }
-            else
-            {
-                result = node.InnerXml;
-            }
-            return result;
+            return FindElementByTag(xmlDocument, 1, tag, "").InnerXml;
         }
     }
 

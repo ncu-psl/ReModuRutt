@@ -1,14 +1,13 @@
 ﻿using AnalysisExtension.Tool;
-using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Xml;
 
 namespace AnalysisExtension.Model
 {
     public class RuleBlock
     {
+        //TODO : add ignore whitespace method
         public string RuleName { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
@@ -18,6 +17,9 @@ namespace AnalysisExtension.Model
 
         private List<ParameterBlock> paraList;
         private List<CodeBlock> codeBlockList;
+
+        public List<Dictionary<int, string>> codeBlockIdPairList;
+        public List<Dictionary<int, string>> parameterIdPairList;
 
         private XmlDocument xmlDocument = new XmlDocument();
 
@@ -29,7 +31,7 @@ namespace AnalysisExtension.Model
             AfterRuleSliceList = new List<ICodeBlock>();
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
-            CanSpaceIgnore = true;
+            CanSpaceIgnore = false;
 
             InitRule(rule);
         }
@@ -44,7 +46,7 @@ namespace AnalysisExtension.Model
 
             InitRule(rule);
         }
-        //-----get org text----
+        //-----get text----
         public string GetOrgText(string tag)
         {
             return StaticValue.GetXmlTextByTag(xmlDocument,tag);
@@ -54,7 +56,6 @@ namespace AnalysisExtension.Model
         private void InitRule(string rule)
         {
             xmlDocument.LoadXml(rule);
-
             SetRuleInfo();
             LoadRule("before" , BeforeRuleSliceList);
             LoadRule("after" , AfterRuleSliceList);
@@ -110,6 +111,7 @@ namespace AnalysisExtension.Model
 
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
         {
+            codeBlockIdPairList = new List<Dictionary<int, string>>();
             var list = new List<ICodeBlock>(ruleList);
             int blockCount = 1;// index/number of <block> in <layer>      
 
@@ -142,13 +144,16 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
+                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
+
                         int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
                         CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
-
-                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
                         insertIndex++;
                         ruleList.Insert(insertIndex, codeBlock);
                         insertIndex++;
+
+                        Dictionary<int, string> blockPair = new Dictionary<int, string>();
+                        blockPair.Add(codeBlockId,"(" + codeBlockId + ")");
                     }
                 }
                 ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));//add remaining content to list
