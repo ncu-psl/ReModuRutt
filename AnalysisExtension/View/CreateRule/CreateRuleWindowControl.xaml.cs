@@ -330,9 +330,12 @@
             ruleCreateStackPanel.Width = newWindowWidth - ruleTreeView.ActualWidth;
             ruleCreateStackPanel.Height = newWindowHeight - padding;
             ruleBefore.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
-            ruleBefore.Width = ruleCreateStackPanel.Width - padding/2;
+            ruleBefore.Width = ruleCreateStackPanel.Width  - padding/2;
+            ruleBefore.Document.PageWidth = ruleCreateStackPanel.Width * 2;// - padding/2;
+
             ruleAfter.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
-            ruleAfter.Width = ruleCreateStackPanel.Width - padding/2;
+            ruleAfter.Width = ruleCreateStackPanel.Width * 2;// - padding/2;
+            ruleAfter.Document.PageWidth = ruleCreateStackPanel.Width * 2;// - padding/2;
         }
         
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
