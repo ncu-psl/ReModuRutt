@@ -80,12 +80,15 @@
         }
 
         //-----tool-----
-        private string ChangeBlockToColor(string orgText)
+        private Paragraph ChangeBlockToColor(string orgText)
         {
             int blockCount = 1;// index/number of <block> in <layer>      
 
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.LoadXml("<xml xml:space=\"" + "preserve\"" + ">" + orgText + "</xml>");
+
+            Paragraph result = new Paragraph();
+            result.Margin = new Thickness(0, 0, 0, 0);
 
             while (orgText.IndexOf("<block") > -1)
             {
@@ -104,12 +107,18 @@
                 }
                 else
                 {
+                    string frontContent = orgText.Substring(0, startIndex);
+                    Run front = new Run(frontContent, result.ContentEnd);
+                    
                     int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
-                    orgText = orgText.Replace(codeBlockString,"("+codeBlockId+")");
+                    Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
+                    run.Background = SystemColors.HighlightBrush;
+
+                    orgText = orgText.Substring(endIndex + endTokenLen + 1);
                 }
             }
-
-            return orgText;
+            Run endText = new Run(orgText, result.ContentEnd);
+            return result;
         }
 
         private string ChangeBlockToXmlText(string orgText)
@@ -182,11 +191,7 @@
                 ruleBlockEditNow = fileLoader.LoadSingleRuleByPath(filePath);
                 ruleNameOpenNow = ruleBlockEditNow.RuleName;
                 beforeContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("before"));
-                beforeContent = ChangeBlockToColor(beforeContent);
-
                 afterContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("after"));
-                afterContent = ChangeBlockToColor(afterContent);
-
                 whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
             }
             else if (ruleSetOpenNow != null)
@@ -240,11 +245,7 @@
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
-
-            Paragraph paragraph = new Paragraph(new Run(content));
-            paragraph.Margin = new Thickness(0,0,0,0);
-            textBox.Document.Blocks.Add(paragraph);
-
+            textBox.Document.Blocks.Add(ChangeBlockToColor(content));
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
 
