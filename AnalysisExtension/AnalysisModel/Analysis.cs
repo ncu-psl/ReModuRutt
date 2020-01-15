@@ -165,6 +165,8 @@ namespace AnalysisExtension.Model
                     {
                         hasFront = true;
                         CodeBlock front = new CodeBlock(scope[0] + scope[1]);
+                        front.IsMatchRule = false;
+                        needCheck = true;
                         result[0].Add(front);
                     }
 
@@ -246,6 +248,8 @@ namespace AnalysisExtension.Model
                     {
                         hasFront = true;
                         CodeBlock front = new CodeBlock(scope[0] + scope[1]);
+                        front.IsMatchRule = false;
+                        needCheck = true;
                         result[0].Add(front);
                     }
 
