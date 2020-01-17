@@ -1,6 +1,7 @@
 ﻿using AnalysisExtension.Tool;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Windows;
 using System.Xml;
 
 namespace AnalysisExtension.Model
@@ -60,6 +61,7 @@ namespace AnalysisExtension.Model
             LoadRule("before" , BeforeRuleSliceList);
             LoadRule("after" , AfterRuleSliceList);
             ReplaceTokenToRegex(BeforeRuleSliceList);
+
             /*  show rule content
              string text = "";
              var list = new List<ICodeBlock>(BeforeRuleSliceList);
@@ -70,7 +72,7 @@ namespace AnalysisExtension.Model
              MessageBox.Show(text);
              */
         }
-        
+
         private void SetRuleInfo()
         {
             XmlElement element = xmlDocument.DocumentElement;
@@ -82,10 +84,21 @@ namespace AnalysisExtension.Model
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
             SplitByLine(GetOrgText(ruleName) , ruleSliceList);
+            SpiltByEscapeToken(ruleSliceList);
            // SplitPairTokenFromList(ruleSliceList);
             SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
-            SplitCodeBlockFromList(ruleSliceList, ruleName + "/");            
+            SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
             RemoveEmptyRuleSlice(ruleSliceList);
+        }
+
+        private void SpiltByEscapeToken(List<ICodeBlock> ruleSliceList)
+        {
+            foreach (ICodeBlock codeBlock in ruleSliceList.ToArray())
+            {
+                int insertIndex = ruleSliceList.IndexOf(codeBlock);
+                ruleSliceList.Remove(codeBlock);
+                ruleSliceList.InsertRange(insertIndex,EscapeTokenSet.SpiltByEscapeToken(codeBlock.Content));
+            }
         }
 
         private void SplitByLine(string ruleText, List<ICodeBlock> list)
@@ -282,7 +295,7 @@ namespace AnalysisExtension.Model
                 {//whitespace at first
                     if (ruleSliceCount == 0)
                     {//not have front ruleSlice
-                        changePattern = @"\b[ \t]*";
+                        changePattern = "";//@"\b[ \t]*";
                     }
                     else if (list[ruleSliceCount - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
                     {
@@ -393,8 +406,8 @@ namespace AnalysisExtension.Model
         {
             codeBlockList.Add(codeBlock);
         }
-        
-        public CodeBlock GetCodeBlockrById(int id)
+
+        public CodeBlock GetCodeBlockById(int id)
         {
             foreach (CodeBlock codeBlock in codeBlockList)
             {
@@ -403,7 +416,6 @@ namespace AnalysisExtension.Model
                     return codeBlock;
                 }
             }
-
             return null;
         }
 

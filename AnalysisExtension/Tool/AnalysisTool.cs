@@ -1,6 +1,7 @@
 ﻿using AnalysisExtension.Tool;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 namespace AnalysisExtension.Model
 {
@@ -165,38 +166,49 @@ namespace AnalysisExtension.Model
             }
         }
 
-        public void RefreshNotMatchBlock(int blockId,List<ICodeBlock>[] newBlockList)
+        public void RefreshNotMatchBlock(int fileCount,List<ICodeBlock>[] newBlockList)
         {
-            for (int fileCount = 0; fileCount < fileLoader.FILE_NUMBER; fileCount++)
-            {
-                SetBeforeNotMatchBlock(blockId, fileCount, newBlockList[0]);
-                SetAfterNotMatchBlock(blockId, fileCount, newBlockList[1]);
-            }
+            finalBeforeBlockList[fileCount] = newBlockList[0];
+            finalAfterBlockList[fileCount] = newBlockList[1];
+            SetBeforeNotMatchBlock( fileCount, newBlockList[0]);
+            SetAfterNotMatchBlock( fileCount, newBlockList[1]);
         }
 
-        private void SetBeforeNotMatchBlock(int blockId, int fileCount, List<ICodeBlock> newBlockList)
+        private void SetBeforeNotMatchBlock(int fileCount, List<ICodeBlock> newBlockList)
         {
-            foreach (ICodeBlock codeBlock in finalBeforeBlockList[fileCount].ToArray())
+            int blockCount = 0;
+            int beforeCont = 0;
+            ICodeBlock[] beforeResult = finalBeforeBlockList[fileCount].ToArray();
+            while(blockCount < newBlockList.Count && beforeCont < beforeResult.Length)
             {
-                if (codeBlock.BlockId == blockId)
+                ICodeBlock codeBlock = beforeResult[beforeCont];
+                if (codeBlock.BlockId != newBlockList[blockCount].BlockId)
                 {
                     int index = finalBeforeBlockList[fileCount].IndexOf(codeBlock);
                     RemoveFromBeforeList(fileCount, index);
-                    InsertIntoBeforeList(newBlockList, fileCount, index);
+                    InsertIntoBeforeList(newBlockList[blockCount], fileCount, index);
                 }
+                blockCount++;
+                beforeCont++;
             }
         }
 
-        private void SetAfterNotMatchBlock(int blockId, int fileCount, List<ICodeBlock> newBlockList)
+        private void SetAfterNotMatchBlock( int fileCount, List<ICodeBlock> newBlockList)
         {
-            foreach (ICodeBlock codeBlock in finalAfterBlockList[fileCount].ToArray())
+            int blockCount = 0;
+            int afterCount = 0;
+            ICodeBlock[] beforeResult = finalAfterBlockList[fileCount].ToArray();
+            while (blockCount < newBlockList.Count && afterCount < beforeResult.Length)
             {
-                if (codeBlock.BlockId == blockId)
+                ICodeBlock codeBlock = beforeResult[afterCount];
+                if (codeBlock.BlockId != newBlockList[blockCount].BlockId)
                 {
-                    int index = finalAfterBlockList[fileCount].IndexOf(codeBlock);
-                    RemoveFromAfterList(fileCount, index);
-                    InsertIntoAfterList(newBlockList, fileCount, index);
+                    int index = finalBeforeBlockList[fileCount].IndexOf(codeBlock);
+                    RemoveFromBeforeList(fileCount, index);
+                    InsertIntoBeforeList(newBlockList[blockCount], fileCount, index);
                 }
+                blockCount++;
+                afterCount++;
             }
         }
 
@@ -206,12 +218,17 @@ namespace AnalysisExtension.Model
         {
             backgroundWorker.ReportProgress(0);
             analysisMode.AnalysisMethod(backgroundWorker);
+            //RemoveEmptyBlock();
             List<ICodeBlock>[][] result = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
+            finalBeforeBlockList = MergeBlock(finalBeforeBlockList);
+            finalAfterBlockList = MergeBlock(finalAfterBlockList);
+
+            /*new List<ICodeBlock>[fileLoader.FILE_NUMBER][];*/
             for (int i = 0; i < result.Length; i++)
             {
                 result[i] = new List<ICodeBlock>[2];
-                List<ICodeBlock> beforeCodeBlockList = finalBeforeBlockList[i];
-                List<ICodeBlock> afterCodeBlockList = finalAfterBlockList[i];
+                 List<ICodeBlock> beforeCodeBlockList = finalBeforeBlockList[i];
+                 List<ICodeBlock> afterCodeBlockList = finalAfterBlockList[i];/**/
                 result[i][0] = beforeCodeBlockList;
                 result[i][1] = afterCodeBlockList;
             }
@@ -220,88 +237,133 @@ namespace AnalysisExtension.Model
             return result;
         }
 
+        private List<ICodeBlock> SpiltByLine(List<ICodeBlock> codeBlockList)
+        {
+            List<ICodeBlock> result = new List<ICodeBlock>();
 
-        private List<ICodeBlock>[][] MergeBlock(BackgroundWorker backgroundWorker)
-        {//merge those blocks that not match rule to a block
-            List<ICodeBlock>[][] result = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
-            for (int i = 0; i < result.Length; i++)
+            foreach (ICodeBlock codeBlock in codeBlockList)
             {
-                result[i] = new List<ICodeBlock>[2];
-               // result[i][0] = new List<ICodeBlock>();
-                List<ICodeBlock> beforeCodeBlockList = finalBeforeBlockList[i];
-                List<ICodeBlock> afterCodeBlockList = finalAfterBlockList[i];
-                result[i][0] = beforeCodeBlockList;
-                result[i][1] = afterCodeBlockList;
+                if (codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                {
+                    result.Add(codeBlock);
+                }
+                else
+                {
+                    while (codeBlock.Content.Length > 0)
+                    {
+                        Match match = Regex.Match(codeBlock.Content, "[\r\n]+");
+                        int blockId = codeBlock.BlockId;
+                        int blockListId = (codeBlock as CodeBlock).BlockListIndex;
+
+                        if (match.Success)
+                        {
+                            int index = match.Index + match.Length;
+                            result.Add(new CodeBlock(codeBlock.Content.Substring(0, index), blockId, blockListId));//add with \n\r
+                            codeBlock.Content = codeBlock.Content.Substring(index);
+                        }
+                        else
+                        {
+                            result.Add(codeBlock);
+                            break;
+                        }
+                    }
+                }
             }
-            
-            float completePersent = 0;
-            /*  for (int fileIndex = 0; fileIndex < finalBeforeBlockList.Length; fileIndex++)
-              {
-                  List<ICodeBlock> codeBlockList = finalBeforeBlockList[fileIndex];
-                  int mergeStartIndex = -1;
-                  int mergeRange = 0;
-                  int i = 0;
-                  while (i < codeBlockList.Count)
-                  {
-                      if (codeBlockList[i].IsMatchRule)
-                      {
-                          if (mergeStartIndex != -1)
-                          {
-                              MergeBeforeBlockFromRange(mergeStartIndex, mergeRange, fileIndex, codeBlockList, result[fileIndex][0]);
 
-                              //continue check the block after mergeBlock(will add to next index by 'i++') , reset mergeStartIndex
-                              i = mergeStartIndex;
-                              mergeStartIndex = -1;
-                              mergeRange = 0;
-                          }
-                          else
-                          {
-                              result[fileIndex][0].Add(codeBlockList[i]);
-                          }
-                      }
-                      else if (i == codeBlockList.Count - 1 && mergeStartIndex != -1)
-                      {
-                          //from mergeStartIndex to final index need to merge
-                          mergeRange++;
-                          MergeBeforeBlockFromRange(mergeStartIndex, mergeRange, fileIndex, codeBlockList, result[fileIndex][0]);
-
-                          break;
-                      }
-                      else
-                      {//not match rule
-                          if (mergeStartIndex == -1)
-                          {
-                              mergeStartIndex = i;
-                          }
-                          else
-                          {
-                              mergeRange++;
-                          }
-                      }
-                      i++;
-                  }
-
-                  //refresh progress bar                
-                  completePersent = ((float)(fileIndex + 1) / finalBeforeBlockList.Length) * 50 + 50;
-                  if (completePersent <= 100)
-                  {
-                      backgroundWorker.ReportProgress((int)completePersent);
-                  }
-              }*/
             return result;
         }
 
-        private void MergeBeforeBlockFromRange(int mergeStartIndex, int mergeRange, int fileIndex, List<ICodeBlock> orgCodeBlockList, List<ICodeBlock> resultCodeBlock)
+        private void RemoveEmptyBlock()
+        {
+            for (int fileIndex = 0; fileIndex <fileLoader.FILE_NUMBER; fileIndex++)
+            {
+                foreach (ICodeBlock codeBlock in finalBeforeBlockList[fileIndex].ToArray())
+                {
+                    if (!(codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(codeBlock.Content.Contains("<block")))
+                    {
+                        Match match = Regex.Match(codeBlock.Content, @"[\S]");
+                        if (!match.Success || codeBlock.Content.Length == 0)
+                        {
+                            finalBeforeBlockList[fileIndex].Remove(codeBlock);
+                        }
+                    }
+                }
+
+                foreach (ICodeBlock codeBlock in finalAfterBlockList[fileIndex].ToArray())
+                {
+                    if (!(codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(codeBlock.Content.Contains("<block")))
+                    {
+                        Match match = Regex.Match(codeBlock.Content, @"[\S]");
+                        if (!match.Success || codeBlock.Content.Length == 0)
+                        {
+                            finalBeforeBlockList[fileIndex].Remove(codeBlock);
+                        }
+                    }
+                }
+            }
+        }
+        private List<ICodeBlock>[] MergeBlock(List<ICodeBlock>[] finalBlockList)
+        {
+            List<ICodeBlock>[] result = new List<ICodeBlock>[fileLoader.FILE_NUMBER];
+            for (int fileIndex = 0; fileIndex < fileLoader.FILE_NUMBER; fileIndex++)
+            {
+                result[fileIndex] = new List<ICodeBlock>();
+                List<ICodeBlock> codeBlockList = finalBlockList[fileIndex];
+                int mergeStartIndex = -1;
+                int mergeRange = 0;
+                int i = 0;
+                while (i < codeBlockList.Count)
+                {
+                    if (codeBlockList[i].IsMatchRule)
+                    {
+                        if (mergeStartIndex != -1)
+                        {
+                            mergeRange = i - mergeStartIndex;
+
+                            MergeBlockFromRange(mergeStartIndex, mergeRange, fileIndex, codeBlockList, result[fileIndex]);
+                            result[fileIndex].Add(codeBlockList[i]);
+
+                            mergeStartIndex = -1;
+                            mergeRange = 0;
+                        }
+                        else
+                        {
+                            result[fileIndex].Add(codeBlockList[i]);
+                        }
+                    }
+                    else if (i == codeBlockList.Count - 1 && mergeStartIndex != -1)
+                    {
+                        //from mergeStartIndex to final index need to merge
+                        mergeRange = i - mergeStartIndex;
+                        MergeBlockFromRange(mergeStartIndex, mergeRange, fileIndex, codeBlockList, result[fileIndex]);
+
+                        break;
+                    }
+                    else
+                    {//not match rule
+                        if (mergeStartIndex == -1)
+                        {
+                            mergeStartIndex = i;
+                        }
+                    }
+                    i++;
+                }
+            }
+            return result;
+        }
+
+        private void MergeBlockFromRange(int mergeStartIndex, int mergeRange, int fileIndex, List<ICodeBlock> orgCodeBlockList, List<ICodeBlock> resultCodeBlock)
         {
             string mergeText = "";
-
+            int blockId = -1;
             for (int j = 0; j < mergeRange; j++)
             {
                 int index = mergeStartIndex + j;
-                mergeText += orgCodeBlockList[index].Content + "\n";
+                mergeText += orgCodeBlockList[index].Content;
+                blockId = orgCodeBlockList[index].BlockId;
             }
 
-            CodeBlock mergeBlock = new CodeBlock(mergeText);
+            CodeBlock mergeBlock = new CodeBlock(mergeText,blockId,-1);
             resultCodeBlock.Add(mergeBlock);
         }
     }

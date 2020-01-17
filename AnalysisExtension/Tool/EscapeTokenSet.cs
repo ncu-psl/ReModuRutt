@@ -1,4 +1,6 @@
-﻿using System.Text.RegularExpressions;
+﻿using AnalysisExtension.Model;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace AnalysisExtension.Tool
 {
@@ -139,6 +141,34 @@ namespace AnalysisExtension.Tool
             }
 
             return result;
+        }
+
+        public static List<ICodeBlock> SpiltByEscapeToken(string orgContent)
+        {
+            List<ICodeBlock> spiltResult = new List<ICodeBlock>();
+            spiltResult.Add(new CodeBlock(orgContent));
+
+            foreach (string token in PAIR_TOKEN)
+            {
+                ICodeBlock[] copyCompareArray = spiltResult.ToArray();
+                spiltResult.Clear();//clear all, reload all content with split result 
+                foreach (ICodeBlock codeBlock in copyCompareArray)
+                {
+                    string[] spilt = Regex.Split(codeBlock.Content, Regex.Escape(token));
+                    for (int i = 0; i < spilt.Length; i++)
+                    {
+                        spiltResult.Add(new CodeBlock(spilt[i]));
+
+                        if (i < spilt.Length - 1)
+                        {
+                            spiltResult.Add(new CodeBlock(token));
+                        }
+                    }
+                }
+            }
+            orgContent.Split();
+
+            return spiltResult;
         }
     }
 }

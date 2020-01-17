@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using AnalysisExtension.Model;
+using System.Collections.Generic;
+using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
 
@@ -96,6 +99,48 @@ namespace AnalysisExtension
         public static string GetXmlTextByTag(XmlDocument xmlDocument, string tag)
         {
             return FindElementByTag(xmlDocument, 1, tag, "").InnerXml;
+        }
+               
+        public static bool IsListSame(List<ICodeBlock> org, List<ICodeBlock> compare)
+        {
+            int orgCount = 0,compareCount = 0;
+            bool result = false;
+
+            while (orgCount < org.Count && compareCount < compare.Count)
+            {
+                if (Regex.Match(org[orgCount].Content, @"[\W]").Length == org[orgCount].Content.Length)
+                {
+                    orgCount++;
+                    continue;
+                }
+                else if(Regex.Match(compare[compareCount].Content, @"[\W]").Length == compare[compareCount].Content.Length)
+                {
+                    compareCount++;
+                    continue;
+                }
+
+                if (org[orgCount].Content.Equals(compare[compareCount].Content))
+                {
+                    result = true;
+                }
+                else
+                {
+                    return false;
+                }
+                orgCount++;
+                compareCount++;
+            }
+            return result;
+        }
+
+        public static string GetAllContent(List<ICodeBlock> codeBlockList)
+        {
+            string result = "";
+            foreach (ICodeBlock codeBlock in codeBlockList)
+            {
+                result += codeBlock.Content;
+            }
+            return result;
         }
     }
 
