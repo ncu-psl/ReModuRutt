@@ -152,5 +152,10 @@ namespace AnalysisExtension.Tool
             }
             return null;
         }
+
+        public string GetRulePathById(int ruleSetId, int ruleId)
+        {
+            return StaticValue.RULE_FOLDER_PATH + "//" + GetRuleSetById(ruleSetId).GetRulePath(ruleId)+".xml";
+        }
     }
 }

@@ -37,7 +37,7 @@ namespace AnalysisExtension.View
 
         //-----init-----
         private void GetListFromAnalysisTool()
-        {
+        {            
             beforeList = analysisTool.GetFinalBeforeBlockList();
             afterList = analysisTool.GetFinalAfterBlockList();
         }
@@ -175,37 +175,33 @@ namespace AnalysisExtension.View
             outerPanel.Orientation = Orientation.Vertical;
 
             List<ICodeBlock> codeBlockInLine = new List<ICodeBlock>();
+            int blockIdLast = -1;
+            bool isChange = false;
 
             foreach (ICodeBlock codeBlock in content)
             {
-                if (Regex.IsMatch(codeBlock.Content, @"\A[ \t]*[\n\r]+") && Regex.IsMatch(codeBlock.Content, @"[\n\r]+[ \t]*\Z"))//start and end by line
+                /*if (content.IndexOf(codeBlock) != 0)
                 {
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                    codeBlockInLine = new List<ICodeBlock>(); 
-                     codeBlockInLine.Add(codeBlock);
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                    codeBlockInLine = new List<ICodeBlock>();
-                }
-                else if (Regex.IsMatch(codeBlock.Content, @"\A[ \t]*[\n\r]+"))//start by new line
-                {
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                    codeBlockInLine = new List<ICodeBlock>();
-                    codeBlockInLine.Add(codeBlock);
-                }
-                else if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+[ \t]*\Z"))//end by new line
-                {
-                    if (Regex.Matches(codeBlock.Content, @"[\n\r]+").Count > 1)
+                    if (codeBlock.BlockId != blockIdLast)
                     {
-                        outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                        codeBlockInLine = new List<ICodeBlock>();
+                        isChange = true;
                     }
+                }
+                blockIdLast = codeBlock.BlockId;
+
+                if (isChange)
+                {
                     codeBlockInLine.Add(codeBlock);
+                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
+                    codeBlockInLine = new List<ICodeBlock>();
+                }
+                else */if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+"))
+                {
                     outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
                     codeBlockInLine = new List<ICodeBlock>();
                 }
                 else if (content.IndexOf(codeBlock) == content.Count - 1)//is last
                 {
-                    codeBlockInLine = new List<ICodeBlock>();
                     codeBlockInLine.Add(codeBlock);
                     outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
                 }

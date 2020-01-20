@@ -130,23 +130,25 @@ namespace AnalysisExtension.Tool
                 }
                 index++;
             }*/
-            while (index < (PAIR_TOKEN.Length / 2))
+            if (token.Length > 0)
             {
-                if (Regex.Match(Regex.Escape(PAIR_TOKEN[index, 0]), token).Success || Regex.Match(Regex.Escape(PAIR_TOKEN[index, 1]), token).Success)
+                while (index < (PAIR_TOKEN.Length / 2))
                 {
-                    result = true;
-                    break;
+                    if (Regex.Match(Regex.Escape(PAIR_TOKEN[index, 0]), token).Success || Regex.Match(Regex.Escape(PAIR_TOKEN[index, 1]), token).Success)
+                    {
+                        result = true;
+                        break;
+                    }
+                    index++;
                 }
-                index++;
             }
-
             return result;
         }
 
         public static List<ICodeBlock> SpiltByEscapeToken(string orgContent)
         {
             List<ICodeBlock> spiltResult = new List<ICodeBlock>();
-            spiltResult.Add(new CodeBlock(orgContent));
+            spiltResult.Add(new NormalBlock(orgContent));
 
             foreach (string token in PAIR_TOKEN)
             {
@@ -157,11 +159,39 @@ namespace AnalysisExtension.Tool
                     string[] spilt = Regex.Split(codeBlock.Content, Regex.Escape(token));
                     for (int i = 0; i < spilt.Length; i++)
                     {
-                        spiltResult.Add(new CodeBlock(spilt[i]));
+                        spiltResult.Add(new NormalBlock(spilt[i]));
 
                         if (i < spilt.Length - 1)
                         {
-                            spiltResult.Add(new CodeBlock(token));
+                            spiltResult.Add(new NormalBlock(token));
+                        }
+                    }
+                }
+            }
+            orgContent.Split();
+
+            return spiltResult;
+        }
+
+        public static List<ICodeBlock> SpiltByEscapeTokenWithBlockId(string orgContent,int id)
+        {
+            List<ICodeBlock> spiltResult = new List<ICodeBlock>();
+            spiltResult.Add(new NormalBlock(orgContent));
+
+            foreach (string token in PAIR_TOKEN)
+            {
+                ICodeBlock[] copyCompareArray = spiltResult.ToArray();
+                spiltResult.Clear();//clear all, reload all content with split result 
+                foreach (ICodeBlock codeBlock in copyCompareArray)
+                {
+                    string[] spilt = Regex.Split(codeBlock.Content, Regex.Escape(token));
+                    for (int i = 0; i < spilt.Length; i++)
+                    {
+                        spiltResult.Add(new NormalBlock(spilt[i]));
+
+                        if (i < spilt.Length - 1)
+                        {
+                            spiltResult.Add(new NormalBlock(token,id));
                         }
                     }
                 }

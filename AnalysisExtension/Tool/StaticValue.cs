@@ -18,7 +18,9 @@ namespace AnalysisExtension
         public static Window WINDOW = null;
         public static string PARAMETER_BLOCK_TYPE_NAME = "parameter type";
         public static string CODE_BLOCK_TYPE_NAME = "code block type";
-        
+        public static string INCLUDE_TYPE_NAME = "include type";
+        public static string NORMAL_BLOCK_TYPE_NAME = "normal type";
+
         public static int CODE_BLOCK_ID_COUNT = 0;
       //  public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
@@ -101,7 +103,7 @@ namespace AnalysisExtension
             return FindElementByTag(xmlDocument, 1, tag, "").InnerXml;
         }
                
-        public static bool IsListSame(List<ICodeBlock> org, List<ICodeBlock> compare)
+        public static bool IsListSame(List<ICodeBlock> org, List<ICodeBlock> compare,bool isWhitespaceIgnore)
         {
             int orgCount = 0,compareCount = 0;
             bool result = false;
@@ -119,6 +121,12 @@ namespace AnalysisExtension
                     continue;
                 }
 
+                if (isWhitespaceIgnore)
+                {
+                    org[orgCount].Content = Regex.Replace(org[orgCount].Content, "[\n\r\t ]","");
+                    compare[compareCount].Content = Regex.Replace(compare[compareCount].Content, "[\n\r\t ]", "");
+                }
+
                 if (org[orgCount].Content.Equals(compare[compareCount].Content))
                 {
                     result = true;
@@ -131,6 +139,11 @@ namespace AnalysisExtension
                 compareCount++;
             }
             return result;
+        }
+
+        public static bool IsListSame(List<ICodeBlock> org, List<ICodeBlock> compare)
+        {
+            return IsListSame(org, compare, false);
         }
 
         public static string GetAllContent(List<ICodeBlock> codeBlockList)

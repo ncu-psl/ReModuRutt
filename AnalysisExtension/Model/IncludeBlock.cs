@@ -3,65 +3,75 @@ using System.Windows.Media;
 
 namespace AnalysisExtension.Model
 {
-    public class CodeBlock : ICodeBlock
+    public class IncludeBlock : ICodeBlock
     {
         public string Content { get; set; }
         public int BlockId { get; set; }
-        public int BlockListIndex { get; set; }//the id in the ruleBlock's codeBlockList, if not the block ,then id = -1 
+        public int IncludeBlockListIndex { get; set; }//the id in the ruleBlock's includeBlockList, if not the block ,then id = -1 
+        public int CompareRuleId { get; set; }
+        public int FromRuleSetId { get; set; } //if == -1, include rule from same rule set
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName { get { return StaticValue.CODE_BLOCK_TYPE_NAME; } }
         public List<ICodeBlock> BeforeList { get; set; }
         public List<ICodeBlock> AfterList { get; set; }
+
+        public string TypeName { get { return StaticValue.INCLUDE_TYPE_NAME;} }
+
         public bool IsMatchRule { get; set; }
 
-        public CodeBlock()
+        public IncludeBlock()
         {
             Content = "";
             BlockId = -1;
-            BlockListIndex = -1;
+            IncludeBlockListIndex = -1;
             IsMatchRule = false;
             BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
-        public CodeBlock(string content)
+        public IncludeBlock(string content,int compareRuleId,int fromRuleSetId)
         {
             Content = content;
-            BlockListIndex = -1;
+            IncludeBlockListIndex = -1;
             IsMatchRule = false;
             BlockId = StaticValue.GetNextBlockId();
             BackgroundColor = new SolidColorBrush(Colors.White);
+            CompareRuleId = compareRuleId;
+            FromRuleSetId = fromRuleSetId;
         }
 
-        public CodeBlock(string content, int blockListIndex)
+        public IncludeBlock(string content, int includeBlockListIndex, int compareRuleId, int fromRuleSetId)
         {
             Content = content;
             BlockId = StaticValue.GetNextBlockId();
-            BlockListIndex = blockListIndex;
+            IncludeBlockListIndex = includeBlockListIndex;
             IsMatchRule = false;
             BackgroundColor = new SolidColorBrush(Colors.White);
+            CompareRuleId = compareRuleId;
+            FromRuleSetId = fromRuleSetId;
         }
 
-        public CodeBlock(string content, int blockId, int blockListIndex)
+        public IncludeBlock(string content, int blockId, int includeBlockListIndex, int compareRuleId, int fromRuleSetId)
         {
             Content = content;
             BlockId = blockId;
-            BlockListIndex = blockListIndex;
+            IncludeBlockListIndex = includeBlockListIndex;
             IsMatchRule = false;
             BackgroundColor = new SolidColorBrush(Colors.White);
+            CompareRuleId = compareRuleId;
+            FromRuleSetId = fromRuleSetId;
         }
 
         public string GetPrintInfo()
         {
-            return Content;
+            return "<include id=\"" + IncludeBlockListIndex + "\" compareRuleId=\"" + CompareRuleId + "\" fromRuleSetId=\"" + FromRuleSetId+"\"/>";
         }
 
         public ICodeBlock GetCopy()
         {
-            CodeBlock copy = new CodeBlock();
+            IncludeBlock copy = new IncludeBlock();
 
             copy.Content = Content;
             copy.BlockId = BlockId;
-            copy.BlockListIndex = BlockListIndex;
+            copy.IncludeBlockListIndex = IncludeBlockListIndex;
             copy.BackgroundColor = BackgroundColor;
             copy.BeforeList = BeforeList;
             copy.AfterList = AfterList;

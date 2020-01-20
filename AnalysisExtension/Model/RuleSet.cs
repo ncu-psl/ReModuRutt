@@ -34,6 +34,28 @@ namespace AnalysisExtension.Model
             
         }
         //-----get-----
+        public string GetRulePath(int ruleId)
+        {
+            Dictionary<string, string> ruleInfo = GetRuleInfoById(ruleId);
+            if (ruleInfo != null)
+            {
+                return Name + "//" + ruleInfo["name"];
+            }
+            return null;
+        }
+
+        public Dictionary<string, string> GetRuleInfoById(int ruleId)
+        {
+            foreach (Dictionary<string, string> pairs in RuleList)
+            {
+                if (ruleId == int.Parse(pairs["id"]))
+                {
+                    return pairs;
+                }
+            }
+            return null;
+        }
+
         public bool HasRuleId(int id)
         {
             foreach (Dictionary<string, string> pairs in RuleList)

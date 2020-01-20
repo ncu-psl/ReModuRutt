@@ -10,8 +10,7 @@ namespace AnalysisExtension.Model
         string TypeName { get; }
         bool IsMatchRule { get; set; }
 
-        CodeBlock GetCodeBlock();
-        ParameterBlock GetParameterCodeBlock();
+        ICodeBlock GetCopy();
         string GetPrintInfo();
     }
 }

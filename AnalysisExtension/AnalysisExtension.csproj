@@ -59,7 +59,9 @@
   <ItemGroup>
     <Compile Include="ExceptionMode\ProjectNotOpenException.cs" />
     <Compile Include="Model\CodeBlock.cs" />
+    <Compile Include="Model\NormalBlock.cs" />
     <Compile Include="Model\ICodeBlock.cs" />
+    <Compile Include="Model\IncludeBlock.cs" />
     <Compile Include="Model\ParameterBlock.cs" />
     <Compile Include="Model\RuleBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />

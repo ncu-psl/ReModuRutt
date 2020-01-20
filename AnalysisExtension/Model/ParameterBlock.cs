@@ -9,7 +9,6 @@ namespace AnalysisExtension.Model
         public int ParaListIndex { get; set; }//the id in the ruleBlock's parameterList
         public SolidColorBrush BackgroundColor { get; set; }
         public string TypeName { get { return StaticValue.PARAMETER_BLOCK_TYPE_NAME;} }
-
         public bool IsMatchRule { get; set; }
 
         public ParameterBlock()
@@ -48,19 +47,22 @@ namespace AnalysisExtension.Model
             BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
-        public CodeBlock GetCodeBlock()
-        {
-            return null;
-        }
-
-        public ParameterBlock GetParameterCodeBlock()
-        {
-            return this;
-        }
-
         public string GetPrintInfo()
         {
             return "<para id=\"" + ParaListIndex + "\"/>";
+        }
+
+        public ICodeBlock GetCopy()
+        {
+            ParameterBlock copy = new ParameterBlock();
+
+            copy.Content = Content;
+            copy.BlockId = BlockId;
+            copy.ParaListIndex = ParaListIndex;
+            copy.BackgroundColor = BackgroundColor;
+            copy.IsMatchRule = IsMatchRule;
+
+            return copy;
         }
     }
 }

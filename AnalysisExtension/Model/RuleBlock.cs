@@ -18,13 +18,51 @@ namespace AnalysisExtension.Model
 
         private List<ParameterBlock> paraList;
         private List<CodeBlock> codeBlockList;
+        private List<IncludeBlock> includeBlockList;
 
-        public List<Dictionary<int, string>> codeBlockIdPairList;
-        public List<Dictionary<int, string>> parameterIdPairList;
+        /*public List<Dictionary<int, string>> codeBlockIdPairList;
+        public List<Dictionary<int, string>> parameterIdPairList;*/
 
         private XmlDocument xmlDocument = new XmlDocument();
 
         public int ruleBlockId = StaticValue.GetNextBlockId();
+
+        public RuleBlock(RuleBlock copy)
+        {
+            RuleName = copy.RuleName;
+            RuleId = copy.RuleId;
+            CanSpaceIgnore = copy.CanSpaceIgnore;
+
+            BeforeRuleSliceList = new List<ICodeBlock>();
+            foreach (ICodeBlock codeBlock in copy.BeforeRuleSliceList)
+            {
+                BeforeRuleSliceList.Add(codeBlock.GetCopy());
+            }
+
+            AfterRuleSliceList = new List<ICodeBlock>();
+            foreach (ICodeBlock codeBlock in copy.AfterRuleSliceList)
+            {
+                BeforeRuleSliceList.Add(codeBlock.GetCopy());
+            }
+
+            paraList = new List<ParameterBlock>();
+            foreach (ParameterBlock codeBlock in copy.paraList)
+            {
+                paraList.Add(codeBlock.GetCopy() as ParameterBlock);
+            }
+
+            codeBlockList = new List<CodeBlock>();
+            foreach (CodeBlock codeBlock in copy.codeBlockList)
+            {
+                codeBlockList.Add(codeBlock.GetCopy() as CodeBlock);
+            }
+
+            includeBlockList = new List<IncludeBlock>();
+            foreach (IncludeBlock codeBlock in copy.includeBlockList)
+            {
+                includeBlockList.Add(codeBlock.GetCopy() as IncludeBlock);
+            }
+        }
 
         public RuleBlock(string rule)
         {
@@ -32,6 +70,7 @@ namespace AnalysisExtension.Model
             AfterRuleSliceList = new List<ICodeBlock>();
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
+            includeBlockList = new List<IncludeBlock>();
             CanSpaceIgnore = false;
 
             InitRule(rule);
@@ -43,6 +82,7 @@ namespace AnalysisExtension.Model
             AfterRuleSliceList = new List<ICodeBlock>();
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
+            includeBlockList = new List<IncludeBlock>();
             CanSpaceIgnore = canSpaceIgnore;
 
             InitRule(rule);
@@ -50,7 +90,18 @@ namespace AnalysisExtension.Model
         //-----get text----
         public string GetOrgText(string tag)
         {
-            return StaticValue.GetXmlTextByTag(xmlDocument,tag);
+            string result = StaticValue.GetXmlTextByTag(xmlDocument, tag);
+            if (Regex.IsMatch(result, @"\A[ \t]*[\n\r]+"))
+            {
+                result = Regex.Replace(result, @"\A[ \t]*[\n\r]+","");
+            }
+
+            if (Regex.IsMatch(result, @"[\n\r]+[ \t]*\Z"))
+            {
+                result = Regex.Replace(result, @"[\n\r]+[ \t]*\Z", "");
+            }
+
+            return result;
         }
 
         //-----ruleList-----
@@ -70,7 +121,7 @@ namespace AnalysisExtension.Model
                  text += codeBlock.BlockId + " : " + codeBlock.GetPrintInfo() + "\n";
              }
              MessageBox.Show(text);
-             */
+            */
         }
 
         private void SetRuleInfo()
@@ -83,25 +134,30 @@ namespace AnalysisExtension.Model
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
-            SplitByLine(GetOrgText(ruleName) , ruleSliceList);
-            SpiltByEscapeToken(ruleSliceList);
-           // SplitPairTokenFromList(ruleSliceList);
+          //  SplitByLine(GetOrgText(ruleName) , ruleSliceList);
+            SpiltByEscapeToken(GetOrgText(ruleName),ruleSliceList);
             SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
+            SplitIncludeBlockFromList(ruleSliceList, ruleName + "/");
             RemoveEmptyRuleSlice(ruleSliceList);
         }
 
-        private void SpiltByEscapeToken(List<ICodeBlock> ruleSliceList)
+        private void SpiltByEscapeToken(string ruleText, List<ICodeBlock> ruleSliceList)
         {
-            foreach (ICodeBlock codeBlock in ruleSliceList.ToArray())
+            string content = ruleText;
+          /*  while (content.Length > 0)
+            {
+            }
+                foreach (ICodeBlock codeBlock in ruleSliceList.ToArray())
             {
                 int insertIndex = ruleSliceList.IndexOf(codeBlock);
                 ruleSliceList.Remove(codeBlock);
                 ruleSliceList.InsertRange(insertIndex,EscapeTokenSet.SpiltByEscapeToken(codeBlock.Content));
-            }
+            }*/
+            ruleSliceList.AddRange(EscapeTokenSet.SpiltByEscapeToken(content));
         }
 
-        private void SplitByLine(string ruleText, List<ICodeBlock> list)
+      /*  private void SplitByLine(string ruleText, List<ICodeBlock> list)
         {
             string content = ruleText;
 
@@ -111,20 +167,20 @@ namespace AnalysisExtension.Model
                 if (match.Success)
                 {
                     int index = match.Index + match.Length;
-                    list.Add(new CodeBlock(content.Substring(0, index),ruleBlockId,-1));//add with \n\r
+                    list.Add(new NormalBlock(content.Substring(0, index),ruleBlockId));//add with \n\r
                     content = content.Substring(index);
                 }
                 else
                 {
-                    list.Add(new CodeBlock(content, ruleBlockId, -1));
+                    list.Add(new NormalBlock(content, ruleBlockId));
                     break;
                 }
             }
-        }
+        }*/
 
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
         {
-            codeBlockIdPairList = new List<Dictionary<int, string>>();
+            //codeBlockIdPairList = new List<Dictionary<int, string>>();
             var list = new List<ICodeBlock>(ruleList);
             int blockCount = 1;// index/number of <block> in <layer>      
 
@@ -141,7 +197,7 @@ namespace AnalysisExtension.Model
                 while (content.IndexOf("<block") > -1)
                 {
                     int startIndex = content.IndexOf("<block");
-                    int endIndex = content.IndexOf("/>");
+                    int endIndex = content.Substring(startIndex).IndexOf("/>") + startIndex;
                     int endTokenLen = 2;
 
                     string stringBefore = content.Substring(0, startIndex);
@@ -157,19 +213,23 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
-                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
+                        if (stringBefore.Length > 0)
+                        {
+                            ruleList.Insert(insertIndex, new NormalBlock(stringBefore, ruleBlockId));
+                            insertIndex++;
+                        }
 
                         int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
                         CodeBlock codeBlock = new CodeBlock(codeBlockString, codeBlockId);
-                        insertIndex++;
+                        
                         ruleList.Insert(insertIndex, codeBlock);
                         insertIndex++;
 
-                        Dictionary<int, string> blockPair = new Dictionary<int, string>();
-                        blockPair.Add(codeBlockId,"(" + codeBlockId + ")");
+                        /*Dictionary<int, string> blockPair = new Dictionary<int, string>();
+                        blockPair.Add(codeBlockId,"(" + codeBlockId + ")");*/
                     }
                 }
-                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));//add remaining content to list
+                ruleList.Insert(insertIndex, new NormalBlock(content, ruleBlockId));//add remaining content to list
             }
         }
 
@@ -206,52 +266,76 @@ namespace AnalysisExtension.Model
                         int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));                        
                         ParameterBlock parameterBlock = new ParameterBlock("", paraId);
 
-                        ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
+                        ruleList.Insert(insertIndex, new NormalBlock(stringBefore, ruleBlockId));
                         insertIndex++;
                         ruleList.Insert(insertIndex, parameterBlock);
                         insertIndex++;
                     }
                 }
-                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));                
+                ruleList.Insert(insertIndex, new NormalBlock(content, ruleBlockId));                
             }
         }
 
-        private void SplitPairTokenFromList(List<ICodeBlock> ruleList)
+        private void SplitIncludeBlockFromList(List<ICodeBlock> ruleList, string layer)
         {
             var list = new List<ICodeBlock>(ruleList);
+            int includeBlockCount = 1;// index/number of <para> in <layer>
 
             foreach (ICodeBlock ruleCodeBlock in list.ToArray())
             {
                 string content = ruleCodeBlock.GetPrintInfo();
                 int insertIndex = ruleList.IndexOf(ruleCodeBlock);
 
-                ruleList.Remove(ruleCodeBlock);//remove from list
-                                
-                if (EscapeTokenSet.GetPairTokenIndex(content) > -1)
+                if (ruleCodeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME) || ruleCodeBlock.Content.Contains("<block"))
                 {
-                    int startIndex = EscapeTokenSet.GetPairTokenIndex(content);
-                    string token = EscapeTokenSet.GetToken(content);
+                    continue;
+                }
+                ruleList.Remove(ruleCodeBlock);//remove from list
+                while (content.IndexOf("<include") > -1)
+                {
+                    int startIndex = content.IndexOf("<include");
+                    int endIndex = content.Substring(startIndex).IndexOf("/>") + startIndex;
+                    int endTokenLen = 2;
 
                     string stringBefore = content.Substring(0, startIndex);
-                    content = content.Substring(startIndex + token.Length);
-                    
-                    ruleList.Insert(insertIndex, new CodeBlock(stringBefore, ruleBlockId, -1));
-                    insertIndex++;
-                    ruleList.Insert(insertIndex, new CodeBlock(token, ruleBlockId, -1));
-                    insertIndex++;                    
+                    XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument, includeBlockCount, "include", layer);
+                    includeBlockCount++;
+
+                    string codeBlockString = content.Substring(startIndex, endIndex - startIndex + endTokenLen);
+                    content = content.Substring(endIndex + endTokenLen);
+
+                    if (blockElement == null)
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        if (stringBefore.Length > 0)
+                        {
+                            ruleList.Insert(insertIndex, new NormalBlock(stringBefore, ruleBlockId));
+                            insertIndex++;
+                        }
+                        int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
+                        int compareRuleId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "compareRuleId"));
+                        int fromRuleSetId= int.Parse(StaticValue.GetAttributeInElement(blockElement, "fromRuleSetId"));
+
+                        IncludeBlock codeBlock = new IncludeBlock(codeBlockString, codeBlockId, compareRuleId, fromRuleSetId);
+                        ruleList.Insert(insertIndex, codeBlock);
+                        insertIndex++;
+                    }
                 }
-                ruleList.Insert(insertIndex, new CodeBlock(content, ruleBlockId, -1));
+                ruleList.Insert(insertIndex, new NormalBlock(content, ruleBlockId));//add remaining content to list
             }
         }
-
+        
         private void RemoveEmptyRuleSlice(List<ICodeBlock> list)
         {
             foreach (ICodeBlock ruleSlice in list.ToArray())
             {
-                if (!(ruleSlice.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(ruleSlice.Content.Contains("<block")))
+                if (ruleSlice.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
                 {
-                    Match match = Regex.Match(ruleSlice.Content, @"[\S]");
-                    if (!match.Success || ruleSlice.Content.Length == 0)
+                    /*Match match = Regex.Match(ruleSlice.Content, @"[\S]");*/
+                    if (/*!match.Success || */ruleSlice.Content.Length == 0)
                     {
                         list.Remove(ruleSlice);
                     }
@@ -261,10 +345,11 @@ namespace AnalysisExtension.Model
 
         private void ReplaceTokenToRegex(List<ICodeBlock> list)
         {
-            for(int i = 0; i < list.Count;i++)
+            for (int i = 0; i < list.Count;i++)
             {
-                ICodeBlock ruleSlice = list[i];
-                if (!(ruleSlice.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME)) && !(ruleSlice.Content.Contains("<block")))
+                ICodeBlock ruleSlice = list[i];                
+
+                if (ruleSlice.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
                 {
                     MatchCollection matches = Regex.Matches(ruleSlice.Content, @"[\S]");//not include 
                     foreach (Match match in matches)
@@ -312,7 +397,7 @@ namespace AnalysisExtension.Model
                     {
                         changePattern = @"[ \t]+";
                     }
-                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1].Content.Contains("<block"))
+                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1].TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
                     {
                         changePattern = @"[ \t]*";
                     }
@@ -376,12 +461,7 @@ namespace AnalysisExtension.Model
 
         }
 
-        //-----xml tool-----
-     /*   private XmlElement FindElementByTag(int index,string tag,string layer)
-        {
-            return (XmlElement)xmlDocument.DocumentElement.SelectSingleNode(layer+tag+"["+index+"]");
-        }*/
-
+        
         //-----para block-----
         public void AddParameter(ParameterBlock parameterBlock)
         {
@@ -418,15 +498,47 @@ namespace AnalysisExtension.Model
             }
             return null;
         }
+        
+        //-----include block-----
+        public void AddIncludeBlock(IncludeBlock includeBlock)
+        {
+            includeBlockList.Add(includeBlock);
+        }
 
+        public IncludeBlock GetIncludeBlockById(int id)
+        {
+            foreach (IncludeBlock includeBlock in includeBlockList)
+            {
+                if (includeBlock.IncludeBlockListIndex == id)
+                {
+                    return includeBlock;
+                }
+            }
+            return null;
+        }
+
+        public bool IsIncludeBlockSame(IncludeBlock org,IncludeBlock compare)
+        {
+            return StaticValue.IsListSame(org.BeforeList, compare.BeforeList,CanSpaceIgnore) && StaticValue.IsListSame(org.AfterList, compare.AfterList,CanSpaceIgnore);
+
+        }
+
+        public bool IsCodeBlockSame(CodeBlock org, CodeBlock compare)
+        {
+            return StaticValue.IsListSame(org.BeforeList, compare.BeforeList, CanSpaceIgnore) && StaticValue.IsListSame(org.AfterList, compare.AfterList, CanSpaceIgnore);
+
+        }
         //-----init-----
 
         public void InitRuleSetting()
         {
             InitCodeBlockList();
             InitParameterList();
+            InitIncludeList();
+
             int maxId = -1;
             int needToAdd = StaticValue.GetNextBlockId() - BeforeRuleSliceList[0].BlockId;
+
             foreach (ICodeBlock codeBlock in BeforeRuleSliceList)
             {
                 codeBlock.BlockId = codeBlock.BlockId + needToAdd;
@@ -457,5 +569,30 @@ namespace AnalysisExtension.Model
             paraList = new List<ParameterBlock>();
         }
 
+        private void InitIncludeList()
+        {
+            includeBlockList = new List<IncludeBlock>();
+        }
+
+        public ICodeBlock GetFirstNormalBlock()
+        {
+            ICodeBlock normalBlock = BeforeRuleSliceList[0];
+
+            while (!normalBlock.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
+            {
+                if (normalBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                {
+                    string rulePath = RuleMetadata.GetInstance().GetRulePathById((normalBlock as IncludeBlock).FromRuleSetId, (normalBlock as IncludeBlock).CompareRuleId);
+                    RuleBlock findRule = FileLoader.GetInstance().LoadSingleRuleByPath(rulePath);
+                    normalBlock = findRule.GetFirstNormalBlock();
+                }
+                else
+                {
+                    normalBlock = new NormalBlock("\n");
+                }
+            }
+
+            return normalBlock;
+        }
     }
 }
