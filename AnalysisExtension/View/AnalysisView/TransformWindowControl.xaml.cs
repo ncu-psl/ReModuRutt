@@ -175,27 +175,12 @@ namespace AnalysisExtension.View
             outerPanel.Orientation = Orientation.Vertical;
 
             List<ICodeBlock> codeBlockInLine = new List<ICodeBlock>();
-            int blockIdLast = -1;
+            ICodeBlock blockLast = null;
             bool isChange = false;
 
             foreach (ICodeBlock codeBlock in content)
             {
-                /*if (content.IndexOf(codeBlock) != 0)
-                {
-                    if (codeBlock.BlockId != blockIdLast)
-                    {
-                        isChange = true;
-                    }
-                }
-                blockIdLast = codeBlock.BlockId;
-
-                if (isChange)
-                {
-                    codeBlockInLine.Add(codeBlock);
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                    codeBlockInLine = new List<ICodeBlock>();
-                }
-                else */if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+"))
+                if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+"))
                 {
                     outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
                     codeBlockInLine = new List<ICodeBlock>();

@@ -148,7 +148,9 @@ namespace AnalysisExtension.Tool
         public static List<ICodeBlock> SpiltByEscapeToken(string orgContent)
         {
             List<ICodeBlock> spiltResult = new List<ICodeBlock>();
-            spiltResult.Add(new NormalBlock(orgContent));
+            int blockId = StaticValue.GetNextBlockId();
+
+            spiltResult.Add(new NormalBlock(orgContent,blockId));
 
             foreach (string token in PAIR_TOKEN)
             {
@@ -159,17 +161,15 @@ namespace AnalysisExtension.Tool
                     string[] spilt = Regex.Split(codeBlock.Content, Regex.Escape(token));
                     for (int i = 0; i < spilt.Length; i++)
                     {
-                        spiltResult.Add(new NormalBlock(spilt[i]));
+                        spiltResult.Add(new NormalBlock(spilt[i],blockId));
 
                         if (i < spilt.Length - 1)
                         {
-                            spiltResult.Add(new NormalBlock(token));
+                            spiltResult.Add(new NormalBlock(token,blockId));
                         }
                     }
                 }
             }
-            orgContent.Split();
-
             return spiltResult;
         }
 

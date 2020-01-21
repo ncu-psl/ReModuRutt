@@ -45,23 +45,7 @@ namespace AnalysisExtension.Model
                 BeforeRuleSliceList.Add(codeBlock.GetCopy());
             }
 
-            paraList = new List<ParameterBlock>();
-            foreach (ParameterBlock codeBlock in copy.paraList)
-            {
-                paraList.Add(codeBlock.GetCopy() as ParameterBlock);
-            }
-
-            codeBlockList = new List<CodeBlock>();
-            foreach (CodeBlock codeBlock in copy.codeBlockList)
-            {
-                codeBlockList.Add(codeBlock.GetCopy() as CodeBlock);
-            }
-
-            includeBlockList = new List<IncludeBlock>();
-            foreach (IncludeBlock codeBlock in copy.includeBlockList)
-            {
-                includeBlockList.Add(codeBlock.GetCopy() as IncludeBlock);
-            }
+            InitRuleSetting();
         }
 
         public RuleBlock(string rule)

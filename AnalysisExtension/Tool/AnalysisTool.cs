@@ -282,7 +282,7 @@ namespace AnalysisExtension.Model
             {
                 if (codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
                 {
-                    result.Add(codeBlock);
+                    result.Add(codeBlock.GetCopy());
                 }
                 else
                 {
