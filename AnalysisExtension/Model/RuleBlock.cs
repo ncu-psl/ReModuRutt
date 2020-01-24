@@ -42,7 +42,7 @@ namespace AnalysisExtension.Model
             AfterRuleSliceList = new List<ICodeBlock>();
             foreach (ICodeBlock codeBlock in copy.AfterRuleSliceList)
             {
-                BeforeRuleSliceList.Add(codeBlock.GetCopy());
+                AfterRuleSliceList.Add(codeBlock.GetCopy());
             }
 
             InitRuleSetting();
