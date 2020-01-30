@@ -72,6 +72,8 @@ namespace AnalysisExtension.Model
             copy.Content = Content;
             copy.BlockId = BlockId;
             copy.IncludeBlockListIndex = IncludeBlockListIndex;
+            copy.CompareRuleId = CompareRuleId;
+            copy.FromRuleSetId = FromRuleSetId;
             copy.BackgroundColor = BackgroundColor;
             copy.BeforeList = BeforeList;
             copy.AfterList = AfterList;
