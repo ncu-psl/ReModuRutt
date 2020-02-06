@@ -214,54 +214,14 @@ namespace AnalysisExtension.Model
         {
             finalBeforeBlockList[fileCount] = newBlockList[0];
             finalAfterBlockList[fileCount] = newBlockList[1];
-            SetBeforeNotMatchBlock( fileCount, newBlockList[0]);
-            SetAfterNotMatchBlock( fileCount, newBlockList[1]);
         }
-
-        private void SetBeforeNotMatchBlock(int fileCount, List<ICodeBlock> newBlockList)
-        {
-            int blockCount = 0;
-            int beforeCont = 0;
-            ICodeBlock[] beforeResult = finalBeforeBlockList[fileCount].ToArray();
-            while(blockCount < newBlockList.Count && beforeCont < beforeResult.Length)
-            {
-                ICodeBlock codeBlock = beforeResult[beforeCont];
-                if (codeBlock.BlockId != newBlockList[blockCount].BlockId)
-                {
-                    int index = finalBeforeBlockList[fileCount].IndexOf(codeBlock);
-                    RemoveFromBeforeList(fileCount, index);
-                    InsertIntoBeforeList(newBlockList[blockCount], fileCount, index);
-                }
-                blockCount++;
-                beforeCont++;
-            }
-        }
-
-        private void SetAfterNotMatchBlock( int fileCount, List<ICodeBlock> newBlockList)
-        {
-            int blockCount = 0;
-            int afterCount = 0;
-            ICodeBlock[] beforeResult = finalAfterBlockList[fileCount].ToArray();
-            while (blockCount < newBlockList.Count && afterCount < beforeResult.Length)
-            {
-                ICodeBlock codeBlock = beforeResult[afterCount];
-                if (codeBlock.BlockId != newBlockList[blockCount].BlockId)
-                {
-                    int index = finalBeforeBlockList[fileCount].IndexOf(codeBlock);
-                    RemoveFromBeforeList(fileCount, index);
-                    InsertIntoBeforeList(newBlockList[blockCount], fileCount, index);
-                }
-                blockCount++;
-                afterCount++;
-            }
-        }
-
 
         //-----
         public List<ICodeBlock>[][] AnalysisMethod(BackgroundWorker backgroundWorker)
         {
             backgroundWorker.ReportProgress(0);
             analysisMode.AnalysisMethod(backgroundWorker);
+            ExpandAllList();
             List<ICodeBlock>[][] result = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
             for (int i = 0; i < result.Length; i++)
             {
@@ -272,6 +232,38 @@ namespace AnalysisExtension.Model
             backgroundWorker.ReportProgress(100);
 
             return result;
+        }
+
+        private void ExpandAllList()
+        {
+            for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
+            {
+                foreach (ICodeBlock codeBlock in finalBeforeBlockList[i].ToArray())
+                {
+                    if (codeBlock.IsMatchRule && codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    {
+                        if ((codeBlock as CodeBlock).BeforeList.Count > 0)
+                        {
+                            int index = finalBeforeBlockList[i].IndexOf(codeBlock);
+                            RemoveFromBeforeList(i, index);
+                            finalBeforeBlockList[i].InsertRange(index, (codeBlock as CodeBlock).ExpandBeforeList());
+                        }
+                    }
+                }
+
+                foreach (ICodeBlock codeBlock in finalAfterBlockList[i].ToArray())
+                {
+                    if (codeBlock.IsMatchRule && codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    {
+                        if ((codeBlock as CodeBlock).AfterList.Count > 0)
+                        {
+                            int index = finalAfterBlockList[i].IndexOf(codeBlock);
+                            RemoveFromAfterList(i, index);
+                            finalAfterBlockList[i].InsertRange(index, (codeBlock as CodeBlock).ExpandAfterList());
+                        }
+                    }
+                }
+            }
         }
 
         private List<ICodeBlock> SpiltByLine(List<ICodeBlock> codeBlockList)
