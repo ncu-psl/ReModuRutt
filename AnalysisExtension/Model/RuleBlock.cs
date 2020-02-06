@@ -20,9 +20,6 @@ namespace AnalysisExtension.Model
         private List<CodeBlock> codeBlockList;
         private List<IncludeBlock> includeBlockList;
 
-        /*public List<Dictionary<int, string>> codeBlockIdPairList;
-        public List<Dictionary<int, string>> parameterIdPairList;*/
-
         private XmlDocument xmlDocument = new XmlDocument();
 
         public int ruleBlockId = StaticValue.GetNextBlockId();
@@ -118,7 +115,6 @@ namespace AnalysisExtension.Model
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
-          //  SplitByLine(GetOrgText(ruleName) , ruleSliceList);
             SpiltByEscapeToken(GetOrgText(ruleName),ruleSliceList);
             SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
@@ -129,38 +125,8 @@ namespace AnalysisExtension.Model
         private void SpiltByEscapeToken(string ruleText, List<ICodeBlock> ruleSliceList)
         {
             string content = ruleText;
-          /*  while (content.Length > 0)
-            {
-            }
-                foreach (ICodeBlock codeBlock in ruleSliceList.ToArray())
-            {
-                int insertIndex = ruleSliceList.IndexOf(codeBlock);
-                ruleSliceList.Remove(codeBlock);
-                ruleSliceList.InsertRange(insertIndex,EscapeTokenSet.SpiltByEscapeToken(codeBlock.Content));
-            }*/
             ruleSliceList.AddRange(EscapeTokenSet.SpiltByEscapeToken(content));
         }
-
-      /*  private void SplitByLine(string ruleText, List<ICodeBlock> list)
-        {
-            string content = ruleText;
-
-            while (content.Length > 0)
-            {
-                Match match = Regex.Match(content, "[\r\n]+");
-                if (match.Success)
-                {
-                    int index = match.Index + match.Length;
-                    list.Add(new NormalBlock(content.Substring(0, index),ruleBlockId));//add with \n\r
-                    content = content.Substring(index);
-                }
-                else
-                {
-                    list.Add(new NormalBlock(content, ruleBlockId));
-                    break;
-                }
-            }
-        }*/
 
         private void SplitCodeBlockFromList(List<ICodeBlock> ruleList, string layer)
         {
