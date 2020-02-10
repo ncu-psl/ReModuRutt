@@ -80,9 +80,10 @@
         }
 
         //-----tool-----
-        private Paragraph ChangeBlockToColor(string orgText)
+        private Paragraph ChangeToColor(string orgText)
         {
-            int blockCount = 1;// index/number of <block> in <layer>      
+            int blockCount = 1;// index/number of <block> in <layer>
+            int paraCount = 1;// index/number of <para> in <layer>
 
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.LoadXml("<xml xml:space=\"" + "preserve\"" + ">" + orgText + "</xml>");
@@ -90,41 +91,119 @@
             Paragraph result = new Paragraph();
             result.Margin = new Thickness(0, 0, 0, 0);
 
-            while (orgText.IndexOf("<block") > -1)
+            while (orgText.IndexOf("<block") > -1 || orgText.IndexOf("<para") > -1)
             {
-                int startIndex = orgText.IndexOf("<block");
-                int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
-                int endTokenLen = 2;                
+                string findResult = null;
+                if (orgText.IndexOf("<block") > -1 && 
+                    ( (orgText.IndexOf("<para") <= -1) || (orgText.IndexOf("<para") > -1 && orgText.IndexOf("<block") < orgText.IndexOf("<para"))))
+                {//is block
+                    findResult = ChangeBlockToColor(result,xmlDocument,orgText,blockCount);
+                    blockCount++;
+                }
+                else if (orgText.IndexOf("<para") > -1 &&
+                    ((orgText.IndexOf("<block") <= -1) || (orgText.IndexOf("<block") > -1 && orgText.IndexOf("<para") < orgText.IndexOf("<block"))))
+                {//is para
+                    findResult = ChangeParameterToColor(result, xmlDocument, orgText, paraCount);
+                    paraCount++;
+                }
 
-                XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument, blockCount, "block", "");
-                blockCount++;
-
-                string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen+1);
-
-                if (blockElement == null)
+                if (findResult == null)
                 {
                     break;
                 }
                 else
                 {
-                    string frontContent = orgText.Substring(0, startIndex);
-                    Run front = new Run(frontContent, result.ContentEnd);
-                    
-                    int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
-                    Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
-                    run.Background = SystemColors.HighlightBrush;
-
-                    orgText = orgText.Substring(endIndex + endTokenLen + 1);
+                   orgText = findResult;
                 }
             }
             Run endText = new Run(orgText, result.ContentEnd);
             return result;
         }
 
-        private string ChangeBlockToXmlText(string orgText)
+        private string ChangeToText(RichTextBox textBox)
         {
-            return Regex.Replace(orgText,"[(]" + @"(\d+)"+ "[)]","<block id="+"\"$1\"/>");
+            string result = "";
+
+            foreach (Paragraph paragraph in textBox.Document.Blocks)
+            {
+                foreach (Run run in paragraph.Inlines)
+                {
+                    //TODO : add include block 
+                    if (run.Background == SystemColors.HighlightBrush)
+                    {//is block
+                        result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
+                    }
+                    else if (run.Foreground == SystemColors.HighlightBrush)
+                    {//is parameter
+                        result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
+                    }
+                    else
+                    {
+                        result += run.Text;
+                    }
+                }
+            }
+
+            return result;
         }
+
+        private string ChangeBlockToColor(Paragraph result, XmlDocument xmlDocument, string orgText,int blockCount)
+        {
+            int startIndex = orgText.IndexOf("<block");
+            int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
+            int endTokenLen = 2;                
+
+            XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument, blockCount, "block", "");
+            string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen+1);
+
+            if (blockElement == null)
+            {
+                return null;
+            }
+            else
+            {
+                string frontContent = orgText.Substring(0, startIndex);
+                Run front = new Run(frontContent, result.ContentEnd);
+
+                int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
+                Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
+                run.Background = SystemColors.HighlightBrush;
+
+                orgText = orgText.Substring(endIndex + endTokenLen + 1);
+            }
+            return orgText;
+        }
+
+        
+
+        private string ChangeParameterToColor(Paragraph result, XmlDocument xmlDocument, string orgText, int paraCount)
+        {
+            int startIndex = orgText.IndexOf("<para");
+            int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
+            int endTokenLen = 2;
+
+            XmlElement paraElement = StaticValue.FindElementByTag(xmlDocument, paraCount, "para", "");
+
+            string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen + 1);
+
+            if (paraElement == null)
+            {
+                return null;
+            }
+            else
+            {
+                string frontContent = orgText.Substring(0, startIndex);
+                Run front = new Run(frontContent, result.ContentEnd);
+
+                int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
+                Run run = new Run("(" + paraId + ")", result.ContentEnd);
+                run.Foreground = SystemColors.HighlightBrush;
+
+                orgText = orgText.Substring(endIndex + endTokenLen + 1);
+            }
+            return orgText;
+        }
+
 
         private string RemoveLineAtFirstAndEnd(string orgText)
         {
@@ -245,7 +324,7 @@
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
-            textBox.Document.Blocks.Add(ChangeBlockToColor(content));
+            textBox.Document.Blocks.Add(ChangeToColor(content));
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
 
@@ -264,11 +343,11 @@
 
         private string GetFinalRule(int ruleId)
         {
-            string beforeText = ChangeBlockToXmlText(new TextRange(ruleBefore.Document.ContentStart, ruleBefore.Document.ContentEnd).Text);
+            string beforeText = ChangeToText(ruleBefore);//ChangeBlockToXmlText(new TextRange(ruleBefore.Document.ContentStart, ruleBefore.Document.ContentEnd).Text);
             beforeText = RemoveLineAtFirstAndEnd(beforeText);
-            string afterText = ChangeBlockToXmlText(new TextRange(ruleAfter.Document.ContentStart, ruleAfter.Document.ContentEnd).Text);
+            string afterText = ChangeToText(ruleAfter);//ChangeBlockToXmlText(new TextRange(ruleAfter.Document.ContentStart, ruleAfter.Document.ContentEnd).Text);
             afterText = RemoveLineAtFirstAndEnd(afterText);
-            string head = @"<rule  xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
+            string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
             string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>"+"\n";
             string after = @"<after>" + "\n" + afterText + "\n" + @"</after>"+"\n";
             string end = @"</rule>";
