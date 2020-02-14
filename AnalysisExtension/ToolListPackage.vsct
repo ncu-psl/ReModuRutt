@@ -21,6 +21,12 @@
           <ButtonText>create rule</ButtonText>
         </Strings>
       </Button>
+      <Button guid="addRulePackageCmdSet" id="cmdidRuleToolWindowCommand" priority="0x0100" type="Button">
+        <Parent guid="addRulePackageCmdSet" id="AddRuleGroup" />
+        <Strings>
+          <ButtonText>add to new rule</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
     
     <Bitmaps>
@@ -32,6 +38,9 @@
       </Group>
       <Group guid="createRuleWindowPackageCmdSet" id="MyMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
+      </Group>
+      <Group guid="addRulePackageCmdSet" id="AddRuleGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
       </Group>
     </Groups>
   </Commands>
@@ -56,6 +65,12 @@
     <GuidSymbol value="{e00980c2-f7db-404a-b194-7e78577f93eb}" name="createRuleWindowPackageCmdSet">
       <IDSymbol value="4128" name="MyMenuGroup" />
       <IDSymbol value="256" name="cmdidToolListCommand" />
+    </GuidSymbol>
+  
+  
+    <GuidSymbol value="{a9b3d248-37f8-4a02-b63f-acac06d82643}" name="addRulePackageCmdSet">
+      <IDSymbol value="4128" name="AddRuleGroup" />
+      <IDSymbol value= "256" name="cmdidRuleToolWindowCommand"/>
     </GuidSymbol>
   
   </Symbols>

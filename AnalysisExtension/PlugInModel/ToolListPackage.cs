@@ -64,6 +64,7 @@ namespace AnalysisExtension
             await this.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
             await ToolListCommand.InitializeAsync(this);
             await CreateRuleToolWindowCommand.InitializeAsync(this);
+            RightClickAddRuleWindowCommand.Initialize(this);
         }
 
         #endregion

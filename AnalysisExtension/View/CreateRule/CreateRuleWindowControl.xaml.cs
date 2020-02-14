@@ -13,7 +13,7 @@
     using System.Windows.Documents;
     using System.Xml;
 
-    public partial class CreateRuleToolWindow1Control : UserControl
+    public partial class CreateRuleToolWindowControl : UserControl
     {        
         private FileLoader fileLoader = FileLoader.GetInstance();
         private RuleMetadata ruleMetadata = RuleMetadata.GetInstance();
@@ -28,7 +28,25 @@
 
         private bool IsEditViewChange = false;
 
-        public CreateRuleToolWindow1Control()
+        private static CreateRuleToolWindowControl instance = null;
+
+        public static CreateRuleToolWindowControl GetInstance()
+        {
+            if (instance == null)
+            {
+                instance = new CreateRuleToolWindowControl();
+            }
+            return instance;
+        }
+
+        public static CreateRuleToolWindowControl CreateNewFrame()
+        {
+            instance = new CreateRuleToolWindowControl();
+            return instance;
+        }
+
+
+        private CreateRuleToolWindowControl()
         {            
             this.InitializeComponent();
             Refresh();
@@ -79,7 +97,14 @@
             AddRuleListIntoTreeViewByName(ruleSetOpenNow);
         }
 
-        //-----tool-----
+        //-----tool-----       
+
+        public void AddTextIntoRuleCreateFrame(string selectContent)
+        {
+            ruleBefore.Document.Blocks.Add(ChangeToColor(selectContent));
+        }
+
+
         private Paragraph ChangeToColor(string orgText)
         {
             int blockCount = 1;// index/number of <block> in <layer>

@@ -66,6 +66,7 @@
     <Compile Include="Model\RuleBlock.cs" />
     <Compile Include="PlugInModel\PlugInTool.cs" />
     <Compile Include="Model\RuleSet.cs" />
+    <Compile Include="PlugInModel\RightClickAddRuleWindowCommand.cs" />
     <Compile Include="Tool\RuleMetadata.cs" />
     <Compile Include="View\CreateRule\ChooseEditRuleSetWindowControl.xaml.cs">
       <DependentUpon>ChooseEditRuleSetWindowControl.xaml</DependentUpon>

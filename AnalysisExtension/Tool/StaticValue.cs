@@ -27,6 +27,15 @@ namespace AnalysisExtension
         public static string RULE_FOLDER_PATH = @"..\..\Rule";
 
         //-----method-----
+        public static void AddTextIntoRuleCreateFrame(string selectContent)
+        {
+            CreateRuleToolWindowControl control = CreateRuleToolWindowControl.GetInstance();
+            if (control.IsVisible)
+            {
+                control.AddTextIntoRuleCreateFrame(selectContent);
+            }
+        }
+
         public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
         {
             CloseWindow(control);
