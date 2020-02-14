@@ -101,35 +101,53 @@
 
         public void AddTextIntoRuleCreateFrame(string selectContent)
         {
-            ruleBefore.Document.Blocks.Add(ChangeToColor(selectContent));
+            ruleBefore.Document.Blocks.AddRange(ChangeToColor(selectContent,"before"));
         }
 
 
-        private Paragraph ChangeToColor(string orgText)
+        private List<Paragraph> ChangeToColor(string orgText,string tag)
         {
             int blockCount = 1;// index/number of <block> in <layer>
             int paraCount = 1;// index/number of <para> in <layer>
+            int includeCount = 1;// index/number of <include> in <layer>
 
             XmlDocument xmlDocument = new XmlDocument();
             xmlDocument.LoadXml("<xml xml:space=\"" + "preserve\"" + ">" + orgText + "</xml>");
 
+            List<Paragraph> allResult = new List<Paragraph>();
+            
             Paragraph result = new Paragraph();
             result.Margin = new Thickness(0, 0, 0, 0);
 
-            while (orgText.IndexOf("<block") > -1 || orgText.IndexOf("<para") > -1)
+            while (orgText.IndexOf("<block") > -1 || orgText.IndexOf("<para") > -1 || orgText.IndexOf("<include") > -1)
             {
                 string findResult = null;
-                if (orgText.IndexOf("<block") > -1 && 
-                    ( (orgText.IndexOf("<para") <= -1) || (orgText.IndexOf("<para") > -1 && orgText.IndexOf("<block") < orgText.IndexOf("<para"))))
+                int min = GetMin( new int[]{orgText.IndexOf("<block"), orgText.IndexOf("<para"),orgText.IndexOf("<include")} , orgText.Length);
+                if (orgText.IndexOf("<block") == min)
                 {//is block
                     findResult = ChangeBlockToColor(result,xmlDocument,orgText,blockCount);
                     blockCount++;
                 }
-                else if (orgText.IndexOf("<para") > -1 &&
-                    ((orgText.IndexOf("<block") <= -1) || (orgText.IndexOf("<block") > -1 && orgText.IndexOf("<para") < orgText.IndexOf("<block"))))
+                else if (orgText.IndexOf("<para") == min)
                 {//is para
                     findResult = ChangeParameterToColor(result, xmlDocument, orgText, paraCount);
                     paraCount++;
+                } 
+                else if(orgText.IndexOf("<include") == min)
+                {
+                    string frontContent = orgText.Substring(0, orgText.IndexOf("<include"));
+                    Run front = new Run(frontContent, result.ContentEnd);
+
+                    allResult.Add(result);
+                    result = new Paragraph();
+                    result.Margin = new Thickness(0, 0, 0, 0);
+                    result.Background = SystemColors.MenuBarBrush;
+                    findResult = ChangeIncludeToColor(tag,result, xmlDocument, orgText, includeCount);
+                    includeCount++;
+
+                    allResult.Add(result);
+                    result = new Paragraph();
+                    result.Margin = new Thickness(0, 0, 0, 0);
                 }
 
                 if (findResult == null)
@@ -142,7 +160,8 @@
                 }
             }
             Run endText = new Run(orgText, result.ContentEnd);
-            return result;
+            allResult.Add(result);
+            return allResult;//result;
         }
 
         private string ChangeToText(RichTextBox textBox)
@@ -151,20 +170,26 @@
 
             foreach (Paragraph paragraph in textBox.Document.Blocks)
             {
-                foreach (Run run in paragraph.Inlines)
+                if (paragraph.Background == SystemColors.MenuBarBrush)
+                {//is include block
+                    result += paragraph.DataContext;
+                }
+                else
                 {
-                    //TODO : add include block 
-                    if (run.Background == SystemColors.HighlightBrush)
-                    {//is block
-                        result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
-                    }
-                    else if (run.Foreground == SystemColors.HighlightBrush)
-                    {//is parameter
-                        result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
-                    }
-                    else
+                    foreach (Run run in paragraph.Inlines)
                     {
-                        result += run.Text;
+                        if (run.Background == SystemColors.HighlightBrush)
+                        {//is block
+                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
+                        }
+                        else if (run.Foreground == SystemColors.HighlightBrush)
+                        {//is parameter
+                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
+                        }
+                        else
+                        {
+                            result += run.Text;
+                        }
                     }
                 }
             }
@@ -179,7 +204,6 @@
             int endTokenLen = 2;                
 
             XmlElement blockElement = StaticValue.FindElementByTag(xmlDocument, blockCount, "block", "");
-            string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen+1);
 
             if (blockElement == null)
             {
@@ -199,8 +223,6 @@
             return orgText;
         }
 
-        
-
         private string ChangeParameterToColor(Paragraph result, XmlDocument xmlDocument, string orgText, int paraCount)
         {
             int startIndex = orgText.IndexOf("<para");
@@ -208,8 +230,6 @@
             int endTokenLen = 2;
 
             XmlElement paraElement = StaticValue.FindElementByTag(xmlDocument, paraCount, "para", "");
-
-            string codeBlockString = orgText.Substring(startIndex, endIndex - startIndex + endTokenLen + 1);
 
             if (paraElement == null)
             {
@@ -228,6 +248,49 @@
             }
             return orgText;
         }
+
+        private string ChangeIncludeToColor(string tag,Paragraph result, XmlDocument xmlDocument, string orgText, int includeCount)
+        {
+            int startIndex = orgText.IndexOf("<include");
+            int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
+            int endTokenLen = 2;
+
+            XmlElement includeElement = StaticValue.FindElementByTag(xmlDocument, includeCount, "include", "");
+
+            if (includeElement == null)
+            {
+                return null;
+            }
+            else
+            {
+                int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(includeElement, "id"));
+                int compareRuleId = int.Parse(StaticValue.GetAttributeInElement(includeElement, "compareRuleId"));
+                int fromRuleSetId = int.Parse(StaticValue.GetAttributeInElement(includeElement, "fromRuleSetId"));
+
+                RuleSet ruleSet = ruleMetadata.GetRuleSetById(fromRuleSetId);
+
+                Run run = new Run("<by rule set " + ruleSet.Name + ", rule "+ruleSet.GetRuleInfoById(compareRuleId)["name"] + ">\n", result.ContentEnd);
+                result.DataContext = "<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>";
+
+                RuleBlock rule = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(fromRuleSetId, compareRuleId));
+                List<Paragraph> interResult = ChangeToColor(rule.GetOrgText(tag),tag);
+
+                foreach (Paragraph paragraph in interResult)
+                {
+                    foreach (Run inline in paragraph.Inlines)
+                    {
+                        Run newRun = new Run(inline.Text, result.ContentEnd);
+                        newRun.Background = inline.Background;
+                        newRun.Foreground = inline.Foreground;
+                    }
+                }
+
+                orgText = orgText.Substring(endIndex + endTokenLen + 1);
+            }
+            return orgText;
+
+        }
+
 
 
         private string RemoveLineAtFirstAndEnd(string orgText)
@@ -330,8 +393,10 @@
             IsEditViewChange = false;
             ruleCreateStackPanel.Children.Clear();
 
-            SetEditTextBoxTemplate(ruleBefore, beforeContent);
-            SetEditTextBoxTemplate(ruleAfter, afterContent);
+            SetEditTextBoxTemplate(ruleBefore);
+            ruleBefore.Document.Blocks.AddRange(ChangeToColor(beforeContent,"before"));
+            SetEditTextBoxTemplate(ruleAfter);
+            ruleAfter.Document.Blocks.AddRange(ChangeToColor(afterContent, "after"));
 
             ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
             ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
@@ -341,7 +406,7 @@
             ruleCreateStackPanel.Children.Add(ruleAfter);
         }
 
-        private void SetEditTextBoxTemplate(RichTextBox textBox, string content)
+        private void SetEditTextBoxTemplate(RichTextBox textBox)
         {
             textBox.Document.Blocks.Clear();
             textBox.AcceptsReturn = true;
@@ -349,7 +414,6 @@
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
-            textBox.Document.Blocks.Add(ChangeToColor(content));
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
 
@@ -424,6 +488,21 @@
                     MessageBox.Show("file save");
                 }
             }
+        }
+
+        private int GetMin(int[] list,int upperBound)
+        {
+            int result = upperBound;
+
+            foreach (int i in list)
+            {
+                if (i > -1 && i < result)
+                {
+                    result = i;
+                }
+            }
+
+            return result;
         }
 
         //-----listener-----
