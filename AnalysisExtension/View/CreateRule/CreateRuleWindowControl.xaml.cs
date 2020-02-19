@@ -26,11 +26,13 @@
         private RichTextBox ruleAfter = new RichTextBox();
         private TextBlock ruleSetName = new TextBlock();
 
-        private int newParaId = -1;
-        private int newBlockId = -1;
+        private List<ParameterBlock> paraList;
+        private List<CodeBlock> codeBlockList;
         private int newIncludeId = -1;
 
         private bool IsEditViewChange = false;
+        private ParameterBlock parameterEditNow = null;
+        private CodeBlock codeBlockEditNow = null;
 
         private static CreateRuleToolWindowControl instance = null;
 
@@ -60,10 +62,9 @@
         private void Refresh()
         {  
             RefreshRuleSetListView();
-            newParaId = -1;
-            newBlockId = -1;
-            newIncludeId = -1;
-            //  ruleCreateStackPanel.Children.Clear();
+            paraList = new List<ParameterBlock>();
+            codeBlockList = new List<CodeBlock>();
+
             if (ruleSetOpenNow != null)
             {
                 ruleCreateStackPanel.Children.Clear();
@@ -94,6 +95,8 @@
             if (ruleSetOpenNow != null)
             {
                 ruleSetOpenNow = ruleMetadata.GetRuleSetById(ruleSetOpenNow.Id);
+                paraList = new List<ParameterBlock>();
+                codeBlockList = new List<CodeBlock>();
                 RefreshRuleList();
             }
         }
@@ -104,6 +107,11 @@
             AddRuleListIntoTreeViewByName(ruleSetOpenNow);
         }
 
+        private void ResetEditStatus()
+        {
+            parameterEditNow = null;
+            codeBlockEditNow = null;
+        }
         //-----tool-----       
 
         public void AddTextIntoRuleCreateFrame(string selectContent)
@@ -222,13 +230,11 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
+                AddIntoCodeBlockList(new CodeBlock("",codeBlockId));
+
                 Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
                 run.Background = SystemColors.HighlightBrush;
 
-                if (newBlockId <= codeBlockId)
-                {
-                    newBlockId = codeBlockId + 1;
-                }
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
@@ -252,14 +258,10 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
+                AddIntoParaList(new ParameterBlock("", paraId));
+
                 Run run = new Run("(" + paraId + ")", result.ContentEnd);
                 run.Foreground = SystemColors.HighlightBrush;
-
-                if (newParaId <= paraId)
-                {
-                    newParaId = paraId + 1;
-                }
-
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
@@ -348,6 +350,32 @@
             }
         }
 
+        private void RefreshParameterTreeView()
+        {
+            paraListTreeView.Items.Clear();
+            foreach (ParameterBlock parameterBlock in paraList)
+            {
+                TreeViewItem para = new TreeViewItem();
+                para.Header = "(" + parameterBlock.ParaListIndex +")";
+                para.DataContext = parameterBlock;
+                para.MouseDoubleClick += OnDoubleClickParameterListListener;
+                paraListTreeView.Items.Add(para);
+            }
+        }
+
+        private void RefreshCodeBlockTreeView()
+        {
+            blockListTreeView.Items.Clear();
+            foreach (CodeBlock codeBlock in codeBlockList)
+            {
+                TreeViewItem block = new TreeViewItem();
+                block.Header = "("+ codeBlock.BlockListIndex +")";
+                block.DataContext = codeBlock;
+                block.MouseDoubleClick += OnDoubleClickCodeBlockListListener;
+                blockListTreeView.Items.Add(block);
+            }
+        }
+        
         private void AddRuleEditView(string filePath)
         {
             string beforeContent = "";
@@ -401,6 +429,8 @@
 
             if (ruleSetOpenNow != null)
             {
+                paraList = new List<ParameterBlock>();
+                codeBlockList = new List<CodeBlock>();
                 SetRuleEditView(beforeContent, afterContent);
                 IsEditViewChange = false;
             }
@@ -415,13 +445,16 @@
             ruleBefore.Document.Blocks.AddRange(ChangeToColor(beforeContent,"before"));
             SetEditTextBoxTemplate(ruleAfter);
             ruleAfter.Document.Blocks.AddRange(ChangeToColor(afterContent, "after"));
-
+            
             ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
             ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
             ruleCreateStackPanel.Children.Add(ruleSetName);
             ruleCreateStackPanel.Children.Add(ruleBefore);
             ruleCreateStackPanel.Children.Add(new Label());
             ruleCreateStackPanel.Children.Add(ruleAfter);
+
+            RefreshParameterTreeView();
+            RefreshCodeBlockTreeView();
         }
 
         private void SetEditTextBoxTemplate(RichTextBox textBox)
@@ -434,8 +467,10 @@
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
+            textBox.AllowDrop = true;
+            textBox.PreviewMouseLeftButtonUp += OnTextBoxPreviewMouseLeftButtonUp;
         }
-
+        
         private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
         {
             return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
@@ -523,6 +558,43 @@
             return result;
         }
 
+        //-----add into list
+        private void AddIntoParaList(ParameterBlock parameterBlock)
+        {
+            bool isFind = false;
+            foreach (ParameterBlock findBlock in paraList)
+            {
+                if (findBlock.ParaListIndex == parameterBlock.ParaListIndex)
+                {
+                    isFind = true;
+                    break;
+                }
+            }
+
+            if (!isFind)
+            {
+                paraList.Add(parameterBlock);
+            }
+        }
+
+        private void AddIntoCodeBlockList(CodeBlock codeBlock)
+        {
+            bool isFind = false;
+            foreach (CodeBlock findBlock in codeBlockList)
+            {
+                if (findBlock.BlockListIndex == codeBlock.BlockListIndex)
+                {
+                    isFind = true;
+                    break;
+                }
+            }
+
+            if (!isFind)
+            {
+                codeBlockList.Add(codeBlock);
+            }
+        }
+
         //-----listener-----
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -606,6 +678,22 @@
              AddRuleEditView(path);
         }
 
+        private void OnDoubleClickParameterListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TreeViewItem treeViewItem = (TreeViewItem)sender;
+            ParameterBlock parameter = treeViewItem.DataContext as ParameterBlock;
+            ResetEditStatus();
+            parameterEditNow = parameter;
+        }
+
+        private void OnDoubleClickCodeBlockListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            TreeViewItem treeViewItem = (TreeViewItem)sender;
+            CodeBlock codeBlock = treeViewItem.DataContext as CodeBlock;
+            ResetEditStatus();
+            codeBlockEditNow = codeBlock;
+        }
+
         private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
         {
             IsEditViewChange = true;
@@ -618,12 +706,15 @@
 
             if (richTextBox.IsSelectionActive)
             {
-                //TODO : add to para list
                 TextSelection selection = richTextBox.Selection;
                 selection.Start.DeleteTextInRun(selection.Start.GetOffsetToPosition(selection.End));
-                Run para = new Run("(" + newParaId + ")", selection.Start);
-                newParaId++;
+                int paraId = paraList.Count + 1;
+                ParameterBlock parameterBlock = new ParameterBlock("", paraId);
+                AddIntoParaList(parameterBlock);
+
+                Run para = new Run("(" + paraId + ")", selection.Start);
                 para.Foreground = SystemColors.HighlightBrush;
+                RefreshParameterTreeView();
             }
         }
 
@@ -634,14 +725,35 @@
 
             if (richTextBox.IsSelectionActive)
             {
-                //TODO : add to code block list
                 TextSelection selection = richTextBox.Selection;
                 selection.Start.DeleteTextInRun(selection.Start.GetOffsetToPosition(selection.End));
-                Run block = new Run("(" + newBlockId + ")", selection.Start);
-                newBlockId++;
-                block.Background = SystemColors.HighlightBrush;
-            }
+                int blockId = codeBlockList.Count + 1;
+                AddIntoCodeBlockList(new CodeBlock("", blockId));
 
+                Run block = new Run("(" + blockId + ")", selection.Start);
+                block.Background = SystemColors.HighlightBrush;
+                RefreshCodeBlockTreeView();
+            }
         }
+
+        private void OnTextBoxPreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            RichTextBox textBox = sender as RichTextBox;
+            TextSelection selection = textBox.Selection;
+
+            if (parameterEditNow != null)
+            {
+                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
+                para.Foreground = SystemColors.HighlightBrush;
+                ResetEditStatus();
+            }
+            else if (codeBlockEditNow != null)
+            {
+                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
+                block.Background = SystemColors.HighlightBrush;
+                ResetEditStatus();
+            }
+        }
+
     }
 }
