@@ -26,6 +26,10 @@
         private RichTextBox ruleAfter = new RichTextBox();
         private TextBlock ruleSetName = new TextBlock();
 
+        private int newParaId = -1;
+        private int newBlockId = -1;
+        private int newIncludeId = -1;
+
         private bool IsEditViewChange = false;
 
         private static CreateRuleToolWindowControl instance = null;
@@ -47,7 +51,7 @@
 
 
         private CreateRuleToolWindowControl()
-        {            
+        {
             this.InitializeComponent();
             Refresh();
             SizeChanged += OnSizeChanged;
@@ -56,6 +60,9 @@
         private void Refresh()
         {  
             RefreshRuleSetListView();
+            newParaId = -1;
+            newBlockId = -1;
+            newIncludeId = -1;
             //  ruleCreateStackPanel.Children.Clear();
             if (ruleSetOpenNow != null)
             {
@@ -108,7 +115,7 @@
         private List<Paragraph> ChangeToColor(string orgText,string tag)
         {
             int blockCount = 1;// index/number of <block> in <layer>
-            int paraCount = 1;// index/number of <para> in <layer>
+            int parameterCount = 1;// index/number of <para> in <layer>
             int includeCount = 1;// index/number of <include> in <layer>
 
             XmlDocument xmlDocument = new XmlDocument();
@@ -130,8 +137,8 @@
                 }
                 else if (orgText.IndexOf("<para") == min)
                 {//is para
-                    findResult = ChangeParameterToColor(result, xmlDocument, orgText, paraCount);
-                    paraCount++;
+                    findResult = ChangeParameterToColor(result, xmlDocument, orgText, parameterCount);
+                    parameterCount++;
                 } 
                 else if(orgText.IndexOf("<include") == min)
                 {
@@ -218,6 +225,10 @@
                 Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
                 run.Background = SystemColors.HighlightBrush;
 
+                if (newBlockId <= codeBlockId)
+                {
+                    newBlockId = codeBlockId + 1;
+                }
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
@@ -243,6 +254,11 @@
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
                 Run run = new Run("(" + paraId + ")", result.ContentEnd);
                 run.Foreground = SystemColors.HighlightBrush;
+
+                if (newParaId <= paraId)
+                {
+                    newParaId = paraId + 1;
+                }
 
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
@@ -285,13 +301,15 @@
                     }
                 }
 
+                if (newIncludeId <= codeBlockId)
+                {
+                    newIncludeId = codeBlockId + 1;
+                }
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
 
         }
-
-
 
         private string RemoveLineAtFirstAndEnd(string orgText)
         {
@@ -409,6 +427,7 @@
         private void SetEditTextBoxTemplate(RichTextBox textBox)
         {
             textBox.Document.Blocks.Clear();
+            textBox.ContextMenu = (ContextMenu)FindResource("richTextBoxMenu");
             textBox.AcceptsReturn = true;
             textBox.AcceptsTab = true;
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
@@ -416,7 +435,6 @@
             textBox.Background = SystemColors.WindowBrush;
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
         }
-
 
         private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
         {
@@ -591,6 +609,39 @@
         private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
         {
             IsEditViewChange = true;
+        }
+        
+        private void OnMenuSetParameterChooseListener(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            RichTextBox richTextBox = ((item.Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as RichTextBox;
+
+            if (richTextBox.IsSelectionActive)
+            {
+                //TODO : add to para list
+                TextSelection selection = richTextBox.Selection;
+                selection.Start.DeleteTextInRun(selection.Start.GetOffsetToPosition(selection.End));
+                Run para = new Run("(" + newParaId + ")", selection.Start);
+                newParaId++;
+                para.Foreground = SystemColors.HighlightBrush;
+            }
+        }
+
+        private void OnMenuSetCodeBlockChooseListener(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            RichTextBox richTextBox = ((item.Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as RichTextBox;
+
+            if (richTextBox.IsSelectionActive)
+            {
+                //TODO : add to code block list
+                TextSelection selection = richTextBox.Selection;
+                selection.Start.DeleteTextInRun(selection.Start.GetOffsetToPosition(selection.End));
+                Run block = new Run("(" + newBlockId + ")", selection.Start);
+                newBlockId++;
+                block.Background = SystemColors.HighlightBrush;
+            }
+
         }
     }
 }
