@@ -4,6 +4,7 @@
     using AnalysisExtension.Tool;
     using AnalysisExtension.View;
     using AnalysisExtension.View.CreateRule;
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
@@ -11,6 +12,7 @@
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Documents;
+    using System.Windows.Input;
     using System.Xml;
 
     public partial class CreateRuleToolWindowControl : UserControl
@@ -33,6 +35,9 @@
         private bool IsEditViewChange = false;
         private ParameterBlock parameterEditNow = null;
         private CodeBlock codeBlockEditNow = null;
+
+        private Point startDragPoint;
+        private Point endDragPoint;
 
         private static CreateRuleToolWindowControl instance = null;
 
@@ -119,7 +124,6 @@
             ruleBefore.Document.Blocks.AddRange(ChangeToColor(selectContent,"before"));
         }
 
-
         private List<Paragraph> ChangeToColor(string orgText,string tag)
         {
             int blockCount = 1;// index/number of <block> in <layer>
@@ -176,7 +180,7 @@
             }
             Run endText = new Run(orgText, result.ContentEnd);
             allResult.Add(result);
-            return allResult;//result;
+            return allResult;
         }
 
         private string ChangeToText(RichTextBox textBox)
@@ -359,10 +363,12 @@
                 para.Header = "(" + parameterBlock.ParaListIndex +")";
                 para.DataContext = parameterBlock;
                 para.MouseDoubleClick += OnDoubleClickParameterListListener;
+                para.MouseDown += OnParaListMouseDownListener;
+                para.MouseMove += OnParaListMouseMoveListener;
                 paraListTreeView.Items.Add(para);
             }
         }
-
+        
         private void RefreshCodeBlockTreeView()
         {
             blockListTreeView.Items.Clear();
@@ -372,10 +378,12 @@
                 block.Header = "("+ codeBlock.BlockListIndex +")";
                 block.DataContext = codeBlock;
                 block.MouseDoubleClick += OnDoubleClickCodeBlockListListener;
+                block.MouseDown += OnBlockMouseDownListener;
+                block.MouseMove += OnBlockMouseMoveListener;
                 blockListTreeView.Items.Add(block);
             }
         }
-        
+
         private void AddRuleEditView(string filePath)
         {
             string beforeContent = "";
@@ -468,9 +476,11 @@
             textBox.Background = SystemColors.WindowBrush;
             textBox.TextChanged += new TextChangedEventHandler(OnTextBoxChangedListener);
             textBox.AllowDrop = true;
+            textBox.PreviewDrop += OnTextBoxDropListener; ;
+            textBox.PreviewDragOver += OnTextBoxDragOverListener; ;
             textBox.PreviewMouseLeftButtonUp += OnTextBoxPreviewMouseLeftButtonUp;
         }
-        
+
         private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
         {
             return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
@@ -736,7 +746,7 @@
             }
         }
 
-        private void OnTextBoxPreviewMouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             RichTextBox textBox = sender as RichTextBox;
             TextSelection selection = textBox.Selection;
@@ -755,5 +765,107 @@
             }
         }
 
+        private void OnTextBoxDragOverListener(object sender, DragEventArgs e)
+        {
+            e.Effects = DragDropEffects.None;
+            RichTextBox item = sender as RichTextBox;
+
+            Point currentPosition = e.GetPosition(item);
+
+            if (item != null)
+            {
+                if (parameterEditNow != null || codeBlockEditNow != null)
+                {
+                    e.Effects = DragDropEffects.Copy;
+                }
+            }
+            e.Handled = true;
+        }
+
+        private void OnTextBoxDropListener(object sender, DragEventArgs e)
+        {
+            RichTextBox textBox = sender as RichTextBox;
+            if (e.Data.GetDataPresent("para"))
+            {
+                ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
+
+                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", textBox.CaretPosition.DocumentEnd);
+                para.Foreground = SystemColors.HighlightBrush;
+                ResetEditStatus();
+            }
+            else if (e.Data.GetDataPresent("codeBlock"))
+            {
+                CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
+
+                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", textBox.CaretPosition.DocumentEnd);
+                block.Background = SystemColors.HighlightBrush;
+                ResetEditStatus();
+            }
+            e.Handled = true;
+        }
+
+        private void OnParaListMouseMoveListener(object sender, MouseEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPosition = e.GetPosition(item);
+
+                if ((Math.Abs(currentPosition.X - startDragPoint.X) > 10.0) ||
+                   (Math.Abs(currentPosition.Y - startDragPoint.Y) > 10.0))
+                {
+                    DataObject data = new DataObject();
+
+                    parameterEditNow = item.DataContext as ParameterBlock;
+                    data.SetData("para", parameterEditNow);
+
+                    if (data != null)
+                    {
+                        DragDropEffects dropEffects = DragDrop.DoDragDrop(item, data, DragDropEffects.Copy);
+                    }
+                }
+            }
+        }
+
+        private void OnParaListMouseDownListener(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.ChangedButton == MouseButton.Left)
+            {
+                startDragPoint = e.GetPosition(item);
+            }
+        }
+
+        private void OnBlockMouseMoveListener(object sender, MouseEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPosition = e.GetPosition(item);
+
+                if ((Math.Abs(currentPosition.X - startDragPoint.X) > 10.0) ||
+                   (Math.Abs(currentPosition.Y - startDragPoint.Y) > 10.0))
+                {
+                    DataObject data = new DataObject();
+
+                    codeBlockEditNow = item.DataContext as CodeBlock;
+                    data.SetData("codeBlock", codeBlockEditNow);
+
+                    if (data != null)
+                    {
+                        DragDropEffects dropEffects = DragDrop.DoDragDrop(item, data, DragDropEffects.Copy);
+                    }
+                }
+            }
+        }
+
+        private void OnBlockMouseDownListener(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.ChangedButton == MouseButton.Left)
+            {
+                startDragPoint = e.GetPosition(item);
+            }
+        }
     }
 }
