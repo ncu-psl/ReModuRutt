@@ -30,7 +30,7 @@ namespace AnalysisExtension
         public static void AddTextIntoRuleCreateFrame(string selectContent)
         {
             CreateRuleToolWindowControl control = CreateRuleToolWindowControl.GetInstance();
-            if (control.IsVisible)
+            if (control != null && control.IsVisible)
             {
                 control.AddTextIntoRuleCreateFrame(selectContent);
             }

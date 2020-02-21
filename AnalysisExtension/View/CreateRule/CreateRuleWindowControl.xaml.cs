@@ -4,6 +4,7 @@
     using AnalysisExtension.Tool;
     using AnalysisExtension.View;
     using AnalysisExtension.View.CreateRule;
+    using Microsoft.VisualStudio.Shell;
     using System;
     using System.Collections.Generic;
     using System.IO;
@@ -26,7 +27,6 @@
 
         private RichTextBox ruleBefore = new RichTextBox();
         private RichTextBox ruleAfter = new RichTextBox();
-        private TextBlock ruleSetName = new TextBlock();
 
         private List<ParameterBlock> paraList;
         private List<CodeBlock> codeBlockList;
@@ -40,26 +40,24 @@
         private Point endDragPoint;
 
         private static CreateRuleToolWindowControl instance = null;
+        private ToolWindowPane windowPane = null;
 
         public static CreateRuleToolWindowControl GetInstance()
         {
-            if (instance == null)
-            {
-                instance = new CreateRuleToolWindowControl();
-            }
             return instance;
         }
 
-        public static CreateRuleToolWindowControl CreateNewFrame()
+        public static CreateRuleToolWindowControl CreateNewFrame(ToolWindowPane pane)
         {
-            instance = new CreateRuleToolWindowControl();
+            instance = new CreateRuleToolWindowControl(pane);
             return instance;
         }
 
 
-        private CreateRuleToolWindowControl()
+        private CreateRuleToolWindowControl(ToolWindowPane pane)
         {
             this.InitializeComponent();
+            windowPane = pane;
             Refresh();
             SizeChanged += OnSizeChanged;
         }
@@ -70,13 +68,13 @@
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
 
+            windowPane.Caption = "";
+            windowPane.Content = instance;
+
             if (ruleSetOpenNow != null)
             {
                 ruleCreateStackPanel.Children.Clear();
-
-                ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
-                ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
-                ruleCreateStackPanel.Children.Add(ruleSetName);
+                SetTitle("rule set open now : " + ruleSetOpenNow.Name);
             }
         }
 
@@ -439,6 +437,14 @@
             {
                 paraList = new List<ParameterBlock>();
                 codeBlockList = new List<CodeBlock>();
+
+                string title = "rule set open now : " + ruleSetOpenNow.Name;
+                if (ruleBlockEditNow != null)
+                {
+                    title += " , rule : " + ruleBlockEditNow.RuleName;
+                }
+
+                SetTitle(title);
                 SetRuleEditView(beforeContent, afterContent);
                 IsEditViewChange = false;
             }
@@ -453,12 +459,11 @@
             ruleBefore.Document.Blocks.AddRange(ChangeToColor(beforeContent,"before"));
             SetEditTextBoxTemplate(ruleAfter);
             ruleAfter.Document.Blocks.AddRange(ChangeToColor(afterContent, "after"));
-            
-            ruleSetName.Text = "rule set edit now : " + ruleSetOpenNow.Name;
-            ruleSetName.HorizontalAlignment = HorizontalAlignment.Center;
-            ruleCreateStackPanel.Children.Add(ruleSetName);
+
+            ruleCreateStackPanel.Children.Add(SetEditLabel("before"));
             ruleCreateStackPanel.Children.Add(ruleBefore);
             ruleCreateStackPanel.Children.Add(new Label());
+            ruleCreateStackPanel.Children.Add(SetEditLabel("after"));
             ruleCreateStackPanel.Children.Add(ruleAfter);
 
             RefreshParameterTreeView();
@@ -481,9 +486,17 @@
             textBox.PreviewMouseLeftButtonUp += OnTextBoxPreviewMouseLeftButtonUp;
         }
 
-        private string GetFilePathInRuleSet(string name,RuleSet ruleSet)
+        private TextBlock SetEditLabel(string labelText)
         {
-            return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
+            TextBlock label = new TextBlock();
+            label.Text = labelText;
+            label.HorizontalAlignment = HorizontalAlignment.Left;
+            label.Margin = new Thickness() { Left = 5 };
+            label.Padding = new Thickness() { Left = 3, Right = 3 };
+            label.Background = SystemColors.InactiveCaptionBrush;
+            label.Foreground = SystemColors.InactiveCaptionTextBrush;
+
+            return label;
         }
 
         private void AddRuleCreateNowIntoMetadata(int ruleId)
@@ -495,9 +508,9 @@
 
         private string GetFinalRule(int ruleId)
         {
-            string beforeText = ChangeToText(ruleBefore);//ChangeBlockToXmlText(new TextRange(ruleBefore.Document.ContentStart, ruleBefore.Document.ContentEnd).Text);
+            string beforeText = ChangeToText(ruleBefore);
             beforeText = RemoveLineAtFirstAndEnd(beforeText);
-            string afterText = ChangeToText(ruleAfter);//ChangeBlockToXmlText(new TextRange(ruleAfter.Document.ContentStart, ruleAfter.Document.ContentEnd).Text);
+            string afterText = ChangeToText(ruleAfter);
             afterText = RemoveLineAtFirstAndEnd(afterText);
             string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
             string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>"+"\n";
@@ -553,6 +566,7 @@
             }
         }
 
+        //-----tool-----
         private int GetMin(int[] list,int upperBound)
         {
             int result = upperBound;
@@ -568,6 +582,15 @@
             return result;
         }
 
+        private void SetTitle(string title)
+        {
+            windowPane.Caption = title;
+        }
+
+        private string GetFilePathInRuleSet(string name, RuleSet ruleSet)
+        {
+            return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
+        }
         //-----add into list
         private void AddIntoParaList(ParameterBlock parameterBlock)
         {
@@ -687,7 +710,12 @@
              string path = (string)rule.DataContext;
              AddRuleEditView(path);
         }
-
+      
+        private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
+        {
+            IsEditViewChange = true;
+        }
+        
         private void OnDoubleClickParameterListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = (TreeViewItem)sender;
@@ -703,12 +731,6 @@
             ResetEditStatus();
             codeBlockEditNow = codeBlock;
         }
-
-        private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
-        {
-            IsEditViewChange = true;
-        }
-        
         private void OnMenuSetParameterChooseListener(object sender, RoutedEventArgs e)
         {
             MenuItem item = sender as MenuItem;
@@ -746,6 +768,7 @@
             }
         }
 
+        //------drag and drop listener------
         private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             RichTextBox textBox = sender as RichTextBox;
