@@ -42,6 +42,7 @@
         private static CreateRuleToolWindowControl instance = null;
         private ToolWindowPane windowPane = null;
 
+        //----- init -----
         public static CreateRuleToolWindowControl GetInstance()
         {
             return instance;
@@ -53,7 +54,6 @@
             return instance;
         }
 
-
         private CreateRuleToolWindowControl(ToolWindowPane pane)
         {
             this.InitializeComponent();
@@ -62,11 +62,10 @@
             SizeChanged += OnSizeChanged;
         }
 
+        //----- refresh -----
         private void Refresh()
         {  
             RefreshRuleSetListView();
-            paraList = new List<ParameterBlock>();
-            codeBlockList = new List<CodeBlock>();
 
             windowPane.Caption = "";
             windowPane.Content = instance;
@@ -98,8 +97,7 @@
             if (ruleSetOpenNow != null)
             {
                 ruleSetOpenNow = ruleMetadata.GetRuleSetById(ruleSetOpenNow.Id);
-                paraList = new List<ParameterBlock>();
-                codeBlockList = new List<CodeBlock>();
+                InitParaAndBlockList();
                 RefreshRuleList();
             }
         }
@@ -115,13 +113,17 @@
             parameterEditNow = null;
             codeBlockEditNow = null;
         }
-        //-----tool-----       
 
-        public void AddTextIntoRuleCreateFrame(string selectContent)
+        private void InitParaAndBlockList()
         {
-            ruleBefore.Document.Blocks.AddRange(ChangeToColor(selectContent,"before"));
-        }
+            ResetEditStatus();
+            paraList = new List<ParameterBlock>();
+            codeBlockList = new List<CodeBlock>();
+            RefreshParameterTreeView();
+            RefreshCodeBlockTreeView();
+        }  
 
+        //----- text pattern change-----        
         private List<Paragraph> ChangeToColor(string orgText,string tag)
         {
             int blockCount = 1;// index/number of <block> in <layer>
@@ -179,40 +181,7 @@
             Run endText = new Run(orgText, result.ContentEnd);
             allResult.Add(result);
             return allResult;
-        }
-
-        private string ChangeToText(RichTextBox textBox)
-        {
-            string result = "";
-
-            foreach (Paragraph paragraph in textBox.Document.Blocks)
-            {
-                if (paragraph.Background == SystemColors.MenuBarBrush)
-                {//is include block
-                    result += paragraph.DataContext;
-                }
-                else
-                {
-                    foreach (Run run in paragraph.Inlines)
-                    {
-                        if (run.Background == SystemColors.HighlightBrush)
-                        {//is block
-                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
-                        }
-                        else if (run.Foreground == SystemColors.HighlightBrush)
-                        {//is parameter
-                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
-                        }
-                        else
-                        {
-                            result += run.Text;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
+        }       
 
         private string ChangeBlockToColor(Paragraph result, XmlDocument xmlDocument, string orgText,int blockCount)
         {
@@ -315,73 +284,7 @@
 
         }
 
-        private string RemoveLineAtFirstAndEnd(string orgText)
-        {
-            if (orgText.StartsWith("\r\n"))
-            {
-                orgText = orgText.Remove(0, 2);
-            }
-            else if(orgText.StartsWith("\n"))
-            {
-                orgText = orgText.Remove(0, 1);
-            }
-
-            if(orgText.EndsWith("\r\n"))
-            {
-                int len = orgText.Length;
-                orgText = orgText.Remove(orgText.Length - 2, 2);
-            }
-            else if (orgText.EndsWith("\n"))
-            {
-                int len = orgText.Length;
-                orgText = orgText.Remove(orgText.Length - 1, 1);
-            }
-
-            return orgText;
-        }
-
-        private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
-        {
-            foreach (Dictionary<string, string> ruleContent in ruleSet.RuleList)
-            {
-                TreeViewItem rule = new TreeViewItem();
-                rule.Header = ruleContent["name"];
-                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
-                rule.MouseDoubleClick += OnDoubleClickRuleListener;
-                ruleListTreeView.Items.Add(rule);
-            }
-        }
-
-        private void RefreshParameterTreeView()
-        {
-            paraListTreeView.Items.Clear();
-            foreach (ParameterBlock parameterBlock in paraList)
-            {
-                TreeViewItem para = new TreeViewItem();
-                para.Header = "(" + parameterBlock.ParaListIndex +")";
-                para.DataContext = parameterBlock;
-                para.MouseDoubleClick += OnDoubleClickParameterListListener;
-                para.MouseDown += OnParaListMouseDownListener;
-                para.MouseMove += OnParaListMouseMoveListener;
-                paraListTreeView.Items.Add(para);
-            }
-        }
-        
-        private void RefreshCodeBlockTreeView()
-        {
-            blockListTreeView.Items.Clear();
-            foreach (CodeBlock codeBlock in codeBlockList)
-            {
-                TreeViewItem block = new TreeViewItem();
-                block.Header = "("+ codeBlock.BlockListIndex +")";
-                block.DataContext = codeBlock;
-                block.MouseDoubleClick += OnDoubleClickCodeBlockListListener;
-                block.MouseDown += OnBlockMouseDownListener;
-                block.MouseMove += OnBlockMouseMoveListener;
-                blockListTreeView.Items.Add(block);
-            }
-        }
-
+        //----- main frame -----
         private void AddRuleEditView(string filePath)
         {
             string beforeContent = "";
@@ -460,10 +363,10 @@
             SetEditTextBoxTemplate(ruleAfter);
             ruleAfter.Document.Blocks.AddRange(ChangeToColor(afterContent, "after"));
 
-            ruleCreateStackPanel.Children.Add(SetEditLabel("before"));
+            ruleCreateStackPanel.Children.Add(SetEditInfoPanel("before"));
             ruleCreateStackPanel.Children.Add(ruleBefore);
             ruleCreateStackPanel.Children.Add(new Label());
-            ruleCreateStackPanel.Children.Add(SetEditLabel("after"));
+            ruleCreateStackPanel.Children.Add(SetEditInfoPanel("after"));
             ruleCreateStackPanel.Children.Add(ruleAfter);
 
             RefreshParameterTreeView();
@@ -486,6 +389,35 @@
             textBox.PreviewMouseLeftButtonUp += OnTextBoxPreviewMouseLeftButtonUp;
         }
 
+        private Panel SetEditInfoPanel(string labelText)
+        {
+            Panel panel = new DockPanel();
+            panel.Children.Add(SetEditLabel(labelText));
+
+            StackPanel btPanel = new StackPanel() { HorizontalAlignment = HorizontalAlignment.Right, Orientation = Orientation.Horizontal};
+            btPanel.Margin = new Thickness { Right = 5 };
+
+            Button clear = new Button() { Content = "Clear", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness { Left = 5 } };
+            if (labelText.Equals("after"))
+            {
+                Button copy = new Button() { Content = "Copy form before", HorizontalAlignment = HorizontalAlignment.Right };
+                copy.Click += OnRuleEditCopyBtClickListener;
+                btPanel.Children.Add(copy);
+
+                clear.Click += OnRuleEditAfterClearBtListener;
+            }
+            else
+            {
+                clear.Click += OnRuleEditBeforeClearBtListener;
+            }
+
+            btPanel.Children.Add(clear);
+
+            panel.Children.Add(btPanel);
+
+            return panel;
+        }
+
         private TextBlock SetEditLabel(string labelText)
         {
             TextBlock label = new TextBlock();
@@ -504,6 +436,83 @@
             ruleMetadata.AddRuleIntoRuleSet(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
             ruleMetadata.RewriteMetadata();
             RefreshRuleSetListView();
+        }
+
+        //----- menu -----
+        private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
+        {
+            foreach (Dictionary<string, string> ruleContent in ruleSet.RuleList)
+            {
+                TreeViewItem rule = new TreeViewItem();
+                rule.Header = ruleContent["name"];
+                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
+                rule.MouseDoubleClick += OnDoubleClickRuleListener;
+                ruleListTreeView.Items.Add(rule);
+            }
+        }
+
+        private void RefreshParameterTreeView()
+        {
+            paraListTreeView.Items.Clear();
+            foreach (ParameterBlock parameterBlock in paraList)
+            {
+                TreeViewItem para = new TreeViewItem();
+                para.Header = "(" + parameterBlock.ParaListIndex + ")";
+                para.DataContext = parameterBlock;
+                para.MouseDoubleClick += OnDoubleClickParameterListListener;
+                para.MouseDown += OnParaListMouseDownListener;
+                para.MouseMove += OnParaListMouseMoveListener;
+                paraListTreeView.Items.Add(para);
+            }
+        }
+
+        private void RefreshCodeBlockTreeView()
+        {
+            blockListTreeView.Items.Clear();
+            foreach (CodeBlock codeBlock in codeBlockList)
+            {
+                TreeViewItem block = new TreeViewItem();
+                block.Header = "(" + codeBlock.BlockListIndex + ")";
+                block.DataContext = codeBlock;
+                block.MouseDoubleClick += OnDoubleClickCodeBlockListListener;
+                block.MouseDown += OnBlockMouseDownListener;
+                block.MouseMove += OnBlockMouseMoveListener;
+                blockListTreeView.Items.Add(block);
+            }
+        }
+
+        //-----final result-----
+        private string ChangeToText(RichTextBox textBox)
+        {
+            string result = "";
+
+            foreach (Paragraph paragraph in textBox.Document.Blocks)
+            {
+                if (paragraph.Background == SystemColors.MenuBarBrush)
+                {//is include block
+                    result += paragraph.DataContext;
+                }
+                else
+                {
+                    foreach (Run run in paragraph.Inlines)
+                    {
+                        if (run.Background == SystemColors.HighlightBrush)
+                        {//is block
+                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
+                        }
+                        else if (run.Foreground == SystemColors.HighlightBrush)
+                        {//is parameter
+                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
+                        }
+                        else
+                        {
+                            result += run.Text;
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         private string GetFinalRule(int ruleId)
@@ -567,6 +576,11 @@
         }
 
         //-----tool-----
+        public void AddTextIntoRuleCreateFrame(string selectContent)
+        {
+            ruleBefore.Document.Blocks.AddRange(ChangeToColor(selectContent, "before"));
+        }
+
         private int GetMin(int[] list,int upperBound)
         {
             int result = upperBound;
@@ -591,6 +605,32 @@
         {
             return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
         }
+
+        private string RemoveLineAtFirstAndEnd(string orgText)
+        {
+            if (orgText.StartsWith("\r\n"))
+            {
+                orgText = orgText.Remove(0, 2);
+            }
+            else if (orgText.StartsWith("\n"))
+            {
+                orgText = orgText.Remove(0, 1);
+            }
+
+            if (orgText.EndsWith("\r\n"))
+            {
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 2, 2);
+            }
+            else if (orgText.EndsWith("\n"))
+            {
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 1, 1);
+            }
+
+            return orgText;
+        }
+
         //-----add into list
         private void AddIntoParaList(ParameterBlock parameterBlock)
         {
@@ -731,6 +771,7 @@
             ResetEditStatus();
             codeBlockEditNow = codeBlock;
         }
+
         private void OnMenuSetParameterChooseListener(object sender, RoutedEventArgs e)
         {
             MenuItem item = sender as MenuItem;
@@ -768,6 +809,39 @@
             }
         }
 
+        private void OnRuleEditBeforeClearBtListener(object sender, RoutedEventArgs e)
+        {
+            ruleBefore.Document.Blocks.Clear();
+            if (ruleAfter.Document.Blocks.Count == 0)
+            {
+                InitParaAndBlockList();
+            }
+        }
+
+        private void OnRuleEditAfterClearBtListener(object sender, RoutedEventArgs e)
+        {
+            ruleAfter.Document.Blocks.Clear();
+            if (ruleBefore.Document.Blocks.Count == 0)
+            {
+                InitParaAndBlockList();
+            }
+        }
+
+        private void OnRuleEditCopyBtClickListener(object sender, RoutedEventArgs e)
+        {
+            foreach (Paragraph paragraph in ruleBefore.Document.Blocks)
+            {
+                Paragraph copy = new Paragraph();
+                foreach (Run run in paragraph.Inlines)
+                {
+                    Run newRun = new Run(run.Text, copy.ContentEnd);
+                    newRun.Background = run.Background;
+                    newRun.Foreground = run.Foreground;
+                    newRun.DataContext = run.DataContext;
+                }
+                ruleAfter.Document.Blocks.Add(copy);
+            }
+        }
         //------drag and drop listener------
         private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -890,5 +964,6 @@
                 startDragPoint = e.GetPosition(item);
             }
         }
+       
     }
 }
