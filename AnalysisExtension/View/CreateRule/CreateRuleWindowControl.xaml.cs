@@ -858,18 +858,26 @@
         {
             RichTextBox textBox = sender as RichTextBox;
             TextSelection selection = textBox.Selection;
-
-            if (parameterEditNow != null)
+            TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
+            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
             {
-                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
-                para.Foreground = SystemColors.HighlightBrush;
-                ResetEditStatus();
+                MessageBox.Show("cannot edit include rule");
+                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
             }
-            else if (codeBlockEditNow != null)
+            else
             {
-                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
-                block.Background = SystemColors.HighlightBrush;
-                ResetEditStatus();
+                if (parameterEditNow != null)
+                {
+                    Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
+                    para.Foreground = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
+                else if (codeBlockEditNow != null)
+                {
+                    Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
+                    block.Background = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
             }
         }
         //------drag and drop listener------
@@ -894,6 +902,7 @@
             if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
             {
                 MessageBox.Show("cannot edit include rule");
+                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
             }
             else
             {
