@@ -82,30 +82,7 @@
             ruleMetadata.Refresh();
 
             allRuleSetTreeView.Items.Clear();
-            for (int i = 0; i < ruleMetadata.GetRuleSetList().Count; i++)
-            {
-                RuleSet ruleSet = ruleMetadata.GetRuleSetList()[i];
-                TreeViewItem ruleSetTreeView = new TreeViewItem();
-                ruleSetTreeView.Header = StaticValue.GetNameFromPath(ruleSet.Name);
-                /*store ruleSet in ruleSetTreeView*/
-                ruleSetTreeView.DataContext = ruleSet;
-                ruleSetTreeView.MouseDoubleClick += OnDoubleClickRuleListListener;
-
-                allRuleSetTreeView.Items.Add(ruleSetTreeView);
-            }
-
-            if (ruleSetOpenNow != null)
-            {
-                ruleSetOpenNow = ruleMetadata.GetRuleSetById(ruleSetOpenNow.Id);
-                InitParaAndBlockList();
-                RefreshRuleList();
-            }
-        }
-
-        private void RefreshRuleList()
-        {
-            ruleListTreeView.Items.Clear();
-            AddRuleListIntoTreeViewByName(ruleSetOpenNow);
+            AddRuleSetListView();
         }
 
         private void ResetEditStatus()
@@ -439,7 +416,23 @@
         }
 
         //----- menu -----
-        private void AddRuleListIntoTreeViewByName(RuleSet ruleSet)
+
+        private void AddRuleSetListView()
+        {
+            for (int i = 0; i < ruleMetadata.GetRuleSetList().Count; i++)
+            {
+                RuleSet ruleSet = ruleMetadata.GetRuleSetList()[i];
+                TreeViewItem ruleSetTreeView = new TreeViewItem();
+                ruleSetTreeView.Header = StaticValue.GetNameFromPath(ruleSet.Name);
+                AddRuleListIntoTreeViewByName(ruleSetTreeView, ruleSet);
+
+                /*store ruleSet in ruleSetTreeView*/
+                ruleSetTreeView.DataContext = ruleSet;
+                allRuleSetTreeView.Items.Add(ruleSetTreeView);
+            }
+        }
+
+        private void AddRuleListIntoTreeViewByName(TreeViewItem ruleSetTree ,RuleSet ruleSet)
         {
             foreach (Dictionary<string, string> ruleContent in ruleSet.RuleList)
             {
@@ -447,7 +440,7 @@
                 rule.Header = ruleContent["name"];
                 rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
                 rule.MouseDoubleClick += OnDoubleClickRuleListener;
-                ruleListTreeView.Items.Add(rule);
+                ruleSetTree.Items.Add(rule);
             }
         }
 
@@ -752,18 +745,12 @@
             }      
         }
 
-        private void OnDoubleClickRuleListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            TreeViewItem ruleSet = (TreeViewItem)sender;
-            ruleSetOpenNow = ruleSet.DataContext as RuleSet;
-            Refresh();
-        }
-
         private void OnDoubleClickRuleListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             TreeViewItem rule = (TreeViewItem)sender;
-             string path = (string)rule.DataContext;
-             AddRuleEditView(path);
+            ruleSetOpenNow = (rule.Parent as TreeViewItem).DataContext as RuleSet;
+            string path = (string)rule.DataContext;
+            AddRuleEditView(path);
         }
       
         private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
