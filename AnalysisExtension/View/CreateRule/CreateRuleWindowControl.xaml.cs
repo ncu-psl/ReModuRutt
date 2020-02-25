@@ -295,7 +295,7 @@
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    SaveNewRule();
+                    SaveRule();
                 }
                 else if (result == MessageBoxResult.No)
                 {
@@ -485,7 +485,7 @@
         private string ChangeToText(RichTextBox textBox)
         {
             string result = "";
-
+            string richText = new TextRange(textBox.Document.ContentStart, textBox.Document.ContentEnd).Text;
             foreach (Paragraph paragraph in textBox.Document.Blocks)
             {
                 if (paragraph.Background == SystemColors.MenuBarBrush)
@@ -529,33 +529,11 @@
             return head + before + after + end;
         }
 
-        private void SaveNewRule()
+        private void SaveRule()
         {
-            string final;
-            int ruleId;
             if (ruleNameOpenNow == null)
             {
-                ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
-                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-                saveFileDialog.Filter = "(*.xml)|*.xml";
-                saveFileDialog.Title = "save as";
-                saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
-                saveFileDialog.RestoreDirectory = true;
-                saveFileDialog.ShowDialog();
-
-                if (saveFileDialog.FileName != "")
-                {
-                    ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
-                    final = GetFinalRule(ruleId);
-
-                    FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
-                    fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
-                    fileStream.Close();
-
-                    AddRuleCreateNowIntoMetadata(ruleId);
-                    IsEditViewChange = false;
-                    MessageBox.Show("file save");
-                }
+                SaveAsRule();
             }
             else if (GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
             {
@@ -563,8 +541,8 @@
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    ruleId = ruleBlockEditNow.RuleId;
-                    final = GetFinalRule(ruleId);
+                    int ruleId = ruleBlockEditNow.RuleId;
+                    string final = GetFinalRule(ruleId);
                     string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
                     File.WriteAllText(path, final);
 
@@ -575,6 +553,31 @@
             }
         }
 
+        private void SaveAsRule()
+        {
+            string final;
+            int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
+            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog.Filter = "(*.xml)|*.xml";
+            saveFileDialog.Title = "save as";
+            saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName != "")
+            {
+                ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
+                final = GetFinalRule(ruleId);
+
+                FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+                fileStream.Close();
+
+                AddRuleCreateNowIntoMetadata(ruleId);
+                IsEditViewChange = false;
+                MessageBox.Show("file save");
+            }
+        }
         //-----tool-----
         public void AddTextIntoRuleCreateFrame(string selectContent)
         {
@@ -693,7 +696,13 @@
 
         private void OnClickBtSaveListener(object sender, RoutedEventArgs e)
         {
-            SaveNewRule();
+            SaveRule();
+            Refresh();
+        }
+
+        private void OnClickBtSaveAsListener(object sender, RoutedEventArgs e)
+        {
+            SaveAsRule();
             Refresh();
         }
 
@@ -832,6 +841,7 @@
             foreach (Paragraph paragraph in ruleBefore.Document.Blocks)
             {
                 Paragraph copy = new Paragraph();
+                copy.Margin = new Thickness(0, 0, 0, 0);
                 foreach (Run run in paragraph.Inlines)
                 {
                     Run newRun = new Run(run.Text, copy.ContentEnd);
@@ -842,7 +852,7 @@
                 ruleAfter.Document.Blocks.Add(copy);
             }
         }
-        //------drag and drop listener------
+
         private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             RichTextBox textBox = sender as RichTextBox;
@@ -861,7 +871,7 @@
                 ResetEditStatus();
             }
         }
-
+        //------drag and drop listener------
         private void OnTextBoxDragOverListener(object sender, DragEventArgs e)
         {
             e.Effects = DragDropEffects.None;
@@ -885,16 +895,16 @@
             if (e.Data.GetDataPresent("para"))
             {
                 ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
-
-                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", textBox.CaretPosition.DocumentEnd);
+                TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox),true);
+                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", textPointer);
                 para.Foreground = SystemColors.HighlightBrush;
                 ResetEditStatus();
             }
             else if (e.Data.GetDataPresent("codeBlock"))
             {
                 CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
-
-                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", textBox.CaretPosition.DocumentEnd);
+                TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox),true);
+                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", textPointer);
                 block.Background = SystemColors.HighlightBrush;
                 ResetEditStatus();
             }
@@ -963,7 +973,6 @@
             {
                 startDragPoint = e.GetPosition(item);
             }
-        }
-       
+        }       
     }
 }
