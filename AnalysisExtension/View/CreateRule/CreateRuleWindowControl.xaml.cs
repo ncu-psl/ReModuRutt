@@ -485,7 +485,6 @@
         private string ChangeToText(RichTextBox textBox)
         {
             string result = "";
-            string richText = new TextRange(textBox.Document.ContentStart, textBox.Document.ContentEnd).Text;
             foreach (Paragraph paragraph in textBox.Document.Blocks)
             {
                 if (paragraph.Background == SystemColors.MenuBarBrush)
@@ -507,6 +506,11 @@
                         else
                         {
                             result += run.Text;
+                        }
+
+                        if (run.NextInline == null)
+                        {
+                            result += "\n";
                         }
                     }
                 }
@@ -821,6 +825,9 @@
         private void OnRuleEditBeforeClearBtListener(object sender, RoutedEventArgs e)
         {
             ruleBefore.Document.Blocks.Clear();
+            Paragraph result = new Paragraph();
+            result.Margin = new Thickness(0, 0, 0, 0);
+            ruleBefore.Document.Blocks.Add(result);
             if (ruleAfter.Document.Blocks.Count == 0)
             {
                 InitParaAndBlockList();
@@ -830,6 +837,9 @@
         private void OnRuleEditAfterClearBtListener(object sender, RoutedEventArgs e)
         {
             ruleAfter.Document.Blocks.Clear();
+            Paragraph result = new Paragraph();
+            result.Margin = new Thickness(0, 0, 0, 0);
+            ruleAfter.Document.Blocks.Add(result);
             if (ruleBefore.Document.Blocks.Count == 0)
             {
                 InitParaAndBlockList();
