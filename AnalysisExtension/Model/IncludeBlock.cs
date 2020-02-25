@@ -21,7 +21,7 @@ namespace AnalysisExtension.Model
         public IncludeBlock()
         {
             Content = "";
-            BlockId = -1;
+            BlockId = StaticValue.GetNextBlockId();
             IncludeBlockListIndex = -1;
             IsMatchRule = false;
             BackgroundColor = new SolidColorBrush(Colors.White);

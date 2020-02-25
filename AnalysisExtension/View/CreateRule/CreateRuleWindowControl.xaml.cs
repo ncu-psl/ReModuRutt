@@ -440,6 +440,8 @@
                 rule.Header = ruleContent["name"];
                 rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
                 rule.MouseDoubleClick += OnDoubleClickRuleListener;
+                rule.MouseDown += OnRuleListMouseDownListener;
+                rule.MouseMove += OnRuleListMouseMoveListener;
                 ruleSetTree.Items.Add(rule);
             }
         }
@@ -880,10 +882,7 @@
 
             if (item != null)
             {
-                if (parameterEditNow != null || codeBlockEditNow != null)
-                {
-                    e.Effects = DragDropEffects.Copy;
-                }
+                e.Effects = DragDropEffects.Copy;
             }
             e.Handled = true;
         }
@@ -891,21 +890,36 @@
         private void OnTextBoxDropListener(object sender, DragEventArgs e)
         {
             RichTextBox textBox = sender as RichTextBox;
-            if (e.Data.GetDataPresent("para"))
+            TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
+            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
             {
-                ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
-                TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox),true);
-                Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", textPointer);
-                para.Foreground = SystemColors.HighlightBrush;
-                ResetEditStatus();
+                MessageBox.Show("cannot edit include rule");
             }
-            else if (e.Data.GetDataPresent("codeBlock"))
+            else
             {
-                CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
-                TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox),true);
-                Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", textPointer);
-                block.Background = SystemColors.HighlightBrush;
-                ResetEditStatus();
+                if (e.Data.GetDataPresent("para"))
+                {
+                    ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
+                    Run para = new Run("(" + parameterBlock.ParaListIndex + ")", textPointer);
+                    para.Foreground = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
+                else if (e.Data.GetDataPresent("codeBlock"))
+                {
+                    CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
+                    Run block = new Run("(" + codeBlock.BlockListIndex + ")", textPointer);
+                    block.Background = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
+                else if (e.Data.GetDataPresent("intclude rule"))
+                {
+                    IncludeBlock includeBlock = e.Data.GetData("intclude rule") as IncludeBlock;
+                    int codeBlockId = includeBlock.BlockId;
+                    int compareRuleId = includeBlock.CompareRuleId;
+                    int fromRuleSetId = includeBlock.FromRuleSetId;
+                    textPointer.InsertTextInRun("<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>");
+                    SetRuleEditView(ChangeToText(ruleBefore), ChangeToText(ruleAfter));
+                }
             }
             e.Handled = true;
         }
@@ -972,6 +986,47 @@
             {
                 startDragPoint = e.GetPosition(item);
             }
-        }       
+        }
+
+        private void OnRuleListMouseMoveListener(object sender, MouseEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPosition = e.GetPosition(item);
+
+                if ((Math.Abs(currentPosition.X - startDragPoint.X) > 10.0) ||
+                   (Math.Abs(currentPosition.Y - startDragPoint.Y) > 10.0))
+                {
+                    DataObject data = new DataObject();
+
+                    string rulePath = item.DataContext as string;
+                    RuleBlock rule = fileLoader.LoadSingleRuleByPath(rulePath);
+                    string[] split = Path.GetFullPath(rulePath).Split('\\');
+                    string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
+                    IncludeBlock includeBlock = new IncludeBlock();
+                    includeBlock.FromRuleSetId = ruleMetadata.GetRuleSetByName(ruleSetName).Id;
+                    includeBlock.CompareRuleId = rule.RuleId;
+                    includeBlock.BeforeList = rule.BeforeRuleSliceList;
+                    includeBlock.AfterList = rule.AfterRuleSliceList;
+
+                    data.SetData("intclude rule", includeBlock);
+
+                    if (data != null)
+                    {
+                        DragDropEffects dropEffects = DragDrop.DoDragDrop(item, data, DragDropEffects.Copy);
+                    }
+                }
+            }
+        }
+
+        private void OnRuleListMouseDownListener(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.ChangedButton == MouseButton.Left)
+            {
+                startDragPoint = e.GetPosition(item);
+            }
+        }
     }
 }
