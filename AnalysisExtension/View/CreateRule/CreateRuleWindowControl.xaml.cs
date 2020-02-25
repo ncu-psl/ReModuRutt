@@ -378,14 +378,14 @@
             if (labelText.Equals("after"))
             {
                 Button copy = new Button() { Content = "Copy form before", HorizontalAlignment = HorizontalAlignment.Right };
-                copy.Click += OnRuleEditCopyBtClickListener;
+                copy.Click += OnClickBtRuleEditCopyListener;
                 btPanel.Children.Add(copy);
 
-                clear.Click += OnRuleEditAfterClearBtListener;
+                clear.Click += OnClickBtRuleEditAfterClearListener;
             }
             else
             {
-                clear.Click += OnRuleEditBeforeClearBtListener;
+                clear.Click += OnClickBtRuleEditBeforeClearListener;
             }
 
             btPanel.Children.Add(clear);
@@ -416,7 +416,6 @@
         }
 
         //----- menu -----
-
         private void AddRuleSetListView()
         {
             for (int i = 0; i < ruleMetadata.GetRuleSetList().Count; i++)
@@ -439,6 +438,7 @@
                 TreeViewItem rule = new TreeViewItem();
                 rule.Header = ruleContent["name"];
                 rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
+                rule.ContextMenu = (ContextMenu)FindResource("ruleRightClickMenu");
                 rule.MouseDoubleClick += OnDoubleClickRuleListener;
                 rule.MouseDown += OnRuleListMouseDownListener;
                 rule.MouseMove += OnRuleListMouseMoveListener;
@@ -520,9 +520,15 @@
             beforeText = RemoveLineAtFirstAndEnd(beforeText);
             string afterText = ChangeToText(ruleAfter);
             afterText = RemoveLineAtFirstAndEnd(afterText);
-            string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() +  "\"" + @">"+"\n" ;
-            string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>"+"\n";
-            string after = @"<after>" + "\n" + afterText + "\n" + @"</after>"+"\n";
+
+            return GetRuleXml(beforeText, afterText, ruleId);
+        }
+
+        private string GetRuleXml(string beforeText, string afterText,int ruleId)
+        {
+            string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() + "\"" + @">" + "\n";
+            string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>" + "\n";
+            string after = @"<after>" + "\n" + afterText + "\n" + @"</after>" + "\n";
             string end = @"</rule>";
 
             return head + before + after + end;
@@ -579,6 +585,25 @@
                 MessageBox.Show("file save");
             }
         }
+
+        private void CopyRule(string before,string after,int ruleId,string ruleName)
+        {
+            string final = GetRuleXml(before,after,ruleId);
+
+            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name)+"\\"+ruleName +".xml";
+
+            FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+            fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+            fileStream.Close();
+
+            AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id, ruleId, ruleName);
+            IsEditViewChange = false;
+            MessageBox.Show("copy success");
+
+        }
+        
         //-----tool-----
         public void AddTextIntoRuleCreateFrame(string selectContent)
         {
@@ -688,7 +713,40 @@
             ruleAfter.Width = ruleCreateStackPanel.Width - padding/2;
             ruleAfter.Document.PageWidth = ruleCreateStackPanel.Width * 2;
         }
-        
+
+        private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
+        {
+            IsEditViewChange = true;
+        }
+
+        private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            RichTextBox textBox = sender as RichTextBox;
+            TextSelection selection = textBox.Selection;
+            TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
+            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
+            {
+                MessageBox.Show("cannot edit include rule");
+                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
+            }
+            else
+            {
+                if (parameterEditNow != null)
+                {
+                    Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
+                    para.Foreground = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
+                else if (codeBlockEditNow != null)
+                {
+                    Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
+                    block.Background = SystemColors.HighlightBrush;
+                    ResetEditStatus();
+                }
+            }
+        }
+
+        //-----button listener-----
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
         {
             Refresh();
@@ -747,6 +805,48 @@
             }      
         }
 
+        private void OnClickBtRuleEditBeforeClearListener(object sender, RoutedEventArgs e)
+        {
+            ruleBefore.Document.Blocks.Clear();
+            Paragraph result = new Paragraph();
+            result.Margin = new Thickness(0, 0, 0, 0);
+            ruleBefore.Document.Blocks.Add(result);
+            if (ruleAfter.Document.Blocks.Count == 0)
+            {
+                InitParaAndBlockList();
+            }
+        }
+
+        private void OnClickBtRuleEditAfterClearListener(object sender, RoutedEventArgs e)
+        {
+            ruleAfter.Document.Blocks.Clear();
+            Paragraph result = new Paragraph();
+            result.Margin = new Thickness(0, 0, 0, 0);
+            ruleAfter.Document.Blocks.Add(result);
+            if (ruleBefore.Document.Blocks.Count == 0)
+            {
+                InitParaAndBlockList();
+            }
+        }
+
+        private void OnClickBtRuleEditCopyListener(object sender, RoutedEventArgs e)
+        {
+            foreach (Paragraph paragraph in ruleBefore.Document.Blocks)
+            {
+                Paragraph copy = new Paragraph();
+                copy.Margin = new Thickness(0, 0, 0, 0);
+                foreach (Run run in paragraph.Inlines)
+                {
+                    Run newRun = new Run(run.Text, copy.ContentEnd);
+                    newRun.Background = run.Background;
+                    newRun.Foreground = run.Foreground;
+                    newRun.DataContext = run.DataContext;
+                }
+                ruleAfter.Document.Blocks.Add(copy);
+            }
+        }
+
+        //-----list click listener-----
         private void OnDoubleClickRuleListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             TreeViewItem rule = (TreeViewItem)sender;
@@ -754,12 +854,7 @@
             string path = (string)rule.DataContext;
             AddRuleEditView(path);
         }
-      
-        private void OnTextBoxChangedListener(object sender, TextChangedEventArgs e)
-        {
-            IsEditViewChange = true;
-        }
-        
+         
         private void OnDoubleClickParameterListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = (TreeViewItem)sender;
@@ -776,6 +871,7 @@
             codeBlockEditNow = codeBlock;
         }
 
+        //-----menu listener-----
         private void OnMenuSetParameterChooseListener(object sender, RoutedEventArgs e)
         {
             MenuItem item = sender as MenuItem;
@@ -813,73 +909,21 @@
             }
         }
 
-        private void OnRuleEditBeforeClearBtListener(object sender, RoutedEventArgs e)
+        private void OnMenuCopyRuleClickListener(object sender, RoutedEventArgs e)
         {
-            ruleBefore.Document.Blocks.Clear();
-            Paragraph result = new Paragraph();
-            result.Margin = new Thickness(0, 0, 0, 0);
-            ruleBefore.Document.Blocks.Add(result);
-            if (ruleAfter.Document.Blocks.Count == 0)
-            {
-                InitParaAndBlockList();
-            }
+            MenuItem item = sender as MenuItem;
+            TreeViewItem treeViewItem = ((item.Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as TreeViewItem;
+
+            string rulePath = treeViewItem.DataContext as string;
+            //copy rule
+            RuleBlock rule = fileLoader.LoadSingleRuleByPath(rulePath);
+            string before = rule.GetOrgText("before");
+            string after = rule.GetOrgText("after");
+            int ruleId = ruleSetOpenNow.GetNextRuleId();
+
+            CopyRule(before,after,ruleId,rule.RuleName);
         }
 
-        private void OnRuleEditAfterClearBtListener(object sender, RoutedEventArgs e)
-        {
-            ruleAfter.Document.Blocks.Clear();
-            Paragraph result = new Paragraph();
-            result.Margin = new Thickness(0, 0, 0, 0);
-            ruleAfter.Document.Blocks.Add(result);
-            if (ruleBefore.Document.Blocks.Count == 0)
-            {
-                InitParaAndBlockList();
-            }
-        }
-
-        private void OnRuleEditCopyBtClickListener(object sender, RoutedEventArgs e)
-        {
-            foreach (Paragraph paragraph in ruleBefore.Document.Blocks)
-            {
-                Paragraph copy = new Paragraph();
-                copy.Margin = new Thickness(0, 0, 0, 0);
-                foreach (Run run in paragraph.Inlines)
-                {
-                    Run newRun = new Run(run.Text, copy.ContentEnd);
-                    newRun.Background = run.Background;
-                    newRun.Foreground = run.Foreground;
-                    newRun.DataContext = run.DataContext;
-                }
-                ruleAfter.Document.Blocks.Add(copy);
-            }
-        }
-
-        private void OnTextBoxPreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            RichTextBox textBox = sender as RichTextBox;
-            TextSelection selection = textBox.Selection;
-            TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
-            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
-            {
-                MessageBox.Show("cannot edit include rule");
-                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
-            }
-            else
-            {
-                if (parameterEditNow != null)
-                {
-                    Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
-                    para.Foreground = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
-                else if (codeBlockEditNow != null)
-                {
-                    Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
-                    block.Background = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
-            }
-        }
         //------drag and drop listener------
         private void OnTextBoxDragOverListener(object sender, DragEventArgs e)
         {

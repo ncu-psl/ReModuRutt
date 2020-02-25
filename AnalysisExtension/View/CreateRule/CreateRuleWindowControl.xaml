@@ -15,7 +15,10 @@
             <MenuItem Header="Paste" Command="ApplicationCommands.Paste"/>
             <MenuItem Header="set as parameter" Click="OnMenuSetParameterChooseListener"/>
             <MenuItem Header="set as block" Click="OnMenuSetCodeBlockChooseListener"/>
-        </ContextMenu>        
+        </ContextMenu>
+        <ContextMenu x:Key="ruleRightClickMenu">
+            <MenuItem Header="Copy to rule set edit now" Click="OnMenuCopyRuleClickListener"/>
+        </ContextMenu>
     </UserControl.Resources>
     
     <DockPanel LastChildFill="False">
