@@ -431,9 +431,9 @@
             return label;
         }
 
-        private void AddRuleCreateNowIntoMetadata(int ruleId)
+        private void AddRuleCreateNowIntoMetadata(int ruleSetId,int ruleId,string ruleName)
         {
-            ruleMetadata.AddRuleIntoRuleSet(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
+            ruleMetadata.AddRuleIntoRuleSet(ruleSetId, ruleId, ruleName);
             ruleMetadata.RewriteMetadata();
             RefreshRuleSetListView();
         }
@@ -550,7 +550,7 @@
                     string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
                     File.WriteAllText(path, final);
 
-                    AddRuleCreateNowIntoMetadata(ruleId);
+                    AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id,ruleId,ruleNameOpenNow);
                     IsEditViewChange = false;
                     MessageBox.Show("file save");
                 }
@@ -571,13 +571,15 @@
             if (saveFileDialog.FileName != "")
             {
                 ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
+                string[] split = Path.GetFullPath(saveFileDialog.FileName).Split('\\');
+                string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
                 final = GetFinalRule(ruleId);
 
                 FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
                 fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
                 fileStream.Close();
 
-                AddRuleCreateNowIntoMetadata(ruleId);
+                AddRuleCreateNowIntoMetadata(ruleMetadata.GetRuleSetByName(ruleSetName).Id,ruleId,ruleNameOpenNow);
                 IsEditViewChange = false;
                 MessageBox.Show("file save");
             }
