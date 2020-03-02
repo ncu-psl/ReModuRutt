@@ -287,6 +287,12 @@ namespace AnalysisExtension.Model
                         int blockId = (ruleSlice[ruleSliceIndex] as ParameterBlock).BlockId;
                         string paraContent = StaticValue.GetAllContent(scope[2]);
 
+                        if (Regex.Match(paraContent, @"[\s]+").Success)
+                        {
+                            isMatch = false;
+                            break;
+                        }
+
                         ParameterBlock parameter = new ParameterBlock(paraContent, blockId, paraListId);
                         parameter.IsMatchRule = true;
 
