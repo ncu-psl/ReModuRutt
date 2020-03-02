@@ -1,11 +1,11 @@
 <rule xml:space="preserve" id="2" name="dowhile" canWhitespaceIgnore="True">
 <before>
-do <para id="1" /> = 1, <para id="2" />
+do <para id="1" /> = <para id="2" />, <para id="3" />
 <block id = "1"/>
 enddo
 </before>
 <after>
-for(int <para id="1" /> = 0; <para id="1" /> lt <para id="2" />; <para id="1" />++)
+for(int <para id="1" /> = <para id="2" />; <para id="1" /> lt <para id="3" />; <para id="1" />++)
 {
 	<block id = "1"/>
 }  
