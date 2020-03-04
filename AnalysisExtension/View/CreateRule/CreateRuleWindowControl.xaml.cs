@@ -37,7 +37,6 @@
         private CodeBlock codeBlockEditNow = null;
 
         private Point startDragPoint;
-        private Point endDragPoint;
 
         private static CreateRuleToolWindowControl instance = null;
         private ToolWindowPane windowPane = null;
@@ -273,11 +272,17 @@
                 if (result == MessageBoxResult.Yes)
                 {
                     SaveRule();
+
+                    ruleNameOpenNow = null;
+                    ruleBlockEditNow = null;
                 }
                 else if (result == MessageBoxResult.No)
                 {
                     ruleBefore.Document.Blocks.Clear();
                     ruleAfter.Document.Blocks.Clear();
+                    IsEditViewChange = false;
+                    ruleNameOpenNow = null;
+                    ruleBlockEditNow = null;
                 }
                 else
                 {
@@ -285,35 +290,42 @@
                 }
             }
 
-            if (filePath != null)
+            if (filePath == null)
             {
-                ruleBlockEditNow = fileLoader.LoadSingleRuleByPath(filePath);
-                ruleNameOpenNow = ruleBlockEditNow.RuleName;
-                beforeContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("before"));
-                afterContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("after"));
-                whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
-            }
-            else if (ruleSetOpenNow != null)
-            {
-                MessageBoxResult result = MessageBox.Show("create new rule in rule set " + ruleSetOpenNow.Name, "create new rule", MessageBoxButton.YesNo);
+                if (ruleSetOpenNow != null)
+                {
+                    MessageBoxResult result = MessageBox.Show("create new rule in rule set " + ruleSetOpenNow.Name, "create new rule", MessageBoxButton.YesNoCancel);
 
-                if (result == MessageBoxResult.No)
+                    if (result == MessageBoxResult.Cancel)
+                    {
+                        return;
+                    }
+                    else if (result == MessageBoxResult.No)
+                    {
+                        ShowChooseRuleSetWindow();
+                    }
+                }
+                else
+                {
+                    ShowChooseRuleSetWindow();
+                }
+
+                //create file  
+                filePath = CreateNewRule();
+                if (filePath == null)
                 {
                     return;
                 }
             }
-            else
-            {
-                Window window = new Window();
-                window.Width = 200;
-                window.Height = 200;
-                ChooseEditRuleSetWindowControl chooseEditRuleSetWindow = new ChooseEditRuleSetWindowControl();
-                window.Content = chooseEditRuleSetWindow;
-                window.ShowDialog();
-                ruleSetOpenNow = chooseEditRuleSetWindow.chooseRuleSet;
-            }
+            
+            ruleBlockEditNow = fileLoader.LoadSingleRuleByPath(filePath);
+            ruleNameOpenNow = ruleBlockEditNow.RuleName;
+            beforeContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("before"));
+            afterContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("after"));
+            whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
 
-            if (ruleSetOpenNow != null)
+
+            if (ruleBlockEditNow != null)
             {
                 paraList = new List<ParameterBlock>();
                 codeBlockList = new List<CodeBlock>();
@@ -536,31 +548,18 @@
 
         private void SaveRule()
         {
-            if (ruleNameOpenNow == null)
-            {
-                SaveAsRule();
-            }
-            else if (GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
-            {
-                MessageBoxResult result = MessageBox.Show("file is exist , sure to overwrite this file?", "Save File", MessageBoxButton.YesNo);
+            int ruleId = ruleBlockEditNow.RuleId;
+            string final = GetFinalRule(ruleId);
+            string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
+            File.WriteAllText(path, final);
 
-                if (result == MessageBoxResult.Yes)
-                {
-                    int ruleId = ruleBlockEditNow.RuleId;
-                    string final = GetFinalRule(ruleId);
-                    string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
-                    File.WriteAllText(path, final);
-
-                    AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id,ruleId,ruleNameOpenNow);
-                    IsEditViewChange = false;
-                    MessageBox.Show("file save");
-                }
-            }
+            AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
+            IsEditViewChange = false;
+            MessageBox.Show("file save");
         }
 
-        private void SaveAsRule()
+        private string SaveAsRule()
         {
-            string final;
             int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.Filter = "(*.xml)|*.xml";
@@ -574,7 +573,7 @@
                 ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
                 string[] split = Path.GetFullPath(saveFileDialog.FileName).Split('\\');
                 string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
-                final = GetFinalRule(ruleId);
+                string final = GetFinalRule(ruleId);
 
                 FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
                 fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
@@ -583,7 +582,40 @@
                 AddRuleCreateNowIntoMetadata(ruleMetadata.GetRuleSetByName(ruleSetName).Id,ruleId,ruleNameOpenNow);
                 IsEditViewChange = false;
                 MessageBox.Show("file save");
+                return Path.GetFullPath(saveFileDialog.FileName);
             }
+
+            return null;
+        }
+
+        private string CreateNewRule()
+        {
+            int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
+            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+            saveFileDialog.Filter = "(*.xml)|*.xml";
+            saveFileDialog.Title = "save as";
+            saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
+            saveFileDialog.RestoreDirectory = true;
+            saveFileDialog.ShowDialog();
+
+            if (saveFileDialog.FileName != "")
+            {
+                ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
+                string[] split = Path.GetFullPath(saveFileDialog.FileName).Split('\\');
+                string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
+                string final = GetRuleXml("","",ruleId);
+
+                FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+                fileStream.Close();
+
+                AddRuleCreateNowIntoMetadata(ruleMetadata.GetRuleSetByName(ruleSetName).Id, ruleId, ruleNameOpenNow);
+                IsEditViewChange = false;
+                MessageBox.Show("file create");
+                return Path.GetFullPath(saveFileDialog.FileName);
+            }
+
+            return null;
         }
 
         private void CopyRule(string before,string after,int ruleId,string ruleName)
@@ -603,8 +635,19 @@
             MessageBox.Show("copy success");
 
         }
-        
+
         //-----tool-----
+        private void ShowChooseRuleSetWindow()
+        {
+            Window window = new Window();
+            window.Width = 200;
+            window.Height = 200;
+            ChooseEditRuleSetWindowControl chooseEditRuleSetWindow = new ChooseEditRuleSetWindowControl();
+            window.Content = chooseEditRuleSetWindow;
+            window.ShowDialog();
+            ruleSetOpenNow = chooseEditRuleSetWindow.chooseRuleSet;
+        }
+
         public void AddTextIntoRuleCreateFrame(string selectContent)
         {
             ruleBefore.Document.Blocks.AddRange(ChangeToColor(selectContent, "before"));
@@ -658,6 +701,41 @@
             }
 
             return orgText;
+        }
+
+        private bool IsIncludeRuleContain(int ruleSetId,int ruleId, int findRuleSetId, int findRuleId,string tag)
+        {
+            List<ICodeBlock> list;
+
+            if (ruleSetId == findRuleSetId && ruleId == findRuleId)
+            {
+                return true;
+            }
+
+            RuleBlock ruleBlock = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(ruleSetId, ruleId));
+            if (tag.Equals("before"))
+            {
+                list = ruleBlock.BeforeRuleSliceList;
+            }
+            else
+            {
+                list = ruleBlock.AfterRuleSliceList;
+            }
+
+            foreach (ICodeBlock block in list)
+            {
+                if (block.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                {
+                    IncludeBlock includeBlock = block as IncludeBlock;
+
+                    if (IsIncludeRuleContain(includeBlock.FromRuleSetId, includeBlock.CompareRuleId, findRuleSetId, findRuleId, tag))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         //-----add into list
@@ -755,21 +833,36 @@
 
         private void OnClickBtSaveListener(object sender, RoutedEventArgs e)
         {
-            SaveRule();
+            if (GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
+            {
+                MessageBoxResult result = MessageBox.Show("file is exist , sure to overwrite this file?", "Save File", MessageBoxButton.YesNo);
+                if (result == MessageBoxResult.Yes)
+                {
+                    SaveRule();
+                }
+                else
+                {
+                    return;
+                }
+            }
+            else
+            {
+                SaveAsRule();
+            }            
             Refresh();
         }
 
         private void OnClickBtSaveAsListener(object sender, RoutedEventArgs e)
         {
-            SaveAsRule();
-            Refresh();
+            if(SaveAsRule() != null)
+            {
+                Refresh();
+            }
         }
 
         private void OnClickBtCreateNewRuleListener(object sender, RoutedEventArgs e)
         {
-            string filePath = null;
-            ruleNameOpenNow = null;
-            AddRuleEditView(filePath);            
+            AddRuleEditView(null);            
         }
 
         private void OnClickBtCreateNewRuleSetListener(object sender, RoutedEventArgs e)
@@ -970,8 +1063,26 @@
                     int codeBlockId = includeBlock.BlockId;
                     int compareRuleId = includeBlock.CompareRuleId;
                     int fromRuleSetId = includeBlock.FromRuleSetId;
-                    textPointer.InsertTextInRun("<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>");
-                    SetRuleEditView(ChangeToText(ruleBefore), ChangeToText(ruleAfter));
+
+                    string tag;
+                    if (textBox == ruleBefore)
+                    {
+                        tag = "before";
+                    }
+                    else
+                    {
+                        tag = "after";
+                    }
+
+                    if (IsIncludeRuleContain(fromRuleSetId, compareRuleId, ruleSetOpenNow.Id, ruleBlockEditNow.RuleId, tag))
+                    {
+                        MessageBox.Show("cannot include this rule ,it will include itself");
+                    }
+                    else
+                    {
+                        textPointer.InsertTextInRun("<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>");
+                        SetRuleEditView(ChangeToText(ruleBefore), ChangeToText(ruleAfter));
+                    }
                 }
             }
             e.Handled = true;
