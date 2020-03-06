@@ -182,8 +182,7 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
-                Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
-                run.Background = SystemColors.HighlightBrush;
+                SetBlockFormate(codeBlockId, result.ContentEnd);
 
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
@@ -208,8 +207,8 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
-                Run run = new Run("(" + paraId + ")", result.ContentEnd);
-                run.Foreground = SystemColors.HighlightBrush;
+                SetParameterFormate(paraId, result.ContentEnd);
+
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
@@ -306,21 +305,26 @@
                 {
                     if (inline is InlineUIContainer)
                     {
-                        AddIntoIncludeList(inline.DataContext as IncludeBlock);
-                    }
-                    else if (inline is Run)
-                    {
-                        Run run = inline as Run;
-                        if (run.Background == SystemColors.HighlightBrush)
-                        {//is block
-                            int codeBlockId = int.Parse(Regex.Match(run.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value);
-                            AddIntoCodeBlockList(new CodeBlock("",codeBlockId));
+                        InlineUIContainer container = inline as InlineUIContainer;
+
+                        if (container.Child is StackPanel)
+                        {
+                            AddIntoIncludeList(inline.DataContext as IncludeBlock);
                         }
-                        else if (run.Foreground == SystemColors.HighlightBrush)
-                        {//is parameter
-                            string match = Regex.Match(run.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value;
-                            int paraId = int.Parse(match);
-                            AddIntoParaList(new ParameterBlock("", paraId));
+                        else if (container.Child is TextBlock)
+                        {
+                            TextBlock textBlock = container.Child as TextBlock;
+                            if (textBlock.Background == SystemColors.HighlightBrush)
+                            {//is block
+                                int codeBlockId = int.Parse(Regex.Match(textBlock.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value);
+                                AddIntoCodeBlockList(new CodeBlock("", codeBlockId));
+                            }
+                            else if (textBlock.Foreground == SystemColors.HighlightBrush)
+                            {//is parameter
+                                string match = Regex.Match(textBlock.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value;
+                                int paraId = int.Parse(match);
+                                AddIntoParaList(new ParameterBlock("", paraId));
+                            }
                         }
                     }
                 }
@@ -583,26 +587,31 @@
                 {
                     if (inline is InlineUIContainer)
                     {
-                        result += "\n";
-                        IncludeBlock includeBlock = inline.DataContext as IncludeBlock;
-                        result += "<include id=\"" + includeBlock.IncludeBlockListIndex + "\" compareRuleId=\"" + includeBlock.CompareRuleId + "\" fromRuleSetId=\"" + includeBlock.FromRuleSetId + "\"/>";
-                    }
-                    else if (inline is Run)
-                    {
-                        Run run = inline as Run;
-                        if (run.Background == SystemColors.HighlightBrush)
-                        {//is block
-                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
-                        }
-                        else if (run.Foreground == SystemColors.HighlightBrush)
-                        {//is parameter
-                            result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
-                        }
-                        else
+                        InlineUIContainer container = inline as InlineUIContainer;
+
+                        if (container.Child is StackPanel)
                         {
-                            result += run.Text;
+                            result += "\n";
+                            IncludeBlock includeBlock = inline.DataContext as IncludeBlock;
+                            result += "<include id=\"" + includeBlock.IncludeBlockListIndex + "\" compareRuleId=\"" + includeBlock.CompareRuleId + "\" fromRuleSetId=\"" + includeBlock.FromRuleSetId + "\"/>";
                         }
-                    }                    
+                        else if (container.Child is TextBlock)
+                        {
+                            TextBlock textBlock = container.Child as TextBlock;
+                            if (textBlock.Background == SystemColors.HighlightBrush)
+                            {//is block
+                                result += Regex.Replace(textBlock.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
+                            }
+                            else if (textBlock.Foreground == SystemColors.HighlightBrush)
+                            {//is parameter
+                                result += Regex.Replace(textBlock.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
+                            }
+                        }
+                    }
+                    else
+                    {
+                        result += (inline as Run).Text;
+                    }
                 }                
             }
             return result;
@@ -719,6 +728,19 @@
         }
 
         //-----tool-----
+        private void SetParameterFormate(int paraId, TextPointer position)
+        {
+            TextBlock para = new TextBlock() { Text = "(" + paraId + ")", Foreground = SystemColors.HighlightBrush };
+            InlineUIContainer container = new InlineUIContainer(para, position);
+        }
+
+        private void SetBlockFormate(int blockId, TextPointer position)
+        {
+            TextBlock block = new TextBlock() { Text = "(" + blockId + ")", Background = SystemColors.HighlightBrush };
+            InlineUIContainer container = new InlineUIContainer(block, position);
+        }
+
+
         private void ShowChooseRuleSetWindow()
         {
             Window window = new Window();
@@ -906,18 +928,8 @@
             }
             else
             {
-                if (parameterEditNow != null)
-                {
-                    Run para = new Run("(" + parameterEditNow.ParaListIndex + ")", selection.Start);
-                    para.Foreground = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
-                else if (codeBlockEditNow != null)
-                {
-                    Run block = new Run("(" + codeBlockEditNow.BlockListIndex + ")", selection.Start);
-                    block.Background = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
+                //TODO : add click insert include rule method
+                ResetEditStatus();             
             }
         }
 
@@ -1082,9 +1094,7 @@
                 int paraId = paraList.Count + 1;
                 ParameterBlock parameterBlock = new ParameterBlock("", paraId);
                 AddIntoParaList(parameterBlock);
-
-                Run para = new Run("(" + paraId + ")", selection.Start);
-                para.Foreground = SystemColors.HighlightBrush;
+                SetParameterFormate(paraId, selection.Start);
                 RefreshParameterTreeView();
             }
         }
@@ -1101,8 +1111,7 @@
                 int blockId = codeBlockList.Count + 1;
                 AddIntoCodeBlockList(new CodeBlock("", blockId));
 
-                Run block = new Run("(" + blockId + ")", selection.Start);
-                block.Background = SystemColors.HighlightBrush;
+                SetBlockFormate(blockId, selection.Start);
                 RefreshCodeBlockTreeView();
             }
         }
@@ -1145,15 +1154,13 @@
             if (e.Data.GetDataPresent("para"))
             {
                 ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
-                Run para = new Run("(" + parameterBlock.ParaListIndex + ")", textPointer);
-                para.Foreground = SystemColors.HighlightBrush;
+                SetParameterFormate(parameterBlock.ParaListIndex, textPointer);
                 ResetEditStatus();
             }
             else if (e.Data.GetDataPresent("codeBlock"))
             {
                 CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
-                Run block = new Run("(" + codeBlock.BlockListIndex + ")", textPointer);
-                block.Background = SystemColors.HighlightBrush;
+                SetBlockFormate(codeBlock.BlockListIndex, textPointer);
                 ResetEditStatus();
             }
             else if (e.Data.GetDataPresent("include rule"))
