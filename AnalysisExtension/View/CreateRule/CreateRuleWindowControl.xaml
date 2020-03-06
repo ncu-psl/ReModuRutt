@@ -37,7 +37,8 @@
         <TreeView x:Name="ruleTreeView" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" >
             <TreeViewItem x:Name="allRuleSetTreeView" Header="all rule list"/>
             <TreeViewItem x:Name="paraListTreeView" Header="parameter list"/>
-            <TreeViewItem x:Name="blockListTreeView" Header="block list"  />
+            <TreeViewItem x:Name="blockListTreeView" Header="block list"/>
+            <TreeViewItem x:Name="includeListTreeView" Header="include list"/>
         </TreeView>
 
         <StackPanel Orientation="Vertical"  DockPanel.Dock="Right" x:Name="ruleCreateStackPanel"/>

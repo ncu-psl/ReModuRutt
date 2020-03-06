@@ -30,11 +30,12 @@
 
         private List<ParameterBlock> paraList;
         private List<CodeBlock> codeBlockList;
-        private int newIncludeId = -1;
+        private List<IncludeBlock> includeList;
 
         private bool IsEditViewChange = false;
         private ParameterBlock parameterEditNow = null;
         private CodeBlock codeBlockEditNow = null;
+        private IncludeBlock IncludeBlockEditNow = null;
 
         private Point startDragPoint;
 
@@ -65,6 +66,7 @@
         private void Refresh()
         {  
             RefreshRuleSetListView();
+            InitAllBlockList();
 
             windowPane.Caption = "";
             windowPane.Content = instance;
@@ -88,15 +90,18 @@
         {
             parameterEditNow = null;
             codeBlockEditNow = null;
+            IncludeBlockEditNow = null;
         }
 
-        private void InitParaAndBlockList()
+        private void InitAllBlockList()
         {
             ResetEditStatus();
             paraList = new List<ParameterBlock>();
             codeBlockList = new List<CodeBlock>();
+            includeList = new List<IncludeBlock>();
             RefreshParameterTreeView();
             RefreshCodeBlockTreeView();
+            RefreshIncludeTreeView();
         }  
 
         //----- text pattern change-----        
@@ -131,13 +136,13 @@
                 else if(orgText.IndexOf("<include") == min)
                 {
                     string frontContent = orgText.Substring(0, orgText.IndexOf("<include"));
+                    frontContent = RemoveLineAtFirstAndEnd(frontContent);
                     Run front = new Run(frontContent, result.ContentEnd);
-
                     allResult.Add(result);
+
                     result = new Paragraph();
-                    result.Margin = new Thickness(0, 0, 0, 0);
-                    result.Background = SystemColors.MenuBarBrush;
-                    findResult = ChangeIncludeToColor(tag,result, xmlDocument, orgText, includeCount);
+                    result.Margin = new Thickness(0, 0, 0, 0);                    
+                    findResult = ChangeIncludeToColor(tag, result, xmlDocument, orgText, includeCount);
                     includeCount++;
 
                     allResult.Add(result);
@@ -177,8 +182,6 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
-                AddIntoCodeBlockList(new CodeBlock("",codeBlockId));
-
                 Run run = new Run("(" + codeBlockId + ")", result.ContentEnd);
                 run.Background = SystemColors.HighlightBrush;
 
@@ -205,8 +208,6 @@
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
-                AddIntoParaList(new ParameterBlock("", paraId));
-
                 Run run = new Run("(" + paraId + ")", result.ContentEnd);
                 run.Foreground = SystemColors.HighlightBrush;
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
@@ -214,7 +215,7 @@
             return orgText;
         }
 
-        private string ChangeIncludeToColor(string tag,Paragraph result, XmlDocument xmlDocument, string orgText, int includeCount)
+        private string ChangeIncludeToColor(string tag, Paragraph result, XmlDocument xmlDocument, string orgText, int includeCount)
         {
             int startIndex = orgText.IndexOf("<include");
             int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
@@ -233,34 +234,99 @@
                 int fromRuleSetId = int.Parse(StaticValue.GetAttributeInElement(includeElement, "fromRuleSetId"));
 
                 RuleSet ruleSet = ruleMetadata.GetRuleSetById(fromRuleSetId);
-
-                Run run = new Run("<by rule set " + ruleSet.Name + ", rule "+ruleSet.GetRuleInfoById(compareRuleId)["name"] + ">\n", result.ContentEnd);
-                result.DataContext = "<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>";
+                string includeInfo = "by rule set " + ruleSet.Name + ", rule " + ruleSet.GetRuleInfoById(compareRuleId)["name"];
 
                 RuleBlock rule = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(fromRuleSetId, compareRuleId));
-                List<Paragraph> interResult = ChangeToColor(rule.GetOrgText(tag),tag);
 
-                foreach (Paragraph paragraph in interResult)
-                {
-                    foreach (Run inline in paragraph.Inlines)
-                    {
-                        Run newRun = new Run(inline.Text, result.ContentEnd);
-                        newRun.Background = inline.Background;
-                        newRun.Foreground = inline.Foreground;
-                    }
-                }
+                StackPanel inner = SetIncludeInline(rule,tag,includeInfo);
+                InlineUIContainer container = new InlineUIContainer(inner, result.ContentEnd);
+                container.DataContext = new IncludeBlock("", codeBlockId, compareRuleId, fromRuleSetId);
 
-                if (newIncludeId <= codeBlockId)
-                {
-                    newIncludeId = codeBlockId + 1;
-                }
                 orgText = orgText.Substring(endIndex + endTokenLen + 1);
             }
             return orgText;
+        }
 
+        private StackPanel SetIncludeInline(RuleBlock rule,string tag,string info)
+        {
+            StackPanel panel = new StackPanel() { Orientation = Orientation.Vertical, Margin = new Thickness(0, 0, 0, 0) };
+
+            TextBlock infoBlock = new TextBlock() { Text = info, Background = SystemColors.InactiveCaptionBrush, Foreground = SystemColors.InactiveCaptionTextBrush, Margin = new Thickness(0, 0, 0, 0), Padding = new Thickness(){ Left = 3, Right = 3 } };
+            RichTextBox innerBox = new RichTextBox() { Background = SystemColors.MenuBarBrush , Margin = new Thickness(0, 0, 0, 0) };
+            List<Paragraph> interResult = ChangeToColor(rule.GetOrgText(tag), tag);
+
+             int maxLine = info.Length;
+             foreach (Paragraph paragraph in interResult)
+             {
+                 int textLen = 0;
+                 foreach (Inline inline in paragraph.Inlines)
+                 {
+                     if (inline is Run)
+                    { 
+                         Run inlineRun = inline as Run;
+                         if (inlineRun.Text.Contains("\n"))
+                         {
+                             if (textLen > maxLine)
+                             {
+                                 maxLine = textLen;
+                             }
+                             textLen = 0;
+                         }
+                         else
+                         {
+                             textLen += inlineRun.Text.Length;
+                         }
+                     }
+                 }
+
+                 if (textLen > maxLine)
+                 {
+                     maxLine = textLen;
+                 }
+             }
+
+            innerBox.Background = SystemColors.MenuBarBrush;
+            innerBox.Margin = new Thickness(0, 0, 0, 0);
+            innerBox.Width = maxLine * 10;
+            innerBox.Document.Blocks.Clear();
+            innerBox.Document.Blocks.AddRange(interResult);
+
+            panel.Children.Add(infoBlock);
+            panel.Children.Add(innerBox);
+
+            return panel;
         }
 
         //----- main frame -----
+        private void SetBlockList(RichTextBox richTextBox)
+        {
+            foreach (Paragraph paragraph in richTextBox.Document.Blocks)
+            {
+                foreach (Inline inline in paragraph.Inlines)
+                {
+                    if (inline is InlineUIContainer)
+                    {
+                        AddIntoIncludeList(inline.DataContext as IncludeBlock);
+                    }
+                    else if (inline is Run)
+                    {
+                        Run run = inline as Run;
+                        if (run.Background == SystemColors.HighlightBrush)
+                        {//is block
+                            int codeBlockId = int.Parse(Regex.Match(run.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value);
+                            AddIntoCodeBlockList(new CodeBlock("",codeBlockId));
+                        }
+                        else if (run.Foreground == SystemColors.HighlightBrush)
+                        {//is parameter
+                            string match = Regex.Match(run.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value;
+                            int paraId = int.Parse(match);
+                            AddIntoParaList(new ParameterBlock("", paraId));
+                        }
+                    }
+                }
+            }
+        }
+
         private void AddRuleEditView(string filePath)
         {
             string beforeContent = "";
@@ -329,6 +395,7 @@
             {
                 paraList = new List<ParameterBlock>();
                 codeBlockList = new List<CodeBlock>();
+                includeList = new List<IncludeBlock>();
 
                 string title = "rule set open now : " + ruleSetOpenNow.Name;
                 if (ruleBlockEditNow != null)
@@ -358,8 +425,12 @@
             ruleCreateStackPanel.Children.Add(SetEditInfoPanel("after"));
             ruleCreateStackPanel.Children.Add(ruleAfter);
 
+            SetBlockList(ruleBefore);
+            SetBlockList(ruleAfter);
+
             RefreshParameterTreeView();
             RefreshCodeBlockTreeView();
+            RefreshIncludeTreeView();
         }
 
         private void SetEditTextBoxTemplate(RichTextBox textBox)
@@ -488,20 +559,37 @@
             }
         }
 
+        private void RefreshIncludeTreeView()
+        {
+            includeListTreeView.Items.Clear();
+            foreach (IncludeBlock includeBlock in includeList)
+            {
+                TreeViewItem block = new TreeViewItem();
+                block.Header = "(" + includeBlock.IncludeBlockListIndex + ")";
+                block.DataContext = includeBlock;
+                block.MouseDoubleClick += OnDoubleClickIncludeListListener;
+                block.MouseDown += OnIncludeBlockMouseDownListener;
+                block.MouseMove += OnIncludeBlockMouseMoveListener;
+                includeListTreeView.Items.Add(block);
+            }
+        }
         //-----final result-----
         private string ChangeToText(RichTextBox textBox)
         {
             string result = "";
             foreach (Paragraph paragraph in textBox.Document.Blocks)
             {
-                if (paragraph.Background == SystemColors.MenuBarBrush)
-                {//is include block
-                    result += paragraph.DataContext;
-                }
-                else
+                foreach (Inline inline in paragraph.Inlines)
                 {
-                    foreach (Run run in paragraph.Inlines)
+                    if (inline is InlineUIContainer)
                     {
+                        result += "\n";
+                        IncludeBlock includeBlock = inline.DataContext as IncludeBlock;
+                        result += "<include id=\"" + includeBlock.IncludeBlockListIndex + "\" compareRuleId=\"" + includeBlock.CompareRuleId + "\" fromRuleSetId=\"" + includeBlock.FromRuleSetId + "\"/>";
+                    }
+                    else if (inline is Run)
+                    {
+                        Run run = inline as Run;
                         if (run.Background == SystemColors.HighlightBrush)
                         {//is block
                             result += Regex.Replace(run.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
@@ -514,15 +602,9 @@
                         {
                             result += run.Text;
                         }
-
-                        if (run.NextInline == null)
-                        {
-                            result += "\n";
-                        }
-                    }
-                }
+                    }                    
+                }                
             }
-
             return result;
         }
 
@@ -775,6 +857,23 @@
             }
         }
 
+        private void AddIntoIncludeList(IncludeBlock includeBlock)
+        {
+            bool isFind = false;
+            foreach (IncludeBlock findBlock in includeList)
+            {
+                if (findBlock.IncludeBlockListIndex == includeBlock.IncludeBlockListIndex)
+                {
+                    isFind = true;
+                    break;
+                }
+            }
+
+            if (!isFind)
+            {
+                includeList.Add(includeBlock);
+            }
+        }
         //-----listener-----
         private void OnSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -802,10 +901,8 @@
             RichTextBox textBox = sender as RichTextBox;
             TextSelection selection = textBox.Selection;
             TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
-            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
-            {
-                MessageBox.Show("cannot edit include rule");
-                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
+            if (textPointer.Paragraph.Inlines.Count == 1 && textPointer.Paragraph.Inlines.FirstInline is InlineUIContainer)
+            {//include rule
             }
             else
             {
@@ -906,7 +1003,7 @@
             ruleBefore.Document.Blocks.Add(result);
             if (ruleAfter.Document.Blocks.Count == 0)
             {
-                InitParaAndBlockList();
+                InitAllBlockList();
             }
         }
 
@@ -918,7 +1015,7 @@
             ruleAfter.Document.Blocks.Add(result);
             if (ruleBefore.Document.Blocks.Count == 0)
             {
-                InitParaAndBlockList();
+                InitAllBlockList();
             }
         }
 
@@ -940,7 +1037,7 @@
         }
 
         //-----list click listener-----
-        private void OnDoubleClickRuleListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void OnDoubleClickRuleListener(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem rule = (TreeViewItem)sender;
             ruleSetOpenNow = (rule.Parent as TreeViewItem).DataContext as RuleSet;
@@ -948,7 +1045,7 @@
             AddRuleEditView(path);
         }
          
-        private void OnDoubleClickParameterListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void OnDoubleClickParameterListListener(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = (TreeViewItem)sender;
             ParameterBlock parameter = treeViewItem.DataContext as ParameterBlock;
@@ -956,12 +1053,20 @@
             parameterEditNow = parameter;
         }
 
-        private void OnDoubleClickCodeBlockListListener(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        private void OnDoubleClickCodeBlockListListener(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = (TreeViewItem)sender;
             CodeBlock codeBlock = treeViewItem.DataContext as CodeBlock;
             ResetEditStatus();
             codeBlockEditNow = codeBlock;
+        }
+
+        private void OnDoubleClickIncludeListListener(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem treeViewItem = (TreeViewItem)sender;
+            IncludeBlock includeBlock = treeViewItem.DataContext as IncludeBlock;
+            ResetEditStatus();
+            IncludeBlockEditNow = includeBlock;
         }
 
         //-----menu listener-----
@@ -1036,54 +1141,48 @@
         {
             RichTextBox textBox = sender as RichTextBox;
             TextPointer textPointer = textBox.GetPositionFromPoint(e.GetPosition(textBox), true);
-            if (textPointer.Paragraph.Background == SystemColors.MenuBarBrush)
+           
+            if (e.Data.GetDataPresent("para"))
             {
-                MessageBox.Show("cannot edit include rule");
-                textBox.CaretPosition = textPointer.Paragraph.ContentStart;
+                ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
+                Run para = new Run("(" + parameterBlock.ParaListIndex + ")", textPointer);
+                para.Foreground = SystemColors.HighlightBrush;
+                ResetEditStatus();
             }
-            else
+            else if (e.Data.GetDataPresent("codeBlock"))
             {
-                if (e.Data.GetDataPresent("para"))
-                {
-                    ParameterBlock parameterBlock = e.Data.GetData("para") as ParameterBlock;
-                    Run para = new Run("(" + parameterBlock.ParaListIndex + ")", textPointer);
-                    para.Foreground = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
-                else if (e.Data.GetDataPresent("codeBlock"))
-                {
-                    CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
-                    Run block = new Run("(" + codeBlock.BlockListIndex + ")", textPointer);
-                    block.Background = SystemColors.HighlightBrush;
-                    ResetEditStatus();
-                }
-                else if (e.Data.GetDataPresent("intclude rule"))
-                {
-                    IncludeBlock includeBlock = e.Data.GetData("intclude rule") as IncludeBlock;
-                    int codeBlockId = includeBlock.BlockId;
-                    int compareRuleId = includeBlock.CompareRuleId;
-                    int fromRuleSetId = includeBlock.FromRuleSetId;
+                CodeBlock codeBlock = e.Data.GetData("codeBlock") as CodeBlock;
+                Run block = new Run("(" + codeBlock.BlockListIndex + ")", textPointer);
+                block.Background = SystemColors.HighlightBrush;
+                ResetEditStatus();
+            }
+            else if (e.Data.GetDataPresent("include rule"))
+            {
+                IncludeBlock includeBlock = e.Data.GetData("include rule") as IncludeBlock;
+                int codeBlockId = includeBlock.IncludeBlockListIndex;
+                int compareRuleId = includeBlock.CompareRuleId;
+                int fromRuleSetId = includeBlock.FromRuleSetId;
 
-                    string tag;
-                    if (textBox == ruleBefore)
-                    {
-                        tag = "before";
-                    }
-                    else
-                    {
-                        tag = "after";
-                    }
-
-                    if (IsIncludeRuleContain(fromRuleSetId, compareRuleId, ruleSetOpenNow.Id, ruleBlockEditNow.RuleId, tag))
-                    {
-                        MessageBox.Show("cannot include this rule ,it will include itself");
-                    }
-                    else
-                    {
-                        textPointer.InsertTextInRun("<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>");
-                        SetRuleEditView(ChangeToText(ruleBefore), ChangeToText(ruleAfter));
-                    }
+                string tag;
+                if (textBox == ruleBefore)
+                {
+                    tag = "before";
                 }
+                else
+                {
+                    tag = "after";
+                }
+
+                if (IsIncludeRuleContain(fromRuleSetId, compareRuleId, ruleSetOpenNow.Id, ruleBlockEditNow.RuleId, tag))
+                {
+                    MessageBox.Show("cannot include this rule ,it will include itself");
+                }
+                else
+                {
+                    textPointer.InsertTextInRun("\n<include id=\"" + codeBlockId + "\" compareRuleId=\"" + compareRuleId + "\" fromRuleSetId=\"" + fromRuleSetId + "\"/>");
+                    SetRuleEditView(ChangeToText(ruleBefore), ChangeToText(ruleAfter));
+                }
+                ResetEditStatus();
             }
             e.Handled = true;
         }
@@ -1152,6 +1251,38 @@
             }
         }
 
+        private void OnIncludeBlockMouseMoveListener(object sender, MouseEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.LeftButton == MouseButtonState.Pressed)
+            {
+                Point currentPosition = e.GetPosition(item);
+
+                if ((Math.Abs(currentPosition.X - startDragPoint.X) > 10.0) ||
+                   (Math.Abs(currentPosition.Y - startDragPoint.Y) > 10.0))
+                {
+                    DataObject data = new DataObject();
+
+                    IncludeBlockEditNow = item.DataContext as IncludeBlock;
+                    data.SetData("include rule", IncludeBlockEditNow);
+
+                    if (data != null)
+                    {
+                        DragDropEffects dropEffects = DragDrop.DoDragDrop(item, data, DragDropEffects.Copy);
+                    }
+                }
+            }
+        }
+
+        private void OnIncludeBlockMouseDownListener(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item != null && e.ChangedButton == MouseButton.Left)
+            {
+                startDragPoint = e.GetPosition(item);
+            }
+        }
+
         private void OnRuleListMouseMoveListener(object sender, MouseEventArgs e)
         {
             TreeViewItem item = sender as TreeViewItem;
@@ -1169,12 +1300,12 @@
                     string[] split = Path.GetFullPath(rulePath).Split('\\');
                     string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
                     IncludeBlock includeBlock = new IncludeBlock();
+                    includeBlock.IncludeBlockListIndex = includeList.Count + 1;
                     includeBlock.FromRuleSetId = ruleMetadata.GetRuleSetByName(ruleSetName).Id;
                     includeBlock.CompareRuleId = rule.RuleId;
                     includeBlock.BeforeList = rule.BeforeRuleSliceList;
                     includeBlock.AfterList = rule.AfterRuleSliceList;
-
-                    data.SetData("intclude rule", includeBlock);
+                    data.SetData("include rule", includeBlock);
 
                     if (data != null)
                     {
