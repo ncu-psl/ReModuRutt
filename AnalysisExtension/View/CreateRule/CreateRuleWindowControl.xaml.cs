@@ -135,11 +135,19 @@
                 } 
                 else if(orgText.IndexOf("<include") == min)
                 {
-                    string frontContent = orgText.Substring(0, orgText.IndexOf("<include"));
-                    frontContent = RemoveLineAtFirstAndEnd(frontContent);
-                    Run front = new Run(frontContent, result.ContentEnd);
-                    allResult.Add(result);
-
+                    Match startMatch = Regex.Match(orgText, @"<include");
+                    if (startMatch.Index != 0)
+                    {
+                        int index = startMatch.Index;
+                        if (Regex.Match(orgText, @"[\s]*<include").Success && Regex.Match(orgText, @"[\s]*<include").Index < index)
+                        {
+                            index = Regex.Match(orgText, @"[\s]*<include").Index;
+                        }
+                        string frontContent = orgText.Substring(0, index);
+                        orgText = orgText.Substring(index);
+                        Run front = new Run(frontContent, result.ContentEnd);
+                        allResult.Add(result);
+                    }
                     result = new Paragraph();
                     result.Margin = new Thickness(0, 0, 0, 0);                    
                     findResult = ChangeIncludeToColor(tag, result, xmlDocument, orgText, includeCount);
@@ -166,7 +174,7 @@
 
         private string ChangeBlockToColor(Paragraph result, XmlDocument xmlDocument, string orgText,int blockCount)
         {
-            int startIndex = orgText.IndexOf("<block");
+            int startIndex = /*Regex.Match(orgText,@"[\s*]<block").Index;//*/orgText.IndexOf("<block");
             int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
             int endTokenLen = 2;                
 
@@ -216,9 +224,18 @@
 
         private string ChangeIncludeToColor(string tag, Paragraph result, XmlDocument xmlDocument, string orgText, int includeCount)
         {
-            int startIndex = orgText.IndexOf("<include");
-            int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
-            int endTokenLen = 2;
+            Match match = Regex.Match(orgText, @"<include");
+
+            int index = match.Index;
+            if (Regex.Match(orgText, @"[ \t]*<include").Success && Regex.Match(orgText, @"([ \t]*)<include").Index < index)
+            {
+                index = Regex.Match(orgText, @"([\s]*)<include").Index;
+                string frontText = Regex.Match(orgText, @"([ \t]*)<include").Groups[1].Value;
+                Run front = new Run(frontText, result.ContentEnd);
+            }
+
+            Match endToken = Regex.Match(orgText.Substring(index), @"/>[\n\r]*");//@"/>"
+            int endIndex = endToken.Index + index - 1;
 
             XmlElement includeElement = StaticValue.FindElementByTag(xmlDocument, includeCount, "include", "");
 
@@ -237,18 +254,20 @@
 
                 RuleBlock rule = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(fromRuleSetId, compareRuleId));
 
+                
+                
                 StackPanel inner = SetIncludeInline(rule,tag,includeInfo);
                 InlineUIContainer container = new InlineUIContainer(inner, result.ContentEnd);
                 container.DataContext = new IncludeBlock("", codeBlockId, compareRuleId, fromRuleSetId);
 
-                orgText = orgText.Substring(endIndex + endTokenLen + 1);
+                orgText = orgText.Substring(endIndex + endToken.Length + 1);
             }
             return orgText;
         }
 
         private StackPanel SetIncludeInline(RuleBlock rule,string tag,string info)
         {
-            StackPanel panel = new StackPanel() { Orientation = Orientation.Vertical, Margin = new Thickness(0, 0, 0, 0) };
+            StackPanel panel = new StackPanel() { Orientation = Orientation.Vertical, Margin = new Thickness(0, 0, 0, 5)};
 
             TextBlock infoBlock = new TextBlock() { Text = info, Background = SystemColors.InactiveCaptionBrush, Foreground = SystemColors.InactiveCaptionTextBrush, Margin = new Thickness(0, 0, 0, 0), Padding = new Thickness(){ Left = 3, Right = 3 } };
             RichTextBox innerBox = new RichTextBox() { Background = SystemColors.MenuBarBrush , Margin = new Thickness(0, 0, 0, 0) };
@@ -591,7 +610,7 @@
 
                         if (container.Child is StackPanel)
                         {
-                            result += "\n";
+                            //result += "\n";
                             IncludeBlock includeBlock = inline.DataContext as IncludeBlock;
                             result += "<include id=\"" + includeBlock.IncludeBlockListIndex + "\" compareRuleId=\"" + includeBlock.CompareRuleId + "\" fromRuleSetId=\"" + includeBlock.FromRuleSetId + "\"/>";
                         }
@@ -610,9 +629,11 @@
                     }
                     else
                     {
-                        result += (inline as Run).Text;
-                    }
-                }                
+                        result += (inline as Run).Text;                        
+                    }                    
+                }
+
+                result += "\n";
             }
             return result;
         }
