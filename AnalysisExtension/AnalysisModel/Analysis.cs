@@ -168,7 +168,10 @@ namespace AnalysisExtension.Model
                         }
                         else
                         {
-                            analysisContentList.Insert(0, new NormalBlock(result[0][result[0].Count - 1].Content));
+                            if (startToken != null)
+                            {
+                                analysisContentList.Insert(0, new NormalBlock(result[0][result[0].Count - 1].Content));
+                            }
                         }
                     }
                 
@@ -261,8 +264,6 @@ namespace AnalysisExtension.Model
                                         List<ICodeBlock>[] list = GetListAfterToken(analysisContentList, endToken);
 
                                         front.AddRange(list[0]);
-                                        /*   result[0].AddRange(list[0]);
-                                           result[1].AddRange(list[0]);*/
                                         analysisContentList = list[1];
                                         continue;
                                     }
@@ -472,55 +473,74 @@ namespace AnalysisExtension.Model
             if (isMatch)
             {
                 //-----set after rule-----
+                string baseIndent = "";
+                if (front.Count > 0)
+                {
+                    baseIndent = GetLastWhitespace(front[front.Count - 1], "");
+                }
+                string whitespaceBeforeText = baseIndent;
+                
+
                 foreach (ICodeBlock afterBlock in ruleBlock.AfterRuleSliceList)
                 {
-                    if (afterBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
-                    {
-                        ParameterBlock parameter = ruleBlock.GetParameterById((afterBlock as ParameterBlock).ParaListIndex);
-                        if (parameter == null)
-                        {
-                            return null;
-                        }
-                        parameter.IsMatchRule = true;
-                        result[1].Add(parameter);
-                    }
-                    else if (afterBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
-                    {
-                        int blockListIndex = (afterBlock as CodeBlock).BlockListIndex;
-                        CodeBlock block = ruleBlock.GetCodeBlockById((afterBlock as CodeBlock).BlockListIndex).GetCopy() as CodeBlock;
+                    int index = ruleBlock.AfterRuleSliceList.IndexOf(afterBlock);
 
-                        if (block == null)
-                        {
-                            return null;
-                        }
-
-                        if (block.BeforeList != null && block.BeforeList.Count > 0)
-                        {
-                            foreach (ICodeBlock codeBlock in block.AfterList)
-                            {
-                                result[1].Add(codeBlock.GetCopy());
-                            }
-                        }
-                        else
-                        {
-                            result[1].Add(block.GetCopy());
-                        }
-                    }
-                    else if (afterBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
-                    {
-                        IncludeBlock includeBlock = ruleBlock.GetIncludeBlockById((afterBlock as IncludeBlock).IncludeBlockListIndex).GetCopy() as IncludeBlock;
-                        if (includeBlock == null)
-                        {
-                            return null;
-                        }
-                        includeBlock.IsMatchRule = true;
-                        result[1].AddRange(includeBlock.AfterList);                    
-                    }
-                    else
+                    if (afterBlock is NormalBlock)
                     {
                         NormalBlock block = new NormalBlock(afterBlock.Content, afterBlock.BlockId);
                         block.IsMatchRule = true;
+
+                        AddWhitespaceBefore(block, whitespaceBeforeText);
                         result[1].Add(block.GetCopy());
+                    }
+                    else
+                    {
+                        Match match = Regex.Match(result[1][result[1].Count - 1].Content, @"[\n]+([ \t]+)");
+                        if (match.Success)
+                        {
+                            whitespaceBeforeText = match.Groups[1].Value;
+                        }
+
+                        if (afterBlock is ParameterBlock)
+                        {
+                            ParameterBlock parameter = ruleBlock.GetParameterById((afterBlock as ParameterBlock).ParaListIndex);
+                            if (parameter == null)
+                            {
+                                return null;
+                            }
+                            parameter.IsMatchRule = true;
+                            result[1].Add(parameter);
+                        }
+                        else if (afterBlock is CodeBlock)
+                        {
+                            int blockListIndex = (afterBlock as CodeBlock).BlockListIndex;
+                            CodeBlock block = ruleBlock.GetCodeBlockById((afterBlock as CodeBlock).BlockListIndex).GetCopy() as CodeBlock;
+                            if (block == null)
+                            {
+                                return null;
+                            }
+                            result[1].AddRange(FormattedAfterCodeBlock(block, whitespaceBeforeText));
+                        }
+                        else if (afterBlock is IncludeBlock)
+                        {
+                            IncludeBlock includeBlock = ruleBlock.GetIncludeBlockById((afterBlock as IncludeBlock).IncludeBlockListIndex).GetCopy() as IncludeBlock;
+                            if (includeBlock == null)
+                            {
+                                return null;
+                            }
+                            includeBlock.IsMatchRule = true;
+                            result[1].AddRange(FormattedAfterIncludeBlock(includeBlock,whitespaceBeforeText));
+
+                        }
+                    }
+
+                    if (index < ruleBlock.AfterRuleSliceList.Count - 1 && !ruleBlock.AfterRuleSliceList[index + 1].GetType().Equals(afterBlock.GetType()))
+                    {
+                        whitespaceBeforeText = baseIndent;
+                    }
+                    else if (result[1].Count > 0)
+                    {
+                        whitespaceBeforeText = GetLastWhitespace(result[1][result[1].Count - 1], baseIndent);
                     }
                 }
 
@@ -558,6 +578,7 @@ namespace AnalysisExtension.Model
                     }
                     else
                     {
+                        whitespaceBeforeText = GetLastWhitespace(result[1][result[1].Count - 1], baseIndent);
                         finalResult[0].AddRange(backResult[0]);
                         finalResult[1].AddRange(backResult[1]);
                     }
@@ -571,7 +592,7 @@ namespace AnalysisExtension.Model
             {
                 return null;
             }
-        }
+        }      
 
         private bool HasIsMatch(List<ICodeBlock> list)
         {
@@ -587,8 +608,6 @@ namespace AnalysisExtension.Model
 
             return result;
         }
-
-        
 
         private List<ICodeBlock>[]  FindScope(string startToken, string endToken, List<ICodeBlock> orgContentList)//if cannot find , return null
         {
@@ -1248,6 +1267,76 @@ namespace AnalysisExtension.Model
             return result;
         }
 
+        //--------
+        private void AddWhitespaceBefore(ICodeBlock codeBlock, string whitespace)
+        {
+            codeBlock.Content = Regex.Replace(codeBlock.Content, @"\n", "\n" + whitespace);
+        }
 
+        private string GetLastWhitespace(ICodeBlock block,string baseIndent)
+        {
+            string result = baseIndent;
+
+            string text = block.Content;
+
+            Match match = Regex.Match(text,@"[\n\r]+([ \t]+)\Z");
+
+            if (match.Success)
+            {
+                result = match.Groups[1].Value ;
+            }
+
+            return result;
+        }
+        
+        private List<ICodeBlock> FormattedAfterCodeBlock(CodeBlock block,string whitespaceBeforeText)
+        {
+            List<ICodeBlock> result = new List<ICodeBlock>();
+
+            if (block.AfterList != null && block.AfterList.Count > 0)
+            {
+                for (int i = 0; i < block.AfterList.Count; i++)
+                {
+                    ICodeBlock codeBlock = block.AfterList[i];
+
+                    if (codeBlock is CodeBlock)
+                    {
+                        result.AddRange(FormattedAfterCodeBlock(codeBlock as CodeBlock, whitespaceBeforeText));
+                    }
+                    else
+                    {
+                        AddWhitespaceBefore(codeBlock, whitespaceBeforeText);
+                        result.Add(codeBlock.GetCopy());
+                    }
+                }
+            }
+            else
+            {
+                AddWhitespaceBefore(block, whitespaceBeforeText);
+                result.Add(block.GetCopy());
+            }
+
+            return result;
+        }
+
+        private List<ICodeBlock> FormattedAfterIncludeBlock(IncludeBlock includeBlock, string whitespaceBeforeText)
+        {
+            List<ICodeBlock> result = new List<ICodeBlock>();
+
+            foreach (ICodeBlock codeBlock in includeBlock.AfterList)
+            {
+                if (codeBlock is IncludeBlock)
+                {
+                    result.AddRange(FormattedAfterIncludeBlock(codeBlock as IncludeBlock, whitespaceBeforeText));
+                }
+                else
+                {
+                    AddWhitespaceBefore(codeBlock, whitespaceBeforeText);
+                    result.Add(codeBlock.GetCopy());
+                }
+            }
+
+            return result;
+        }
     }
 }
