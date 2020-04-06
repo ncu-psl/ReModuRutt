@@ -85,12 +85,13 @@ namespace AnalysisExtension
             return idNow;
         }
 
-        public static UIElement DeepCopyUIElement(UIElement element)
+        public static FrameworkElement DeepCopyUIElement(FrameworkElement element)
         {
             string xmlString = XamlWriter.Save(element);
             StringReader stringReader = new StringReader(xmlString);
             XmlTextReader xmlTextReader = new XmlTextReader(stringReader);
-            UIElement copy = (UIElement)XamlReader.Load(xmlTextReader);
+            FrameworkElement copy = (FrameworkElement)XamlReader.Load(xmlTextReader);
+            copy.DataContext = element.DataContext;
             return copy;
         }
 

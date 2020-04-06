@@ -174,7 +174,7 @@
 
         private string ChangeBlockToColor(Paragraph result, XmlDocument xmlDocument, string orgText,int blockCount)
         {
-            int startIndex = /*Regex.Match(orgText,@"[\s*]<block").Index;//*/orgText.IndexOf("<block");
+            int startIndex = orgText.IndexOf("<block");
             int endIndex = orgText.Substring(startIndex).IndexOf("/>") + startIndex - 1;
             int endTokenLen = 2;                
 
@@ -331,16 +331,14 @@
                         else if (container.Child is TextBlock)
                         {
                             TextBlock textBlock = container.Child as TextBlock;
-                            if (textBlock.Background == SystemColors.HighlightBrush)
+                            int id = (int)textBlock.DataContext;
+                            if (textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is block
-                                int codeBlockId = int.Parse(Regex.Match(textBlock.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value);
-                                AddIntoCodeBlockList(new CodeBlock("", codeBlockId));
+                                AddIntoCodeBlockList(new CodeBlock("", id));
                             }
-                            else if (textBlock.Foreground == SystemColors.HighlightBrush)
+                            else if (textBlock.Foreground.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is parameter
-                                string match = Regex.Match(textBlock.Text, "[(]" + @"(\d+)" + "[)]").Groups[1].Value;
-                                int paraId = int.Parse(match);
-                                AddIntoParaList(new ParameterBlock("", paraId));
+                                AddIntoParaList(new ParameterBlock("", id));
                             }
                         }
                     }
@@ -620,13 +618,13 @@
                         else if (container.Child is TextBlock)
                         {
                             TextBlock textBlock = container.Child as TextBlock;
-                            if (textBlock.Background == SystemColors.HighlightBrush)
+                            if (textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is block
-                                result += Regex.Replace(textBlock.Text, "[(]" + @"(\d+)" + "[)]", "<block id=" + "\"$1\"/>");
+                                result += "<block id=\"" + textBlock.DataContext + "\"/>";
                             }
                             else if (textBlock.Foreground == SystemColors.HighlightBrush)
                             {//is parameter
-                                result += Regex.Replace(textBlock.Text, "[(]" + @"(\d+)" + "[)]", "<para id=" + "\"$1\"/>");
+                                result += "<para id=\"" + textBlock.DataContext + "\"/>";
                             }
                         }
                     }
@@ -635,7 +633,6 @@
                         result += (inline as Run).Text;                        
                     }                    
                 }
-
                 result += "\n";
             }
             return result;
@@ -761,12 +758,14 @@
         private void SetParameterFormate(int paraId, TextPointer position)
         {
             TextBlock para = new TextBlock() { Text = "(" + paraId + ")", Foreground = SystemColors.HighlightBrush };
+            para.DataContext = paraId;
             InlineUIContainer container = new InlineUIContainer(para, position);
         }
 
         private void SetBlockFormate(int blockId, TextPointer position)
         {
             TextBlock block = new TextBlock() { Text = "(" + blockId + ")", Background = SystemColors.HighlightBrush };
+            block.DataContext = blockId;
             InlineUIContainer container = new InlineUIContainer(block, position);
         }
 
@@ -1078,7 +1077,8 @@
                     }
                     else if(inline is InlineUIContainer)
                     {
-                        InlineUIContainer container = new InlineUIContainer(StaticValue.DeepCopyUIElement((inline as InlineUIContainer).Child), copy.ContentEnd);
+                        InlineUIContainer container = new InlineUIContainer(StaticValue.DeepCopyUIElement((inline as InlineUIContainer).Child as FrameworkElement), copy.ContentEnd);
+                        //InlineUIContainer container = StaticValue.DeepCopyUIElement(inline as InlineUIContainer);                        
                     }
                 }
                 ruleAfter.Document.Blocks.Add(copy);
