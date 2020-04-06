@@ -860,7 +860,7 @@
 
             foreach (ICodeBlock block in list)
             {
-                if (block.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                if (block is IncludeBlock)
                 {
                     IncludeBlock includeBlock = block as IncludeBlock;
 

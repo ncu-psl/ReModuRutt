@@ -9,7 +9,6 @@ namespace AnalysisExtension.Model
         public int BlockId { get; set; }
         public int BlockListIndex { get; set; }//the id in the ruleBlock's codeBlockList, if not the block ,then id = -1 
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName { get { return StaticValue.CODE_BLOCK_TYPE_NAME; } }
         public List<ICodeBlock> BeforeList { get; set; }
         public List<ICodeBlock> AfterList { get; set; }
         public bool IsMatchRule { get; set; }
@@ -82,7 +81,7 @@ namespace AnalysisExtension.Model
         {
             foreach (ICodeBlock codeBlock in BeforeList.ToArray())
             {
-                if (codeBlock.TypeName.Equals(TypeName) && (codeBlock as CodeBlock).BeforeList.Count > 0)
+                if (codeBlock is CodeBlock && (codeBlock as CodeBlock).BeforeList.Count > 0)
                 {
                     int index = BeforeList.IndexOf(codeBlock);
                     BeforeList.RemoveAt(index);
@@ -97,7 +96,7 @@ namespace AnalysisExtension.Model
         {
             foreach (ICodeBlock codeBlock in AfterList.ToArray())
             {
-                if (codeBlock.TypeName.Equals(TypeName) && (codeBlock as CodeBlock).AfterList.Count > 0)
+                if (codeBlock is CodeBlock && (codeBlock as CodeBlock).AfterList.Count > 0)
                 {
                     int index = AfterList.IndexOf(codeBlock);
                     AfterList.RemoveAt(index);

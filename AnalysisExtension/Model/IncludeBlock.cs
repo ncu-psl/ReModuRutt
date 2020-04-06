@@ -13,9 +13,6 @@ namespace AnalysisExtension.Model
         public SolidColorBrush BackgroundColor { get; set; }
         public List<ICodeBlock> BeforeList { get; set; }
         public List<ICodeBlock> AfterList { get; set; }
-
-        public string TypeName { get { return StaticValue.INCLUDE_TYPE_NAME;} }
-
         public bool IsMatchRule { get; set; }
 
         public IncludeBlock()

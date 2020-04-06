@@ -141,7 +141,7 @@ namespace AnalysisExtension.Model
                 List<ICodeBlock> backList = new List<ICodeBlock>();
 
                 //set start token and end token
-                if (ruleSlice[ruleSliceIndex].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME) || ruleSlice[ruleSliceIndex].Content.Contains("<block") || ruleSlice[ruleSliceIndex].TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                if (ruleSlice[ruleSliceIndex] is ParameterBlock || ruleSlice[ruleSliceIndex] is CodeBlock || ruleSlice[ruleSliceIndex] is IncludeBlock)
                 {
                     string[] token = GetStartTokenAndEndToken(ruleSlice, ruleSliceIndex);
                     startToken = token[0];
@@ -159,7 +159,7 @@ namespace AnalysisExtension.Model
                                 count--;
                             }
                         }
-                        else if ((ruleSlice[ruleSliceIndex - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME) || ruleSlice[ruleSliceIndex - 1].TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME)))
+                        else if ((ruleSlice[ruleSliceIndex - 1] is ParameterBlock || ruleSlice[ruleSliceIndex - 1] is CodeBlock))
                         {
                             //if startToken is parameter or codeBlock, get content from result list
                             startToken = "[ ]+" + Regex.Escape(result[0][result[0].Count - 1].Content);
@@ -195,7 +195,7 @@ namespace AnalysisExtension.Model
                         backList = scope[3];
                     }
 
-                    if (ruleSlice[ruleSliceIndex].TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                    if (ruleSlice[ruleSliceIndex] is IncludeBlock)
                     {//is include
                         IncludeBlock ruleInclude = ruleSlice[ruleSliceIndex] as IncludeBlock;
                         int includeListId = ruleInclude.IncludeBlockListIndex;
@@ -285,7 +285,7 @@ namespace AnalysisExtension.Model
                             }
                         }
                     }
-                    else if (ruleSlice[ruleSliceIndex].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    else if (ruleSlice[ruleSliceIndex] is ParameterBlock)
                     {//is parameter
 
                         int paraListId = (ruleSlice[ruleSliceIndex] as ParameterBlock).ParaListIndex;
@@ -330,7 +330,7 @@ namespace AnalysisExtension.Model
                         }
                         result[0].Add(parameter);
                     }
-                    else if (ruleSlice[ruleSliceIndex].TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    else if (ruleSlice[ruleSliceIndex] is CodeBlock)
                     {//is block next
 
                         int blockListIndex = (ruleSlice[ruleSliceIndex] as CodeBlock).BlockListIndex;
@@ -1149,7 +1149,7 @@ namespace AnalysisExtension.Model
                 else
                 {
                     startToken = ruleSlice[ruleSliceIndex - 1].Content;
-                    if (ruleSlice[ruleSliceIndex + 1].TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                    if (ruleSlice[ruleSliceIndex + 1] is IncludeBlock)
                     {
                         string rulePath = RuleMetadata.GetInstance().GetRulePathById((ruleSlice[ruleSliceIndex + 1] as IncludeBlock).FromRuleSetId, (ruleSlice[ruleSliceIndex + 1] as IncludeBlock).CompareRuleId);
                         RuleBlock findRule = FileLoader.GetInstance().LoadSingleRuleByPath(rulePath);

@@ -63,12 +63,12 @@ namespace AnalysisExtension.Model
             {
                 foreach (ICodeBlock codeBlock in list[i][0])
                 {
-                    if (codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    if (codeBlock is ParameterBlock)
                     {
                         ParameterBlock parameterBlock = new ParameterBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as ParameterBlock).ParaListIndex);
                         finalBeforeBlockList[i].Add(parameterBlock);
                     }
-                    else if (codeBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                    else if (codeBlock is IncludeBlock)
                     {
                         int includeBlockId = (codeBlock as IncludeBlock).IncludeBlockListIndex;
                         int compareRuleId = (codeBlock as IncludeBlock).CompareRuleId;
@@ -76,7 +76,7 @@ namespace AnalysisExtension.Model
                         IncludeBlock includeBlock = new IncludeBlock(codeBlock.Content, codeBlock.BlockId, includeBlockId, compareRuleId, fromRuleSetId);
                         finalBeforeBlockList[i].Add(includeBlock);
                     }
-                    else if (codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    else if (codeBlock is CodeBlock)
                     {
                         CodeBlock beforeBlock = new CodeBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as CodeBlock).BlockListIndex);
                         finalBeforeBlockList[i].Add(beforeBlock);
@@ -91,12 +91,12 @@ namespace AnalysisExtension.Model
 
                 foreach (ICodeBlock codeBlock in list[i][1])
                 {
-                    if (codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    if (codeBlock is ParameterBlock)
                     {
                         ParameterBlock parameterBlock = new ParameterBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as ParameterBlock).ParaListIndex);
                         finalAfterBlockList[i].Add(parameterBlock);
                     }
-                    else if (codeBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                    else if (codeBlock is IncludeBlock)
                     {
                         int includeBlockId = (codeBlock as IncludeBlock).IncludeBlockListIndex;
                         int compareRuleId = (codeBlock as IncludeBlock).CompareRuleId;
@@ -104,7 +104,7 @@ namespace AnalysisExtension.Model
                         IncludeBlock includeBlock = new IncludeBlock(codeBlock.Content, codeBlock.BlockId, includeBlockId, compareRuleId, fromRuleSetId);
                         finalAfterBlockList[i].Add(includeBlock);
                     }
-                    else if (codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    else if (codeBlock is CodeBlock)
                     {
                         CodeBlock beforeBlock = new CodeBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as CodeBlock).BlockListIndex);
                         finalAfterBlockList[i].Add(beforeBlock);
@@ -240,7 +240,7 @@ namespace AnalysisExtension.Model
             {
                 foreach (ICodeBlock codeBlock in finalBeforeBlockList[i].ToArray())
                 {
-                    if (codeBlock.IsMatchRule && codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
                     {
                         if ((codeBlock as CodeBlock).BeforeList.Count > 0)
                         {
@@ -253,7 +253,7 @@ namespace AnalysisExtension.Model
 
                 foreach (ICodeBlock codeBlock in finalAfterBlockList[i].ToArray())
                 {
-                    if (codeBlock.IsMatchRule && codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
                     {
                         if ((codeBlock as CodeBlock).AfterList.Count > 0)
                         {
@@ -272,7 +272,7 @@ namespace AnalysisExtension.Model
 
             foreach (ICodeBlock codeBlock in codeBlockList)
             {
-                if (codeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                if (codeBlock is ParameterBlock)
                 {
                     result.Add(codeBlock.GetCopy());
                 }
@@ -287,7 +287,7 @@ namespace AnalysisExtension.Model
                         {
                             int index = match.Index + match.Length;
 
-                            if (codeBlock.TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                            if (codeBlock is CodeBlock)
                             {
                                 CodeBlock copyBlock = codeBlock.GetCopy() as CodeBlock;
                                 copyBlock.Content = codeBlock.Content.Substring(0, match.Index);
@@ -296,7 +296,7 @@ namespace AnalysisExtension.Model
                                 line.Content = match.Value;
                                 result.Add(line);
                             }
-                            else if (codeBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                            else if (codeBlock is IncludeBlock)
                             {
                                 IncludeBlock copyBlock = codeBlock.GetCopy() as IncludeBlock;
                                 copyBlock.Content = codeBlock.Content.Substring(0, match.Index);

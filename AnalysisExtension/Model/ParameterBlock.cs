@@ -8,7 +8,6 @@ namespace AnalysisExtension.Model
         public int BlockId { get; set; }
         public int ParaListIndex { get; set; }//the id in the ruleBlock's parameterList
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName { get { return StaticValue.PARAMETER_BLOCK_TYPE_NAME;} }
         public bool IsMatchRule { get; set; }
 
         public ParameterBlock()

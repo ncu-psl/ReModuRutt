@@ -139,7 +139,7 @@ namespace AnalysisExtension.Model
                 string content = ruleCodeBlock.GetPrintInfo();     
                 int insertIndex = ruleList.IndexOf(ruleCodeBlock);
 
-                if (ruleCodeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                if (ruleCodeBlock is ParameterBlock)
                 {
                     continue;
                 }
@@ -236,7 +236,7 @@ namespace AnalysisExtension.Model
                 string content = ruleCodeBlock.GetPrintInfo();
                 int insertIndex = ruleList.IndexOf(ruleCodeBlock);
 
-                if (ruleCodeBlock.TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME) || ruleCodeBlock.Content.Contains("<block"))
+                if (ruleCodeBlock is ParameterBlock || ruleCodeBlock.Content.Contains("<block"))
                 {
                     continue;
                 }
@@ -282,7 +282,7 @@ namespace AnalysisExtension.Model
         {
             foreach (ICodeBlock ruleSlice in list.ToArray())
             {
-                if (ruleSlice.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
+                if (ruleSlice is NormalBlock)
                 {
                     /*Match match = Regex.Match(ruleSlice.Content, @"[\S]");*/
                     if (/*!match.Success || */ruleSlice.Content.Length == 0)
@@ -299,7 +299,7 @@ namespace AnalysisExtension.Model
             {
                 ICodeBlock ruleSlice = list[i];                
 
-                if (ruleSlice.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
+                if (ruleSlice is NormalBlock)
                 {
                     MatchCollection matches = Regex.Matches(ruleSlice.Content, @"[\S]");//not include 
                     foreach (Match match in matches)
@@ -332,7 +332,7 @@ namespace AnalysisExtension.Model
                     {//not have front ruleSlice
                         changePattern = "";//@"\b[ \t]*";
                     }
-                    else if (list[ruleSliceCount - 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    else if (list[ruleSliceCount - 1] is ParameterBlock)
                     {
                         if (Regex.Match(list[ruleSliceCount].Content[actualIndex + match.Length].ToString(), @"\w").Success)
                         {
@@ -347,7 +347,7 @@ namespace AnalysisExtension.Model
                     {
                         changePattern = @"[ \t]+";
                     }
-                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1].TypeName.Equals(StaticValue.CODE_BLOCK_TYPE_NAME))
+                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1] is CodeBlock)
                     {
                         changePattern = @"[ \t]*";
                     }
@@ -358,7 +358,7 @@ namespace AnalysisExtension.Model
                     {//is last ruleSlice
                         changePattern = @"[ \t]*\b";
                     }
-                    else if (list[ruleSliceCount + 1].TypeName.Equals(StaticValue.PARAMETER_BLOCK_TYPE_NAME))
+                    else if (list[ruleSliceCount + 1] is ParameterBlock)
                     {
                         int contentLen = list[ruleSliceCount].Content.Length;
                         if (Regex.Match(list[ruleSliceCount].Content[actualIndex - 1].ToString(), @"\w").Success)
@@ -528,9 +528,9 @@ namespace AnalysisExtension.Model
         {
             ICodeBlock normalBlock = BeforeRuleSliceList[0];
 
-            while (!normalBlock.TypeName.Equals(StaticValue.NORMAL_BLOCK_TYPE_NAME))
+            while (!(normalBlock is NormalBlock))
             {
-                if (normalBlock.TypeName.Equals(StaticValue.INCLUDE_TYPE_NAME))
+                if (normalBlock is IncludeBlock)
                 {
                     string rulePath = RuleMetadata.GetInstance().GetRulePathById((normalBlock as IncludeBlock).FromRuleSetId, (normalBlock as IncludeBlock).CompareRuleId);
                     RuleBlock findRule = FileLoader.GetInstance().LoadSingleRuleByPath(rulePath);

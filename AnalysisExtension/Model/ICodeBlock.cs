@@ -7,7 +7,6 @@ namespace AnalysisExtension.Model
         string Content { get; set; }
         int BlockId { get; set; }
         SolidColorBrush BackgroundColor { get; set; }
-        string TypeName { get; }
         bool IsMatchRule { get; set; }
 
         ICodeBlock GetCopy();

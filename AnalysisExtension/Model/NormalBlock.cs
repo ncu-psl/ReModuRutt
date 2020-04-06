@@ -8,7 +8,6 @@ namespace AnalysisExtension.Model
         public string Content { get; set; }
         public int BlockId { get; set;  }
         public SolidColorBrush BackgroundColor { get; set; }
-        public string TypeName { get { return StaticValue.NORMAL_BLOCK_TYPE_NAME; } }
         public bool IsMatchRule { get; set; }
 
         public NormalBlock()

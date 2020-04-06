@@ -175,7 +175,6 @@ namespace AnalysisExtension.View
             outerPanel.Orientation = Orientation.Vertical;
 
             List<ICodeBlock> codeBlockInLine = new List<ICodeBlock>();
-            ICodeBlock blockLast = null;
             bool isChange = false;
 
             foreach (ICodeBlock codeBlock in content)

@@ -16,10 +16,6 @@ namespace AnalysisExtension
         public static string FOLDER_TYPE = "folder";
 
         public static Window WINDOW = null;
-        public static string PARAMETER_BLOCK_TYPE_NAME = "parameter type";
-        public static string CODE_BLOCK_TYPE_NAME = "code block type";
-        public static string INCLUDE_TYPE_NAME = "include type";
-        public static string NORMAL_BLOCK_TYPE_NAME = "normal type";
 
         public static int CODE_BLOCK_ID_COUNT = 0;
       //  public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
