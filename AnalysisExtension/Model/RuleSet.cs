@@ -107,5 +107,16 @@ namespace AnalysisExtension.Model
                 return -1;
             }
         }
+
+        public void RemoveRule(string ruleName)
+        {
+            foreach (Dictionary<string, string> pairs in RuleList.ToList())
+            {
+                if (ruleName.Equals(pairs["name"]))
+                {
+                    RuleList.Remove(pairs);
+                }
+            }
+        }
     }
 }

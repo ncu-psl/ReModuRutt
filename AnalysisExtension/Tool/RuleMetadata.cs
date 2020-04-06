@@ -157,5 +157,12 @@ namespace AnalysisExtension.Tool
         {
             return StaticValue.RULE_FOLDER_PATH + "//" + GetRuleSetById(ruleSetId).GetRulePath(ruleId)+".xml";
         }
+
+        //-----remove-----
+        public void RemoveRule(string ruleSetName,string ruleName)
+        {
+            GetRuleSetByName(ruleSetName).RemoveRule(ruleName);
+            RewriteMetadata();
+        }
     }
 }

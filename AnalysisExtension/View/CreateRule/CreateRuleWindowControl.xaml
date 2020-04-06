@@ -18,6 +18,7 @@
         </ContextMenu>
         <ContextMenu x:Key="ruleRightClickMenu">
             <MenuItem Header="Copy to rule set edit now" Click="OnMenuCopyRuleClickListener"/>
+            <MenuItem Header="delete" Click="OnMenuDeleteRuleClickListener"/>
         </ContextMenu>
     </UserControl.Resources>
     

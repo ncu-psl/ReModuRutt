@@ -391,12 +391,17 @@
                     }
                     else if (result == MessageBoxResult.No)
                     {
-                        ShowChooseRuleSetWindow();
+                        ruleSetOpenNow = ShowChooseRuleSetWindow();
                     }
                 }
                 else
                 {
-                    ShowChooseRuleSetWindow();
+                    ruleSetOpenNow = ShowChooseRuleSetWindow();
+                }
+
+                if (ruleSetOpenNow == null)
+                {
+                    return;
                 }
 
                 //create file  
@@ -702,31 +707,37 @@
 
         private string CreateNewRule()
         {
-            int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
-            System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-            saveFileDialog.Filter = "(*.xml)|*.xml";
-            saveFileDialog.Title = "save as";
-            saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
-            saveFileDialog.RestoreDirectory = true;
-            saveFileDialog.ShowDialog();
+            Window window = new Window();
+            window.Width = 350;
+            window.Height = 150;
+            InputDialog inputDialog = new InputDialog("enter rule name", "rule name");
+            window.Content = inputDialog;
+            window.ShowDialog();
 
-            if (saveFileDialog.FileName != "")
+            if (inputDialog.HasInput)
             {
-                ruleNameOpenNow = StaticValue.GetNameFromPath(saveFileDialog.FileName).Split('.')[0];
-                string[] split = Path.GetFullPath(saveFileDialog.FileName).Split('\\');
-                string ruleSetName = split[split.Length - 2];// ruleSetName(-2) \\ ruleName.xml (-1)
-                string final = GetRuleXml("","",ruleId);
+                ruleNameOpenNow = inputDialog.Input;      
+                int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name) + "\\" + ruleNameOpenNow + ".xml";
+                
+                string final = GetRuleXml("", "", ruleId);
 
-                FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
-                fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
-                fileStream.Close();
+                if (Directory.Exists(Path.GetFullPath(saveFileDialog.FileName)))
+                {
+                    MessageBox.Show("the rule set is exists , please use other name ");
+                }
+                else
+                {
+                    FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                    fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+                    fileStream.Close();
 
-                AddRuleCreateNowIntoMetadata(ruleMetadata.GetRuleSetByName(ruleSetName).Id, ruleId, ruleNameOpenNow);
-                IsEditViewChange = false;
-                MessageBox.Show("file create");
-                return Path.GetFullPath(saveFileDialog.FileName);
+                    AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id, ruleId, inputDialog.Input);
+                    IsEditViewChange = false;
+                    return Path.GetFullPath(saveFileDialog.FileName);
+                }
             }
-
             return null;
         }
 
@@ -762,7 +773,7 @@
         }
 
 
-        private void ShowChooseRuleSetWindow()
+        private RuleSet ShowChooseRuleSetWindow()
         {
             Window window = new Window();
             window.Width = 200;
@@ -770,7 +781,7 @@
             ChooseEditRuleSetWindowControl chooseEditRuleSetWindow = new ChooseEditRuleSetWindowControl();
             window.Content = chooseEditRuleSetWindow;
             window.ShowDialog();
-            ruleSetOpenNow = chooseEditRuleSetWindow.chooseRuleSet;
+            return chooseEditRuleSetWindow.chooseRuleSet;
         }
 
         public void AddTextIntoRuleCreateFrame(string selectContent)
@@ -925,11 +936,11 @@
             int padding = 20;
             ruleCreateStackPanel.Width = newWindowWidth - ruleTreeView.ActualWidth;
             ruleCreateStackPanel.Height = newWindowHeight - padding;
-            ruleBefore.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
+            ruleBefore.Height = ruleCreateStackPanel.Height / 2 - padding*2;
             ruleBefore.Width = ruleCreateStackPanel.Width  - padding/2;
             ruleBefore.Document.PageWidth = ruleCreateStackPanel.Width * 2;
 
-            ruleAfter.Height = ruleCreateStackPanel.Height / 2 - padding*1.5;
+            ruleAfter.Height = ruleCreateStackPanel.Height / 2 - padding*2;
             ruleAfter.Width = ruleCreateStackPanel.Width - padding/2;
             ruleAfter.Document.PageWidth = ruleCreateStackPanel.Width * 2;
         }
@@ -1000,7 +1011,7 @@
             Window window = new Window();
             window.Width = 350;
             window.Height = 150;
-            InputDialog inputDialog = new InputDialog("enter folder name","folder name");
+            InputDialog inputDialog = new InputDialog("enter rule set name","rule set name");
             window.Content = inputDialog;
             window.ShowDialog();
 
@@ -1150,6 +1161,26 @@
             int ruleId = ruleSetOpenNow.GetNextRuleId();
 
             CopyRule(before,after,ruleId,rule.RuleName);
+        }
+
+        private void OnMenuDeleteRuleClickListener(object sender, RoutedEventArgs e)
+        {
+            MenuItem item = sender as MenuItem;
+            TreeViewItem treeViewItem = ((item.Parent as ContextMenu).Parent as System.Windows.Controls.Primitives.Popup).PlacementTarget as TreeViewItem;
+
+            string rulePath = treeViewItem.DataContext as string;
+
+            string[] split = rulePath.Split('\\');
+            string ruleSetName = split[split.Length - 2];
+            string ruleName = split[split.Length - 1].Split('.')[0];
+            MessageBoxResult result = MessageBox.Show("Sure to delete rule " + ruleName + " in rule set " + ruleSetName + " ?","delete", MessageBoxButton.YesNo);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                File.Delete(rulePath);
+                ruleMetadata.RemoveRule(ruleSetName,ruleName);
+                Refresh();
+            }
         }
 
         //------drag and drop listener------
