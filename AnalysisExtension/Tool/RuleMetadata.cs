@@ -120,7 +120,14 @@ namespace AnalysisExtension.Tool
 
         public int GetNextRuleSetId()
         {
-            return ruleSetList[ruleSetList.Count - 1].Id + 1;
+            if (ruleSetList.Count > 0)
+            {
+                return ruleSetList[ruleSetList.Count - 1].Id + 1;
+            }
+            else
+            {
+                return 1;
+            }
         }
 
         //-----get-----
