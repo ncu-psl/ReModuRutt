@@ -1,8 +1,10 @@
 ﻿using AnalysisExtension.Model;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Markup;
 using System.Xml;
 
 namespace AnalysisExtension
@@ -81,6 +83,15 @@ namespace AnalysisExtension
             int idNow = CODE_BLOCK_ID_COUNT;
             CODE_BLOCK_ID_COUNT++;
             return idNow;
+        }
+
+        public static UIElement DeepCopyUIElement(UIElement element)
+        {
+            string xmlString = XamlWriter.Save(element);
+            StringReader stringReader = new StringReader(xmlString);
+            XmlTextReader xmlTextReader = new XmlTextReader(stringReader);
+            UIElement copy = (UIElement)XamlReader.Load(xmlTextReader);
+            return copy;
         }
 
         //----xml tool-----
