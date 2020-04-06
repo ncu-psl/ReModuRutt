@@ -254,8 +254,6 @@
 
                 RuleBlock rule = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(fromRuleSetId, compareRuleId));
 
-                
-                
                 StackPanel inner = SetIncludeInline(rule,tag,includeInfo);
                 InlineUIContainer container = new InlineUIContainer(inner, result.ContentEnd);
                 container.DataContext = new IncludeBlock("", codeBlockId, compareRuleId, fromRuleSetId);
@@ -280,7 +278,7 @@
                  foreach (Inline inline in paragraph.Inlines)
                  {
                      if (inline is Run)
-                    { 
+                     { 
                          Run inlineRun = inline as Run;
                          if (inlineRun.Text.Contains("\n"))
                          {
@@ -1069,17 +1067,23 @@
             {
                 Paragraph copy = new Paragraph();
                 copy.Margin = new Thickness(0, 0, 0, 0);
-                foreach (Run run in paragraph.Inlines)
+                foreach (Inline inline in paragraph.Inlines)
                 {
-                    Run newRun = new Run(run.Text, copy.ContentEnd);
-                    newRun.Background = run.Background;
-                    newRun.Foreground = run.Foreground;
-                    newRun.DataContext = run.DataContext;
+                    if (inline is Run)
+                    {
+                        Run copyRun = new Run((inline as Run).Text, copy.ContentEnd);
+                        copyRun.Background = inline.Background;
+                        copyRun.Foreground = inline.Foreground;
+                        copyRun.DataContext = inline.DataContext;
+                    }
+                    else if(inline is InlineUIContainer)
+                    {
+                        InlineUIContainer container = new InlineUIContainer(StaticValue.DeepCopyUIElement((inline as InlineUIContainer).Child), copy.ContentEnd);
+                    }
                 }
                 ruleAfter.Document.Blocks.Add(copy);
             }
         }
-
         //-----list click listener-----
         private void OnDoubleClickRuleListener(object sender, MouseButtonEventArgs e)
         {
