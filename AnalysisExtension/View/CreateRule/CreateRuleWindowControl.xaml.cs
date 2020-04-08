@@ -332,11 +332,11 @@
                         {
                             TextBlock textBlock = container.Child as TextBlock;
                             int id = (int)textBlock.DataContext;
-                            if (textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
+                            if (textBlock.Background != null && textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is block
                                 AddIntoCodeBlockList(new CodeBlock("", id));
                             }
-                            else if (textBlock.Foreground.ToString() == SystemColors.HighlightBrush.ToString())
+                            else if (textBlock.Foreground != null && textBlock.Foreground.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is parameter
                                 AddIntoParaList(new ParameterBlock("", id));
                             }
@@ -618,11 +618,11 @@
                         else if (container.Child is TextBlock)
                         {
                             TextBlock textBlock = container.Child as TextBlock;
-                            if (textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
+                            if (textBlock.Background != null && textBlock.Background.ToString() == SystemColors.HighlightBrush.ToString())
                             {//is block
                                 result += "<block id=\"" + textBlock.DataContext + "\"/>";
                             }
-                            else if (textBlock.Foreground == SystemColors.HighlightBrush)
+                            else if (textBlock.Foreground != null && textBlock.Foreground == SystemColors.HighlightBrush)
                             {//is parameter
                                 result += "<para id=\"" + textBlock.DataContext + "\"/>";
                             }
