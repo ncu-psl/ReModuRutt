@@ -7,15 +7,14 @@ namespace AnalysisExtension.Model
     {
         public string Content { get; set; }
         public int BlockId { get; set;  }
-        public SolidColorBrush BackgroundColor { get; set; }
         public bool IsMatchRule { get; set; }
+        public RuleBlock MatchRule { get; set; }
 
         public NormalBlock()
         {
             Content = "";
             BlockId = -1;
             IsMatchRule = false;
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public NormalBlock(string content)
@@ -23,7 +22,6 @@ namespace AnalysisExtension.Model
             Content = content;
             IsMatchRule = false;
             BlockId = StaticValue.GetNextBlockId();
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public NormalBlock(string content, int blockId)
@@ -31,7 +29,6 @@ namespace AnalysisExtension.Model
             Content = content;
             BlockId = blockId;
             IsMatchRule = false;
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public string GetPrintInfo()
@@ -44,9 +41,8 @@ namespace AnalysisExtension.Model
             NormalBlock copy = new NormalBlock();
             copy.Content = Content;
             copy.BlockId = BlockId;
-            copy.BackgroundColor = BackgroundColor;
             copy.IsMatchRule = IsMatchRule;
-
+            copy.MatchRule = MatchRule;
             return copy;
         }
     }

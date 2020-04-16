@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Text;
+using System.Windows.Documents;
 
 namespace AnalysisExtension.View
 {
@@ -18,7 +19,7 @@ namespace AnalysisExtension.View
         private int fileNum;
         private int nowPageIndex = 0;
 
-        private List<ScrollViewer> scrollViewerList = new List<ScrollViewer>();
+        private List<RichTextBox> richTextBoxList = new List<RichTextBox>();
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
         private AnalysisTool analysisTool = AnalysisTool.GetInstance();
@@ -27,6 +28,11 @@ namespace AnalysisExtension.View
         private List<ICodeBlock>[] beforeList;
         private List<ICodeBlock>[] afterList;
         
+        private SolidColorBrush changeColor = new SolidColorBrush(Colors.LightSkyBlue);
+        private SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
+
+        private bool isRichTextBockSelect = false;
+
         public TransformWindowControl(UserControl previousControl)
         {        
             this.previousControl = previousControl;
@@ -42,11 +48,11 @@ namespace AnalysisExtension.View
             afterList = analysisTool.GetFinalAfterBlockList();
         }
 
-        private void InitScrollViewIndex()
+        private void InitRichTextBoxIndex()
         {
-            scrollViewIndex = new double[scrollViewerList.Count, 2];
+            scrollViewIndex = new double[richTextBoxList.Count, 2];
 
-            for (int i = 0; i < scrollViewerList.Count; i++)
+            for (int i = 0; i < richTextBoxList.Count; i++)
             {
                 scrollViewIndex[i, 0] = 0;
                 scrollViewIndex[i, 1] = 0;
@@ -60,9 +66,9 @@ namespace AnalysisExtension.View
                 resultTabControl.Items.RemoveAt(0);
             }
 
-            if (scrollViewerList.Count > 0)
+            if (richTextBoxList.Count > 0)
             {
-                scrollViewerList = new List<ScrollViewer>();
+                richTextBoxList = new List<RichTextBox>();
             }
         }
 
@@ -79,10 +85,10 @@ namespace AnalysisExtension.View
         private void ResizeScrollViewer()
         {
             int padding = 15;
-            double width = StaticValue.WINDOW.Width / 2;
-            foreach (ScrollViewer viewer in scrollViewerList)
+            double width = (StaticValue.WINDOW.Width - editBtGroup.Width )/ 2;
+            foreach (RichTextBox textBox in richTextBoxList)
             {
-                viewer.Width = width - padding;
+                textBox.Width = width - padding;
             }
         }
 
@@ -90,24 +96,24 @@ namespace AnalysisExtension.View
         {
             if (scrollViewIndex == null)
             {
-                InitScrollViewIndex();
+                InitRichTextBoxIndex();
             }
             else
             {
-                for (int i = 0; i < scrollViewerList.Count; i++)
+                for (int i = 0; i < richTextBoxList.Count; i++)
                 {
-                    scrollViewerList[i].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
-                    scrollViewerList[i].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
+                    richTextBoxList[i].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
+                    richTextBoxList[i].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
                 }
             }            
         }
 
         private void SaveScrollOffset()
         {
-            for (int i = 0; i < scrollViewerList.Count; i++)
+            for (int i = 0; i < richTextBoxList.Count; i++)
             {
-                scrollViewIndex[i, 0] = scrollViewerList[i].HorizontalOffset;
-                scrollViewIndex[i, 1] = scrollViewerList[i].VerticalOffset;
+                scrollViewIndex[i, 0] = richTextBoxList[i].HorizontalOffset;
+                scrollViewIndex[i, 1] = richTextBoxList[i].VerticalOffset;
             }
         }
 
@@ -132,141 +138,132 @@ namespace AnalysisExtension.View
         private void SetTabControl(TabItem item, List<ICodeBlock> beforeCodeBlock, List<ICodeBlock> afterCodeBlock)
         {
             DockPanel dockPanel = new DockPanel();
-            
-            GroupBox topBtnGroup = new GroupBox();
-            topBtnGroup.Template = (ControlTemplate)FindResource("topBtnGrop");
-            DockPanel.SetDock(topBtnGroup, Dock.Top);
 
-            ScrollViewer leftScrollViewer = SetListView(beforeCodeBlock);
-            DockPanel.SetDock(leftScrollViewer, Dock.Left);
+            RichTextBox beforeRichTextBox = SetListView(beforeCodeBlock);
+            DockPanel.SetDock(beforeRichTextBox, Dock.Left);
 
-            ScrollViewer rightScrollViewer = SetListView(afterCodeBlock);
-            DockPanel.SetDock(rightScrollViewer, Dock.Right);
+            RichTextBox afterRichTextBox = SetListView(afterCodeBlock);
+            DockPanel.SetDock(afterRichTextBox, Dock.Right);
 
-            DockPanel bottomBtnGroup = SetButtonGroup(rightScrollViewer);
+            DockPanel bottomBtnGroup = SetButtonGroup();
             DockPanel.SetDock(bottomBtnGroup, Dock.Bottom);
 
             dockPanel.Children.Add(bottomBtnGroup);
-            dockPanel.Children.Add(topBtnGroup);
-            dockPanel.Children.Add(leftScrollViewer);
-            dockPanel.Children.Add(rightScrollViewer);
+            dockPanel.Children.Add(beforeRichTextBox);
+            dockPanel.Children.Add(afterRichTextBox);
 
             item.Content = dockPanel;
         }
 
-        private DockPanel SetButtonGroup(ScrollViewer rightPanel)
+        private DockPanel SetButtonGroup()
         {
             DockPanel dockPanel = new DockPanel();
-            GroupBox changeBtnGroup = new GroupBox();
-            changeBtnGroup.Template = (ControlTemplate)FindResource("centerButtonGroup");
             GroupBox cancelBtnGroup = new GroupBox();
             cancelBtnGroup.Template = (ControlTemplate)FindResource("rightButtonGroup");
             DockPanel.SetDock(cancelBtnGroup, Dock.Right);
 
-            dockPanel.Children.Add(changeBtnGroup);
             dockPanel.Children.Add(cancelBtnGroup);
 
             return dockPanel;
         }
 
-        private ScrollViewer SetListView(List<ICodeBlock> content)
+        private RichTextBox SetListView(List<ICodeBlock> content)
         {
-            StackPanel outerPanel = new StackPanel();
-            outerPanel.Orientation = Orientation.Vertical;
+            RichTextBox resultTextBox = new RichTextBox();
+            resultTextBox.AcceptsReturn = true;
+            resultTextBox.AcceptsTab = true;
+            resultTextBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            resultTextBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
+            resultTextBox.Document.Blocks.AddRange(SetCodeBlockList(content));
+            resultTextBox.SelectionChanged += ResultTextBox_SelectionChanged;
 
-            List<ICodeBlock> codeBlockInLine = new List<ICodeBlock>();
-            bool isChange = false;
-
-            foreach (ICodeBlock codeBlock in content)
-            {
-                if (Regex.IsMatch(codeBlock.Content, @"[\n\r]+"))
-                {
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                    codeBlockInLine = new List<ICodeBlock>();
-                }
-                else if (content.IndexOf(codeBlock) == content.Count - 1)//is last
-                {
-                    codeBlockInLine.Add(codeBlock);
-                    outerPanel.Children.Add(SetInnerStackPanel(codeBlockInLine));
-                }
-                else
-                {
-                    codeBlockInLine.Add(codeBlock);
-                }
-            }
-
-            ScrollViewer scrollViewer = new ScrollViewer();
-            scrollViewer.Content = outerPanel;
-            scrollViewer.PreviewMouseWheel += OnPreviewMouseWheelListener;
-            scrollViewer.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-            scrollViewer.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
-
-            scrollViewerList.Add(scrollViewer);
-            return scrollViewer;
+            richTextBoxList.Add(resultTextBox);
+            
+            return resultTextBox;
 
         }
 
-        private StackPanel SetInnerStackPanel(List<ICodeBlock> codeBlockInLine)
+        private List<Paragraph> SetCodeBlockList(List<ICodeBlock> codeBlockList)
         {
-            StackPanel stackPanel = new StackPanel();
-            stackPanel.Orientation = Orientation.Horizontal;
-            foreach (ICodeBlock codeBlock in codeBlockInLine)
-            {
-                TextBlock textBlock = new TextBlock();
-                textBlock.DataContext = codeBlock;
-                textBlock.Text = codeBlock.Content;
-                textBlock.Background = codeBlock.BackgroundColor;
-                textBlock.MouseDown += CodeList_SelectionChanged;
-                stackPanel.Children.Add(textBlock);
-            }
+            List<Paragraph> result = new List<Paragraph>();
 
-            return stackPanel;
+            Paragraph paragraph = new Paragraph();
+            paragraph.Margin = new Thickness(0, 0, 0, 0);
+            paragraph.Padding = new Thickness(0, 0, 0, 0);
+            foreach (ICodeBlock codeBlock in codeBlockList)
+            {
+                TextBlock inner = new TextBlock() { Text = codeBlock.Content,Background = orgColor, DataContext = codeBlock, Margin = new Thickness(0,0,0,0)};
+                InlineUIContainer container = new InlineUIContainer(inner,paragraph.ContentEnd);
+
+                if (codeBlock.Content.Contains("\n") || codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
+                {
+                    result.Add(paragraph);
+                    paragraph = new Paragraph();
+                    paragraph.Margin = new Thickness(0, 0, 0, 0);
+                    paragraph.Padding = new Thickness(0, 0, 0, 0);
+                }
+            }
+            return result;
         }
+
         //-----Listener-----
-        private void CodeList_SelectionChanged(object sender, MouseButtonEventArgs e)
+
+
+        private void ResultTextBox_SelectionChanged(object sender, RoutedEventArgs e)
         {
-            nowPageIndex = resultTabControl.SelectedIndex;
-            SaveScrollOffset();
-            TextBlock textBlock = sender as TextBlock;
-
-            ICodeBlock chooseBlock = textBlock.DataContext as ICodeBlock;
-
-            SolidColorBrush changeColor = new SolidColorBrush(Colors.LightSkyBlue);
-            SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
-
-            for (int i = 0; i < fileNum; i++)
+            if (isRichTextBockSelect)
             {
-                foreach (ICodeBlock codeBlock in beforeList[i])
+                return;
+            }
+
+            RichTextBox textBox = sender as RichTextBox;
+            TextSelection selection = textBox.Selection;
+            isRichTextBockSelect = true;
+
+
+            Paragraph paragraph = selection.End.Paragraph;
+            TextBlock chooseTextBlock = null;
+            int chooseId = -1;
+
+            foreach (InlineUIContainer inline in paragraph.Inlines)
+            {
+                if (inline.ContentEnd.GetOffsetToPosition(selection.End) == 1)
                 {
-                    if (codeBlock.BlockId == chooseBlock.BlockId)
-                    {
-                        chooseBlock.BackgroundColor = changeColor;
-                        codeBlock.BackgroundColor = changeColor;
-                    }
-                    else
-                    {
-                        codeBlock.BackgroundColor = orgColor;
-                    }
+                    chooseTextBlock = inline.Child as TextBlock;
+                    chooseId = (chooseTextBlock.DataContext as ICodeBlock).BlockId;
+                    break;
                 }
             }
 
-            for (int i = 0; i < fileNum; i++)
+            if (chooseTextBlock != null)
             {
-                foreach (ICodeBlock codeBlock in afterList[i])
+                ICodeBlock chooseBlock = chooseTextBlock.DataContext as ICodeBlock;
+
+                foreach (RichTextBox richTextBox in richTextBoxList)
                 {
-                    if (codeBlock.BlockId == chooseBlock.BlockId)
+                    foreach (Block block in richTextBox.Document.Blocks)
                     {
-                        chooseBlock.BackgroundColor = changeColor;
-                        codeBlock.BackgroundColor = changeColor;
-                    }
-                    else
-                    {
-                        codeBlock.BackgroundColor = orgColor;
+                        foreach (Inline inline in (block as Paragraph).Inlines)
+                        {
+                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                            if (codeBlock.BlockId == chooseId)
+                            {
+                                textBlock.Background = changeColor;
+                            }
+                            else
+                            {
+                                textBlock.Background = orgColor;
+                            }
+                        }
                     }
                 }
+                //unselect text
+                textBox.Selection.Select(textBox.Selection.End, textBox.Selection.End);
+                isRichTextBockSelect = false;
             }
-            Refresh();            
         }
+
         private void OnPreviewMouseWheelListener(object sender, MouseWheelEventArgs e)
         {
             StaticValue.OnPreviewMouseWheelListener(sender, e);
@@ -348,6 +345,26 @@ namespace AnalysisExtension.View
                 
                 MessageBox.Show("all file save");
             }
+        }
+
+        private void OnClickEditChooseBlockListener(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnClickChangeChooseBlockListener(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnClickSkipChooseBlockListener(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void OnClickShowNextBlockListener(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

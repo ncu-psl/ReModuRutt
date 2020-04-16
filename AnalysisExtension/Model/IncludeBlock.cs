@@ -10,10 +10,10 @@ namespace AnalysisExtension.Model
         public int IncludeBlockListIndex { get; set; }//the id in the ruleBlock's includeBlockList, if not the block ,then id = -1 
         public int CompareRuleId { get; set; }
         public int FromRuleSetId { get; set; } //if == -1, include rule from same rule set
-        public SolidColorBrush BackgroundColor { get; set; }
         public List<ICodeBlock> BeforeList { get; set; }
         public List<ICodeBlock> AfterList { get; set; }
         public bool IsMatchRule { get; set; }
+        public RuleBlock MatchRule { get ; set; }
 
         public IncludeBlock()
         {
@@ -21,7 +21,6 @@ namespace AnalysisExtension.Model
             BlockId = StaticValue.GetNextBlockId();
             IncludeBlockListIndex = -1;
             IsMatchRule = false;
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public IncludeBlock(string content,int compareRuleId,int fromRuleSetId)
@@ -30,7 +29,6 @@ namespace AnalysisExtension.Model
             IncludeBlockListIndex = -1;
             IsMatchRule = false;
             BlockId = StaticValue.GetNextBlockId();
-            BackgroundColor = new SolidColorBrush(Colors.White);
             CompareRuleId = compareRuleId;
             FromRuleSetId = fromRuleSetId;
         }
@@ -41,7 +39,6 @@ namespace AnalysisExtension.Model
             BlockId = StaticValue.GetNextBlockId();
             IncludeBlockListIndex = includeBlockListIndex;
             IsMatchRule = false;
-            BackgroundColor = new SolidColorBrush(Colors.White);
             CompareRuleId = compareRuleId;
             FromRuleSetId = fromRuleSetId;
         }
@@ -52,7 +49,6 @@ namespace AnalysisExtension.Model
             BlockId = blockId;
             IncludeBlockListIndex = includeBlockListIndex;
             IsMatchRule = false;
-            BackgroundColor = new SolidColorBrush(Colors.White);
             CompareRuleId = compareRuleId;
             FromRuleSetId = fromRuleSetId;
         }
@@ -71,11 +67,10 @@ namespace AnalysisExtension.Model
             copy.IncludeBlockListIndex = IncludeBlockListIndex;
             copy.CompareRuleId = CompareRuleId;
             copy.FromRuleSetId = FromRuleSetId;
-            copy.BackgroundColor = BackgroundColor;
-            copy.BeforeList = BeforeList;
-            copy.AfterList = AfterList;
+            copy.BeforeList = StaticValue.CopyList(BeforeList);
+            copy.AfterList = StaticValue.CopyList(AfterList);
             copy.IsMatchRule = IsMatchRule;
-
+            copy.MatchRule = MatchRule;
             return copy;
         }
     }

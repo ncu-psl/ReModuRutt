@@ -7,15 +7,14 @@ namespace AnalysisExtension.Model
         public string Content { get; set; }
         public int BlockId { get; set; }
         public int ParaListIndex { get; set; }//the id in the ruleBlock's parameterList
-        public SolidColorBrush BackgroundColor { get; set; }
         public bool IsMatchRule { get; set; }
+        public RuleBlock MatchRule { get; set; }
 
         public ParameterBlock()
         {
             Content = "";
             BlockId = -1;
             ParaListIndex = -1;
-            BackgroundColor = new SolidColorBrush(Colors.White);
             IsMatchRule = true;
         }
 
@@ -24,7 +23,6 @@ namespace AnalysisExtension.Model
             Content = content;
             BlockId = StaticValue.GetNextBlockId();
             ParaListIndex = -1;
-            BackgroundColor = new SolidColorBrush(Colors.White);
             IsMatchRule = true;
         }
 
@@ -34,7 +32,6 @@ namespace AnalysisExtension.Model
             BlockId = StaticValue.GetNextBlockId();
             ParaListIndex = paraListIndex;
             IsMatchRule = true;
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public ParameterBlock(string content, int blockId,int paraListIndex)
@@ -43,7 +40,6 @@ namespace AnalysisExtension.Model
             BlockId = blockId;
             ParaListIndex = paraListIndex;
             IsMatchRule = true;
-            BackgroundColor = new SolidColorBrush(Colors.White);
         }
 
         public string GetPrintInfo()
@@ -58,8 +54,8 @@ namespace AnalysisExtension.Model
             copy.Content = Content;
             copy.BlockId = BlockId;
             copy.ParaListIndex = ParaListIndex;
-            copy.BackgroundColor = BackgroundColor;
             copy.IsMatchRule = IsMatchRule;
+            copy.MatchRule = MatchRule;
 
             return copy;
         }

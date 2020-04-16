@@ -548,6 +548,7 @@ namespace AnalysisExtension.Model
                 finalResultBlock.IsMatchRule = true;
                 finalResultBlock.BeforeList = result[0];
                 finalResultBlock.AfterList = result[1];
+                finalResultBlock.MatchRule = ruleBlock;
 
                 //-----set front-----
                 if (front.Count > 0)

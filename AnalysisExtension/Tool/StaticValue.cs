@@ -172,6 +172,17 @@ namespace AnalysisExtension
             }
             return result;
         }
+
+        public static List<ICodeBlock> CopyList(List<ICodeBlock> orgList)
+        {
+            List<ICodeBlock> result = new List<ICodeBlock>();
+
+            foreach (ICodeBlock codeBlock in orgList)
+            {
+                result.Add(codeBlock.GetCopy());
+            }
+            return result;
+        }
     }
 
 }
