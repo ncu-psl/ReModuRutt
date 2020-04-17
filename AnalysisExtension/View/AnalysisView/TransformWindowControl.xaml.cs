@@ -32,6 +32,7 @@ namespace AnalysisExtension.View
         private SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
 
         private bool isRichTextBockSelect = false;
+        private int chooseBlockId = -1;
 
         public TransformWindowControl(UserControl previousControl)
         {
@@ -196,7 +197,7 @@ namespace AnalysisExtension.View
             resultTextBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             resultTextBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             resultTextBox.Document.Blocks.AddRange(SetCodeBlockList(content));
-            resultTextBox.SelectionChanged += ResultTextBox_SelectionChanged;
+            resultTextBox.SelectionChanged += OnResultTextBoxSelectionChangedListener;
 
             return resultTextBox;
 
@@ -225,10 +226,81 @@ namespace AnalysisExtension.View
             return result;
         }
 
+        private int FindNextBlockId(int idNow)
+        {
+            int nextId = idNow;
+            int dis = 99999;
+
+            for (int i = 0; i < fileNum; i++)
+            {
+                for (int j = 0; j < richTextBoxList[i].Length; j++)
+                {
+                    RichTextBox richTextBox = richTextBoxList[i][j];
+                    foreach (Block block in richTextBox.Document.Blocks)
+                    {
+                        foreach (Inline inline in (block as Paragraph).Inlines)
+                        {
+                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                            if (textBlock.Text.Length > 0 && codeBlock.BlockId - idNow > 0)
+                            {
+                                if (codeBlock.BlockId - idNow < dis)
+                                {
+                                    dis = codeBlock.BlockId - nextId;
+                                    nextId = codeBlock.BlockId;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (nextId == idNow)
+            {
+                nextId = FindNextBlockId(0);
+            }
+
+            return nextId;
+        }
+
+        private void MarkSameIdBlock(int id)
+        {
+            chooseBlockId = id;
+            for (int i = 0; i < fileNum; i++)
+            {
+                for (int j = 0; j < richTextBoxList[i].Length; j++)
+                {
+                    RichTextBox richTextBox = richTextBoxList[i][j];
+                    foreach (Block block in richTextBox.Document.Blocks)
+                    {
+                        foreach (Inline inline in (block as Paragraph).Inlines)
+                        {
+                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                            if (textBlock.Text.Length > 0)
+                            {
+                                if (codeBlock.BlockId == id)
+                                {
+                                    textBlock.Background = changeColor;
+                                    if (i != resultTabControl.SelectedIndex)
+                                    {
+                                        resultTabControl.SelectedIndex = i;
+                                    }
+                                    textBlock.BringIntoView();
+
+                                }
+                                else
+                                {
+                                    textBlock.Background = orgColor;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         //-----Listener-----
-
-
-        private void ResultTextBox_SelectionChanged(object sender, RoutedEventArgs e)
+        private void OnResultTextBoxSelectionChangedListener(object sender, RoutedEventArgs e)
         {
             if (isRichTextBockSelect)
             {
@@ -242,49 +314,25 @@ namespace AnalysisExtension.View
 
             Paragraph paragraph = selection.End.Paragraph;
             TextBlock chooseTextBlock = null;
-            int chooseId = -1;
+            int id = -1;
 
             foreach (InlineUIContainer inline in paragraph.Inlines)
             {
                 if (inline.ContentEnd.GetOffsetToPosition(selection.End) == 1)
                 {
                     chooseTextBlock = inline.Child as TextBlock;
-                    chooseId = (chooseTextBlock.DataContext as ICodeBlock).BlockId;
+                    id = (chooseTextBlock.DataContext as ICodeBlock).BlockId;
                     break;
                 }
             }
 
             if (chooseTextBlock != null)
             {
-                ICodeBlock chooseBlock = chooseTextBlock.DataContext as ICodeBlock;
-
-                for (int i = 0; i < fileNum; i++)
-                {
-                    for (int j = 0; j < richTextBoxList[i].Length; j++)
-                    {
-                        RichTextBox richTextBox = richTextBoxList[i][j];
-                        foreach (Block block in richTextBox.Document.Blocks)
-                        {
-                            foreach (Inline inline in (block as Paragraph).Inlines)
-                            {
-                                TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
-                                ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
-                                if (codeBlock.BlockId == chooseId)
-                                {
-                                    textBlock.Background = changeColor;
-                                }
-                                else
-                                {
-                                    textBlock.Background = orgColor;
-                                }
-                            }
-                        }
-                    }
-                }
+                MarkSameIdBlock(id);                
                 //unselect text
                 textBox.Selection.Select(textBox.Selection.End, textBox.Selection.End);
-                isRichTextBockSelect = false;
             }
+            isRichTextBockSelect = false;
         }
 
         private void OnPreviewMouseWheelListener(object sender, MouseWheelEventArgs e)
@@ -407,7 +455,17 @@ namespace AnalysisExtension.View
 
         private void OnClickShowNextBlockListener(object sender, RoutedEventArgs e)
         {
+            int nextId = 0;
+            if (chooseBlockId != -1)
+            {
+                nextId = FindNextBlockId(chooseBlockId);
+            }
+            else
+            {
+                nextId = FindNextBlockId(nextId);
+            }
 
-        }
+            MarkSameIdBlock(nextId);
+        }        
     }
 }
