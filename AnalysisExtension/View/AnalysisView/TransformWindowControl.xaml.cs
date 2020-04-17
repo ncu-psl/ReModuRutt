@@ -19,7 +19,7 @@ namespace AnalysisExtension.View
         private int fileNum;
         private int nowPageIndex = 0;
 
-        private List<RichTextBox> richTextBoxList = new List<RichTextBox>();
+        private RichTextBox[][] richTextBoxList;
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
         private AnalysisTool analysisTool = AnalysisTool.GetInstance();
@@ -27,32 +27,37 @@ namespace AnalysisExtension.View
 
         private List<ICodeBlock>[] beforeList;
         private List<ICodeBlock>[] afterList;
-        
+
         private SolidColorBrush changeColor = new SolidColorBrush(Colors.LightSkyBlue);
         private SolidColorBrush orgColor = new SolidColorBrush(Colors.White);
 
         private bool isRichTextBockSelect = false;
 
         public TransformWindowControl(UserControl previousControl)
-        {        
+        {
             this.previousControl = previousControl;
             fileNum = fileLoader.FILE_NUMBER;
+            richTextBoxList = new RichTextBox[fileNum][];
+            for (int i = 0; i < fileNum; i++)
+            {
+                richTextBoxList[i] = new RichTextBox[2];
+            }
             GetListFromAnalysisTool();
             Refresh();
         }
 
         //-----init-----
         private void GetListFromAnalysisTool()
-        {            
+        {
             beforeList = analysisTool.GetFinalBeforeBlockList();
             afterList = analysisTool.GetFinalAfterBlockList();
         }
 
         private void InitRichTextBoxIndex()
         {
-            scrollViewIndex = new double[richTextBoxList.Count, 2];
+            scrollViewIndex = new double[fileNum * 2, 2];
 
-            for (int i = 0; i < richTextBoxList.Count; i++)
+            for (int i = 0; i < fileNum * 2; i++)
             {
                 scrollViewIndex[i, 0] = 0;
                 scrollViewIndex[i, 1] = 0;
@@ -66,16 +71,20 @@ namespace AnalysisExtension.View
                 resultTabControl.Items.RemoveAt(0);
             }
 
-            if (richTextBoxList.Count > 0)
+            if (richTextBoxList.Length > 0)
             {
-                richTextBoxList = new List<RichTextBox>();
+                richTextBoxList = new RichTextBox[fileNum][];
+                for (int i = 0; i < fileNum; i++)
+                {
+                    richTextBoxList[i] = new RichTextBox[2];
+                }
             }
         }
 
         //-----refersh-----
         private void Refresh()
         {
-            InitializeComponent();           
+            InitializeComponent();
             SetTabView();
             ResizeScrollViewer();
             SetScrollOffset();
@@ -85,10 +94,14 @@ namespace AnalysisExtension.View
         private void ResizeScrollViewer()
         {
             int padding = 15;
-            double width = (StaticValue.WINDOW.Width - editBtGroup.Width )/ 2;
-            foreach (RichTextBox textBox in richTextBoxList)
+            double width = (StaticValue.WINDOW.Width - editBtGroup.Width) / 2;
+
+            for (int i = 0; i < fileNum; i++)
             {
-                textBox.Width = width - padding;
+                for (int j = 0; j < richTextBoxList[i].Length; j++)
+                {
+                    richTextBoxList[i][j].Width = width - padding;
+                }
             }
         }
 
@@ -100,20 +113,26 @@ namespace AnalysisExtension.View
             }
             else
             {
-                for (int i = 0; i < richTextBoxList.Count; i++)
+                for (int i = 0; i < fileNum; i++)
                 {
-                    richTextBoxList[i].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
-                    richTextBoxList[i].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
+                    for (int j = 0; j < richTextBoxList[i].Length; j++)
+                    {
+                        richTextBoxList[i][j].ScrollToHorizontalOffset(scrollViewIndex[i, 0]);
+                        richTextBoxList[i][j].ScrollToVerticalOffset(scrollViewIndex[i, 1]);
+                    }
                 }
-            }            
+            }
         }
 
         private void SaveScrollOffset()
         {
-            for (int i = 0; i < richTextBoxList.Count; i++)
+            for (int i = 0; i < fileNum; i++)
             {
-                scrollViewIndex[i, 0] = richTextBoxList[i].HorizontalOffset;
-                scrollViewIndex[i, 1] = richTextBoxList[i].VerticalOffset;
+                for (int j = 0; j < richTextBoxList[i].Length; j++)
+                {
+                    scrollViewIndex[i, 0] = richTextBoxList[i][j].HorizontalOffset;
+                    scrollViewIndex[i, 1] = richTextBoxList[i][j].VerticalOffset;
+                }
             }
         }
 
@@ -124,25 +143,27 @@ namespace AnalysisExtension.View
             string[] fileList = fileLoader.GetFileList();
 
             for (int i = 0; i < fileNum; i++)
-            {                
+            {
                 TabItem item = new TabItem();
                 item.Header = StaticValue.GetNameFromPath(fileList[i]);
 
-                SetTabControl(item, beforeList[i], afterList[i]);
+                SetTabControl(i, item, beforeList[i], afterList[i]);
 
                 resultTabControl.Items.Add(item);
             }
             resultTabControl.SelectedIndex = nowPageIndex;
         }
 
-        private void SetTabControl(TabItem item, List<ICodeBlock> beforeCodeBlock, List<ICodeBlock> afterCodeBlock)
+        private void SetTabControl(int fileIndex, TabItem item, List<ICodeBlock> beforeCodeBlock, List<ICodeBlock> afterCodeBlock)
         {
             DockPanel dockPanel = new DockPanel();
 
             RichTextBox beforeRichTextBox = SetListView(beforeCodeBlock);
+            richTextBoxList[fileIndex][0] = beforeRichTextBox;
             DockPanel.SetDock(beforeRichTextBox, Dock.Left);
 
             RichTextBox afterRichTextBox = SetListView(afterCodeBlock);
+            richTextBoxList[fileIndex][1] = afterRichTextBox;
             DockPanel.SetDock(afterRichTextBox, Dock.Right);
 
             DockPanel bottomBtnGroup = SetButtonGroup();
@@ -177,8 +198,6 @@ namespace AnalysisExtension.View
             resultTextBox.Document.Blocks.AddRange(SetCodeBlockList(content));
             resultTextBox.SelectionChanged += ResultTextBox_SelectionChanged;
 
-            richTextBoxList.Add(resultTextBox);
-            
             return resultTextBox;
 
         }
@@ -192,8 +211,8 @@ namespace AnalysisExtension.View
             paragraph.Padding = new Thickness(0, 0, 0, 0);
             foreach (ICodeBlock codeBlock in codeBlockList)
             {
-                TextBlock inner = new TextBlock() { Text = codeBlock.Content,Background = orgColor, DataContext = codeBlock, Margin = new Thickness(0,0,0,0)};
-                InlineUIContainer container = new InlineUIContainer(inner,paragraph.ContentEnd);
+                TextBlock inner = new TextBlock() { Text = codeBlock.Content, Background = orgColor, DataContext = codeBlock, Margin = new Thickness(0, 0, 0, 0) };
+                InlineUIContainer container = new InlineUIContainer(inner, paragraph.ContentEnd);
 
                 if (codeBlock.Content.Contains("\n") || codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
                 {
@@ -239,21 +258,25 @@ namespace AnalysisExtension.View
             {
                 ICodeBlock chooseBlock = chooseTextBlock.DataContext as ICodeBlock;
 
-                foreach (RichTextBox richTextBox in richTextBoxList)
+                for (int i = 0; i < fileNum; i++)
                 {
-                    foreach (Block block in richTextBox.Document.Blocks)
+                    for (int j = 0; j < richTextBoxList[i].Length; j++)
                     {
-                        foreach (Inline inline in (block as Paragraph).Inlines)
+                        RichTextBox richTextBox = richTextBoxList[i][j];
+                        foreach (Block block in richTextBox.Document.Blocks)
                         {
-                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
-                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
-                            if (codeBlock.BlockId == chooseId)
+                            foreach (Inline inline in (block as Paragraph).Inlines)
                             {
-                                textBlock.Background = changeColor;
-                            }
-                            else
-                            {
-                                textBlock.Background = orgColor;
+                                TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                                ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                                if (codeBlock.BlockId == chooseId)
+                                {
+                                    textBlock.Background = changeColor;
+                                }
+                                else
+                                {
+                                    textBlock.Background = orgColor;
+                                }
                             }
                         }
                     }
@@ -281,14 +304,41 @@ namespace AnalysisExtension.View
             ResizeScrollViewer();
         }
 
-        private void OnClickSaveAsListener(object sender, RoutedEventArgs e)
+        //-----save file-----
+        private string SaveFile(int indexNow)
         {
             string afterString = "";
 
-            foreach (ICodeBlock codeBlock in afterList[nowPageIndex])
+            if (richTextBoxList[indexNow][1].Document.Blocks.Count > 1)
             {
-                afterString += codeBlock.Content;
+                foreach (Block block in richTextBoxList[indexNow][1].Document.Blocks)
+                {
+                    foreach (Inline inline in (block as Paragraph).Inlines)
+                    {
+                        if (inline is InlineUIContainer)
+                        {
+                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                            afterString += codeBlock.Content;
+                        }
+                        else
+                        {
+                            afterString += (inline as Run).Text;
+                            if (inline.NextInline == null)
+                            {
+                                afterString += "\n";
+                            }
+                        }
+                    }
+                }
             }
+            return afterString;
+        }
+
+        private void OnClickSaveAsListener(object sender, RoutedEventArgs e)
+        {
+            int indexNow = resultTabControl.SelectedIndex;
+            string afterString = SaveFile(indexNow);
 
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.Filter = "(*.*)|*.*";
@@ -298,29 +348,25 @@ namespace AnalysisExtension.View
             if (saveFileDialog.FileName != "")
             {
                 UnicodeEncoding unicode = new UnicodeEncoding();
-                
+
                 FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
                 fileStream.Write(unicode.GetBytes(afterString), 0, unicode.GetByteCount(afterString));
                 fileStream.Close();
                 MessageBox.Show("file save");
             }
-            
+
         }
 
         private void OnClickSaveListener(object sender, RoutedEventArgs e)
         {
-            string afterString = "";
-
-            foreach (ICodeBlock codeBlock in afterList[nowPageIndex])
-            {
-                afterString += codeBlock.Content;
-            }
+            int indexNow = resultTabControl.SelectedIndex;
+            string afterString = SaveFile(indexNow);
 
             MessageBoxResult result = MessageBox.Show("sure to overwrite the file now choose?","Save File",MessageBoxButton.YesNo);
 
             if (result == MessageBoxResult.Yes)
             {
-                string path = fileLoader.GetFileList()[nowPageIndex];
+                string path = fileLoader.GetFileList()[indexNow];
                 File.WriteAllText(path, afterString);
                 MessageBox.Show("file save");
             }
@@ -334,11 +380,7 @@ namespace AnalysisExtension.View
             {
                 for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
                 {
-                    string afterString = "";
-                    foreach (ICodeBlock codeBlock in afterList[i])
-                    {
-                        afterString += codeBlock.Content;
-                    }
+                    string afterString = SaveFile(i);
                     string path = fileLoader.GetFileList()[i];
                     File.WriteAllText(path, afterString);
                 }
@@ -347,6 +389,7 @@ namespace AnalysisExtension.View
             }
         }
 
+        //-----edit btn------
         private void OnClickEditChooseBlockListener(object sender, RoutedEventArgs e)
         {
 
