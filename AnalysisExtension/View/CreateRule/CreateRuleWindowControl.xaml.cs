@@ -42,6 +42,7 @@
         private static CreateRuleToolWindowControl instance = null;
         private ToolWindowPane windowPane = null;
 
+        private TextPointer insertTextPoint = null;
         //----- init -----
         public static CreateRuleToolWindowControl GetInstance()
         {
@@ -250,7 +251,7 @@
                 int fromRuleSetId = int.Parse(StaticValue.GetAttributeInElement(includeElement, "fromRuleSetId"));
 
                 RuleSet ruleSet = ruleMetadata.GetRuleSetById(fromRuleSetId);
-                string includeInfo = "by rule set " + ruleSet.Name + ", rule " + ruleSet.GetRuleInfoById(compareRuleId)["name"];
+                string includeInfo = "( " + codeBlockId +" ) by rule set " + ruleSet.Name + ", rule " + ruleSet.GetRuleInfoById(compareRuleId)["name"];
 
                 RuleBlock rule = fileLoader.LoadSingleRuleByPath(ruleMetadata.GetRulePathById(fromRuleSetId, compareRuleId));
 
@@ -462,7 +463,7 @@
             textBox.Document.Blocks.Clear();
             textBox.ContextMenu = (ContextMenu)FindResource("richTextBoxMenu");
             textBox.AcceptsReturn = true;
-            textBox.AcceptsTab = true;
+            textBox.AcceptsTab = false;
             textBox.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Auto;
             textBox.Background = SystemColors.WindowBrush;
@@ -471,7 +472,10 @@
             textBox.PreviewDrop += OnTextBoxDropListener; ;
             textBox.PreviewDragOver += OnTextBoxDragOverListener; ;
             textBox.PreviewMouseLeftButtonUp += OnTextBoxPreviewMouseLeftButtonUp;
+            textBox.PreviewKeyDown += OnTextBoxKeyDownListener;
+            textBox.PreviewLostKeyboardFocus += TextBox_PreviewLostKeyboardFocus;
         }
+
 
         private Panel SetEditInfoPanel(string labelText)
         {
@@ -962,6 +966,31 @@
             }
         }
 
+        private void TextBox_PreviewLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            if (insertTextPoint != null)
+            {
+                RichTextBox textBox = sender as RichTextBox;
+                Paragraph paragraph = insertTextPoint.Paragraph;
+                paragraph.Margin = new Thickness(0, 0, 0, 0);
+                Run run = new Run("    ", insertTextPoint);
+                textBox.CaretPosition = run.ContentEnd;
+                if (textBox.Focus())
+                {
+                    insertTextPoint = null;
+                }
+            }
+        }
+
+        private void OnTextBoxKeyDownListener(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab && sender is RichTextBox && insertTextPoint == null)
+            {
+                RichTextBox textBox = sender as RichTextBox;
+                TextSelection selection = textBox.Selection;
+                insertTextPoint = selection.Start;
+            }
+        }
         //-----button listener-----
         private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
         {
@@ -1062,28 +1091,11 @@
 
         private void OnClickBtRuleEditCopyListener(object sender, RoutedEventArgs e)
         {
-            foreach (Paragraph paragraph in ruleBefore.Document.Blocks)
-            {
-                Paragraph copy = new Paragraph();
-                copy.Margin = new Thickness(0, 0, 0, 0);
-                foreach (Inline inline in paragraph.Inlines)
-                {
-                    if (inline is Run)
-                    {
-                        Run copyRun = new Run((inline as Run).Text, copy.ContentEnd);
-                        copyRun.Background = inline.Background;
-                        copyRun.Foreground = inline.Foreground;
-                        copyRun.DataContext = inline.DataContext;
-                    }
-                    else if(inline is InlineUIContainer)
-                    {
-                        InlineUIContainer container = new InlineUIContainer(StaticValue.DeepCopyUIElement((inline as InlineUIContainer).Child as FrameworkElement), copy.ContentEnd);
-                        //InlineUIContainer container = StaticValue.DeepCopyUIElement(inline as InlineUIContainer);                        
-                    }
-                }
-                ruleAfter.Document.Blocks.Add(copy);
-            }
+            string beforeText = ChangeToText(ruleBefore);
+            beforeText = RemoveLineAtFirstAndEnd(beforeText);
+            ruleAfter.Document.Blocks.AddRange(ChangeToColor(beforeText, "before"));
         }
+
         //-----list click listener-----
         private void OnDoubleClickRuleListener(object sender, MouseButtonEventArgs e)
         {
