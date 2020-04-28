@@ -35,7 +35,7 @@
             </Button>
         </StackPanel>
         <StackPanel x:Name="editBtGroup" DockPanel.Dock="Left" Orientation="Vertical" Width="120">
-            <Button x:Name="editBlockBt" Content="edit choose block" Click="OnClickEditChooseBlockListener" Padding="2,5,2,5"/>
+            <Button x:Name="editBlockBt" Content="edit match rule" Click="OnClickEditChooseBlockListener" Padding="2,5,2,5"/>
             <Button x:Name="changeBlockBt" Content="change choose" Click="OnClickChangeChooseBlockListener" Padding="2,5,2,5"/>
             <Button x:Name="skipChangeBlockBt" Content="skip change choose" Click="OnClickSkipChooseBlockListener" Padding="2,5,2,5"/>
             <Button x:Name="nextBlockBt" Content="next block" Click="OnClickShowNextBlockListener" Padding="2,5,2,5"/>
