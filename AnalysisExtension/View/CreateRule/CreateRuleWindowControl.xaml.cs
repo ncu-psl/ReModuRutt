@@ -638,7 +638,14 @@
                     }
                     else
                     {
-                        result += ReplaceStringToXmlToken((inline as Run).Text);                        
+                        if ((inline as Run).Text.Contains("<include"))
+                        {
+                            result += (inline as Run).Text;
+                        }
+                        else
+                        {
+                            result += ReplaceStringToXmlToken((inline as Run).Text);
+                        }                                            
                     }                    
                 }
                 result += "\n";
