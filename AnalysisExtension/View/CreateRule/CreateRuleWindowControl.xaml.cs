@@ -103,7 +103,7 @@
             RefreshParameterTreeView();
             RefreshCodeBlockTreeView();
             RefreshIncludeTreeView();
-        }  
+        }
 
         //----- text pattern change-----        
         private List<Paragraph> ChangeToColor(string orgText,string tag)
@@ -145,6 +145,7 @@
                             index = Regex.Match(orgText, @"[\s]*<include").Index;
                         }
                         string frontContent = orgText.Substring(0, index);
+                        frontContent = ReplaceXmlToken(frontContent);
                         orgText = orgText.Substring(index);
                         Run front = new Run(frontContent, result.ContentEnd);
                         allResult.Add(result);
@@ -168,7 +169,7 @@
                    orgText = findResult;
                 }
             }
-            Run endText = new Run(orgText, result.ContentEnd);
+            Run endText = new Run(ReplaceXmlToken(orgText), result.ContentEnd);
             allResult.Add(result);
             return allResult;
         }       
@@ -188,6 +189,7 @@
             else
             {
                 string frontContent = orgText.Substring(0, startIndex);
+                frontContent = ReplaceXmlToken(frontContent);
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
@@ -213,6 +215,7 @@
             else
             {
                 string frontContent = orgText.Substring(0, startIndex);
+                frontContent = ReplaceXmlToken(frontContent);
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
@@ -232,6 +235,7 @@
             {
                 index = Regex.Match(orgText, @"([\s]*)<include").Index;
                 string frontText = Regex.Match(orgText, @"([ \t]*)<include").Groups[1].Value;
+                frontText = ReplaceXmlToken(frontText);
                 Run front = new Run(frontText, result.ContentEnd);
             }
 
@@ -634,7 +638,7 @@
                     }
                     else
                     {
-                        result += (inline as Run).Text;                        
+                        result += ReplaceStringToXmlToken((inline as Run).Text);                        
                     }                    
                 }
                 result += "\n";
@@ -759,6 +763,20 @@
         }
 
         //-----tool-----
+        private string ReplaceXmlToken(string text)
+        {
+            string result = text.Replace("&lt;", "<");
+            result = result.Replace("&gt;", ">");
+            return result;
+        }
+
+        private string ReplaceStringToXmlToken(string text)
+        {
+            string result = text.Replace("<", "&lt;");
+            result = result.Replace(">", "&gt;");
+            return result;
+        }
+
         private void SetParameterFormate(int paraId, TextPointer position)
         {
             TextBlock para = new TextBlock() { Text = "(" + paraId + ")", Foreground = SystemColors.HighlightBrush };
