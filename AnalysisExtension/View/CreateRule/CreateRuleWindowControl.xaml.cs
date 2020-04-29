@@ -753,12 +753,13 @@
 
         private void CopyRule(string before,string after,int ruleId,string ruleName)
         {
+            ruleNameOpenNow = ruleName;
             string final = GetRuleXml(before,after,ruleId);
 
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.RestoreDirectory = true;
             saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name)+"\\"+ruleName +".xml";
-
+            
             FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
             fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
             fileStream.Close();
@@ -1199,6 +1200,7 @@
             RuleBlock rule = fileLoader.LoadSingleRuleByPath(rulePath);
             string before = rule.GetOrgText("before");
             string after = rule.GetOrgText("after");
+            ruleSetOpenNow = ShowChooseRuleSetWindow();
             int ruleId = ruleSetOpenNow.GetNextRuleId();
 
             CopyRule(before,after,ruleId,rule.RuleName);
