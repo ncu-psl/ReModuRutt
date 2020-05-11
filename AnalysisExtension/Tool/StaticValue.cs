@@ -95,6 +95,19 @@ namespace AnalysisExtension
             return copy;
         }
 
+        public static string ReplaceXmlToken(string text)
+        {
+            string result = text.Replace("&lt;", "<");
+            result = result.Replace("&gt;", ">");
+            return result;
+        }
+
+        public static string ReplaceStringToXmlToken(string text)
+        {
+            string result = text.Replace("<", "&lt;");
+            result = result.Replace(">", "&gt;");
+            return result;
+        }
         //----xml tool-----
         public static string GetAttributeInElement(XmlElement element, string attributeName)
         {
@@ -176,6 +189,11 @@ namespace AnalysisExtension
         public static List<ICodeBlock> CopyList(List<ICodeBlock> orgList)
         {
             List<ICodeBlock> result = new List<ICodeBlock>();
+
+            if (orgList == null)
+            {
+                return null;
+            }
 
             foreach (ICodeBlock codeBlock in orgList)
             {

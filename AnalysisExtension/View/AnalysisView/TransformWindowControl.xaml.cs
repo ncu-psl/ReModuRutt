@@ -1,14 +1,14 @@
 ﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
+using AnalysisExtension.View.AnalysisView;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.RegularExpressions;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Text;
-using System.Windows.Documents;
 
 namespace AnalysisExtension.View
 {
@@ -102,6 +102,7 @@ namespace AnalysisExtension.View
                 for (int j = 0; j < richTextBoxList[i].Length; j++)
                 {
                     richTextBoxList[i][j].Width = width - padding;
+                    richTextBoxList[i][j].Document.PageWidth = width * 2;
                 }
             }
         }
@@ -299,6 +300,35 @@ namespace AnalysisExtension.View
                 }
             }
         }
+
+        private ICodeBlock GetBlockById(int id)
+        {
+            ICodeBlock findBlock = null;
+            for (int i = 0; i < fileNum; i++)
+            {
+                for (int j = 0; j < richTextBoxList[i].Length; j++)
+                {
+                    RichTextBox richTextBox = richTextBoxList[i][j];
+                    foreach (Block block in richTextBox.Document.Blocks)
+                    {
+                        foreach (Inline inline in (block as Paragraph).Inlines)
+                        {
+                            TextBlock textBlock = (inline as InlineUIContainer).Child as TextBlock;
+                            ICodeBlock codeBlock = textBlock.DataContext as ICodeBlock;
+                            if (textBlock.Text.Length > 0)
+                            {
+                                if (codeBlock.BlockId == id)
+                                {
+                                    findBlock = codeBlock;
+                                    return codeBlock;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return findBlock;
+        }
         //-----Listener-----
         private void OnResultTextBoxSelectionChangedListener(object sender, RoutedEventArgs e)
         {
@@ -440,7 +470,21 @@ namespace AnalysisExtension.View
         //-----edit btn------
         private void OnClickEditChooseBlockListener(object sender, RoutedEventArgs e)
         {
+            EditTransformResultWindowControl content = new EditTransformResultWindowControl(beforeList[nowPageIndex], GetBlockById(chooseBlockId), nowPageIndex);
 
+            Window editWindow = new Window
+            {
+                Title = "edit match rule",
+                Content = content,
+                Width = StaticValue.WINDOW_WIDTH,
+                Height = StaticValue.WINDOW_HEIGHT
+            };
+            editWindow.ShowDialog();
+            if (content.isAnalysisSuccess)
+            {
+                GetListFromAnalysisTool();
+                Refresh();
+            }
         }
 
         private void OnClickChangeChooseBlockListener(object sender, RoutedEventArgs e)

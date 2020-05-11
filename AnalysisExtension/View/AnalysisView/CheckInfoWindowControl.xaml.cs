@@ -60,19 +60,19 @@ namespace AnalysisExtension
         }
 
         //----------Listener---------------
-        private void OnClickBtNextListener(object sender, System.Windows.RoutedEventArgs e)
+        private void OnClickBtNextListener(object sender, RoutedEventArgs e)
         {
             backgroundWorker.RunWorkerAsync();
             ShowWaitAnimationWindow();
         }
 
-        private void OnClickBtPreviousListener(object sender, System.Windows.RoutedEventArgs e)
+        private void OnClickBtPreviousListener(object sender, RoutedEventArgs e)
         {
             Refresh();
             StaticValue.WINDOW.Content = this.previousControl;
         }
 
-        private void OnClickBtCancelListener(object sender, System.Windows.RoutedEventArgs e)
+        private void OnClickBtCancelListener(object sender, RoutedEventArgs e)
         {
             Refresh();
             StaticValue.CloseWindow(this);

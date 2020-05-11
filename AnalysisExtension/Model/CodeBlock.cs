@@ -73,10 +73,33 @@ namespace AnalysisExtension.Model
             return copy;
         }
 
-        
+        private void SetBeforeInnerBlockRule()
+        {
+            foreach (ICodeBlock codeBlock in BeforeList.ToArray())
+            {
+                if (!(codeBlock is CodeBlock))
+                {
+                    codeBlock.IsMatchRule = IsMatchRule;
+                    codeBlock.MatchRule = MatchRule;
+                }
+            }
+        }
+
+        private void SetAfterInnerBlockRule()
+        {
+            foreach (ICodeBlock codeBlock in AfterList.ToArray())
+            {
+                if (!(codeBlock is CodeBlock))
+                {
+                    codeBlock.IsMatchRule = IsMatchRule;
+                    codeBlock.MatchRule = MatchRule;
+                }
+            }
+        }
 
         public List<ICodeBlock> ExpandBeforeList()
         {
+            SetBeforeInnerBlockRule();
             foreach (ICodeBlock codeBlock in BeforeList.ToArray())
             {
                 if (codeBlock is CodeBlock && (codeBlock as CodeBlock).BeforeList.Count > 0)
@@ -92,6 +115,7 @@ namespace AnalysisExtension.Model
 
         public List<ICodeBlock> ExpandAfterList()
         {
+            SetAfterInnerBlockRule();
             foreach (ICodeBlock codeBlock in AfterList.ToArray())
             {
                 if (codeBlock is CodeBlock && (codeBlock as CodeBlock).AfterList.Count > 0)

@@ -66,6 +66,8 @@ namespace AnalysisExtension.Model
                     if (codeBlock is ParameterBlock)
                     {
                         ParameterBlock parameterBlock = new ParameterBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as ParameterBlock).ParaListIndex);
+                        parameterBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        parameterBlock.MatchRule = codeBlock.MatchRule;
                         finalBeforeBlockList[i].Add(parameterBlock);
                     }
                     else if (codeBlock is IncludeBlock)
@@ -74,17 +76,23 @@ namespace AnalysisExtension.Model
                         int compareRuleId = (codeBlock as IncludeBlock).CompareRuleId;
                         int fromRuleSetId = (codeBlock as IncludeBlock).FromRuleSetId;
                         IncludeBlock includeBlock = new IncludeBlock(codeBlock.Content, codeBlock.BlockId, includeBlockId, compareRuleId, fromRuleSetId);
+
+                        includeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        includeBlock.MatchRule = codeBlock.MatchRule;
                         finalBeforeBlockList[i].Add(includeBlock);
                     }
                     else if (codeBlock is CodeBlock)
                     {
                         CodeBlock beforeBlock = new CodeBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as CodeBlock).BlockListIndex);
+                        beforeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        beforeBlock.MatchRule = codeBlock.MatchRule;
                         finalBeforeBlockList[i].Add(beforeBlock);
-
                     }
                     else
                     {
                         NormalBlock beforeBlock = new NormalBlock(codeBlock.Content, codeBlock.BlockId);
+                        beforeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        beforeBlock.MatchRule = codeBlock.MatchRule;
                         finalBeforeBlockList[i].Add(beforeBlock);
                     }
                 }
@@ -94,6 +102,8 @@ namespace AnalysisExtension.Model
                     if (codeBlock is ParameterBlock)
                     {
                         ParameterBlock parameterBlock = new ParameterBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as ParameterBlock).ParaListIndex);
+                        parameterBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        parameterBlock.MatchRule = codeBlock.MatchRule;
                         finalAfterBlockList[i].Add(parameterBlock);
                     }
                     else if (codeBlock is IncludeBlock)
@@ -102,17 +112,24 @@ namespace AnalysisExtension.Model
                         int compareRuleId = (codeBlock as IncludeBlock).CompareRuleId;
                         int fromRuleSetId = (codeBlock as IncludeBlock).FromRuleSetId;
                         IncludeBlock includeBlock = new IncludeBlock(codeBlock.Content, codeBlock.BlockId, includeBlockId, compareRuleId, fromRuleSetId);
+                        includeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        includeBlock.MatchRule = codeBlock.MatchRule;
                         finalAfterBlockList[i].Add(includeBlock);
                     }
                     else if (codeBlock is CodeBlock)
                     {
                         CodeBlock beforeBlock = new CodeBlock(codeBlock.Content, codeBlock.BlockId, (codeBlock as CodeBlock).BlockListIndex);
+
+                        beforeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        beforeBlock.MatchRule = codeBlock.MatchRule;
                         finalAfterBlockList[i].Add(beforeBlock);
 
                     }
                     else
                     {
                         NormalBlock beforeBlock = new NormalBlock(codeBlock.Content, codeBlock.BlockId);
+                        beforeBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        beforeBlock.MatchRule = codeBlock.MatchRule;
                         finalAfterBlockList[i].Add(beforeBlock);
                     }
                 }
@@ -181,6 +198,10 @@ namespace AnalysisExtension.Model
         {
             finalAfterBlockList[fileIndex].RemoveAt(index);            
         }
+        public void RemoveRangeFromAfterList(int fileIndex, int startIndex, int removeLen)
+        {
+            finalAfterBlockList[fileIndex].RemoveRange(startIndex, removeLen);
+        }
 
         public List<ICodeBlock>[] GetFinalBeforeBlockList()
         {
@@ -232,6 +253,21 @@ namespace AnalysisExtension.Model
             backgroundWorker.ReportProgress(100);
 
             return result;
+        }
+
+        public bool AnalysisSingleRule(RuleBlock ruleBlock,List<ICodeBlock> content,int fileIndex,int startIndex,int len)
+        {
+            bool result = analysisMode.MatchRule(ruleBlock, fileIndex,content);
+            ExpandAllList();
+            List<ICodeBlock>[][] finalResult = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
+            for (int i = 0; i < finalResult.Length; i++)
+            {
+                finalResult[i] = new List<ICodeBlock>[2];
+                finalResult[i][0] = SpiltByLine(finalBeforeBlockList[i]);
+                finalResult[i][1] = SpiltByLine(finalAfterBlockList[i]);
+            }
+            SetFinalList(finalResult);
+            return true;
         }
 
         private void ExpandAllList()

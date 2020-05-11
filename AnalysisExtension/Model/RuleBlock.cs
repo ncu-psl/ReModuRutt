@@ -120,6 +120,10 @@ namespace AnalysisExtension.Model
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
             SplitIncludeBlockFromList(ruleSliceList, ruleName + "/");
             RemoveEmptyRuleSlice(ruleSliceList);
+            foreach (ICodeBlock codeBlock in ruleSliceList)
+            {
+                codeBlock.Content = StaticValue.ReplaceXmlToken(codeBlock.Content);
+            }
         }
 
         private void SpiltByEscapeToken(string ruleText, List<ICodeBlock> ruleSliceList)
@@ -407,7 +411,7 @@ namespace AnalysisExtension.Model
                 ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
                 indexShift = indexShift - match.Length + changePattern.Length;
             }
-            ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\n\r]*");//+ or * ?
+            ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
 
         }
 

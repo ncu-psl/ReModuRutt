@@ -145,7 +145,7 @@
                             index = Regex.Match(orgText, @"[\s]*<include").Index;
                         }
                         string frontContent = orgText.Substring(0, index);
-                        frontContent = ReplaceXmlToken(frontContent);
+                        frontContent = StaticValue.ReplaceXmlToken(frontContent);
                         orgText = orgText.Substring(index);
                         Run front = new Run(frontContent, result.ContentEnd);
                         allResult.Add(result);
@@ -169,7 +169,7 @@
                    orgText = findResult;
                 }
             }
-            Run endText = new Run(ReplaceXmlToken(orgText), result.ContentEnd);
+            Run endText = new Run(StaticValue.ReplaceXmlToken(orgText), result.ContentEnd);
             allResult.Add(result);
             return allResult;
         }       
@@ -189,7 +189,7 @@
             else
             {
                 string frontContent = orgText.Substring(0, startIndex);
-                frontContent = ReplaceXmlToken(frontContent);
+                frontContent = StaticValue.ReplaceXmlToken(frontContent);
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int codeBlockId = int.Parse(StaticValue.GetAttributeInElement(blockElement, "id"));
@@ -215,7 +215,7 @@
             else
             {
                 string frontContent = orgText.Substring(0, startIndex);
-                frontContent = ReplaceXmlToken(frontContent);
+                frontContent = StaticValue.ReplaceXmlToken(frontContent);
                 Run front = new Run(frontContent, result.ContentEnd);
 
                 int paraId = int.Parse(StaticValue.GetAttributeInElement(paraElement, "id"));
@@ -235,7 +235,7 @@
             {
                 index = Regex.Match(orgText, @"([\s]*)<include").Index;
                 string frontText = Regex.Match(orgText, @"([ \t]*)<include").Groups[1].Value;
-                frontText = ReplaceXmlToken(frontText);
+                frontText = StaticValue.ReplaceXmlToken(frontText);
                 Run front = new Run(frontText, result.ContentEnd);
             }
 
@@ -552,7 +552,7 @@
             {
                 TreeViewItem rule = new TreeViewItem();
                 rule.Header = ruleContent["name"];
-                rule.DataContext = GetFilePathInRuleSet(ruleContent["name"], ruleSet);
+                rule.DataContext = ruleMetadata.GetFilePathInRuleSet(ruleContent["name"], ruleSet);
                 rule.ContextMenu = (ContextMenu)FindResource("ruleRightClickMenu");
                 rule.MouseDoubleClick += OnDoubleClickRuleListener;
                 rule.MouseDown += OnRuleListMouseDownListener;
@@ -644,7 +644,7 @@
                         }
                         else
                         {
-                            result += ReplaceStringToXmlToken((inline as Run).Text);
+                            result += StaticValue.ReplaceStringToXmlToken((inline as Run).Text);
                         }                                            
                     }                    
                 }
@@ -677,7 +677,7 @@
         {
             int ruleId = ruleBlockEditNow.RuleId;
             string final = GetFinalRule(ruleId);
-            string path = GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
+            string path = ruleMetadata.GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow);
             File.WriteAllText(path, final);
 
             AddRuleCreateNowIntoMetadata(ruleSetOpenNow.Id, ruleId, ruleNameOpenNow);
@@ -771,19 +771,6 @@
         }
 
         //-----tool-----
-        private string ReplaceXmlToken(string text)
-        {
-            string result = text.Replace("&lt;", "<");
-            result = result.Replace("&gt;", ">");
-            return result;
-        }
-
-        private string ReplaceStringToXmlToken(string text)
-        {
-            string result = text.Replace("<", "&lt;");
-            result = result.Replace(">", "&gt;");
-            return result;
-        }
 
         private void SetParameterFormate(int paraId, TextPointer position)
         {
@@ -834,12 +821,7 @@
         private void SetTitle(string title)
         {
             windowPane.Caption = title;
-        }
-
-        private string GetFilePathInRuleSet(string name, RuleSet ruleSet)
-        {
-            return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
-        }
+        }        
 
         private string RemoveLineAtFirstAndEnd(string orgText)
         {
@@ -1026,7 +1008,7 @@
 
         private void OnClickBtSaveListener(object sender, RoutedEventArgs e)
         {
-            if (GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
+            if (ruleMetadata.GetFilePathInRuleSet(ruleNameOpenNow, ruleSetOpenNow) != null)
             {
                 MessageBoxResult result = MessageBox.Show("file is exist , sure to overwrite this file?", "Save File", MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)

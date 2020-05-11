@@ -68,6 +68,9 @@
     <Compile Include="Model\RuleSet.cs" />
     <Compile Include="PlugInModel\RightClickAddRuleWindowCommand.cs" />
     <Compile Include="Tool\RuleMetadata.cs" />
+    <Compile Include="View\AnalysisView\EditTransformResultWindowControl.xaml.cs">
+      <DependentUpon>EditTransformResultWindowControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\CreateRule\ChooseEditRuleSetWindowControl.xaml.cs">
       <DependentUpon>ChooseEditRuleSetWindowControl.xaml</DependentUpon>
     </Compile>
@@ -230,6 +233,10 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="View\AnalysisView\EditTransformResultWindowControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="View\CreateRule\ChooseEditRuleSetWindowControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
