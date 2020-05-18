@@ -1,21 +1,11 @@
 ﻿using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
-using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace AnalysisExtension.View.AnalysisView
 {
@@ -71,7 +61,7 @@ namespace AnalysisExtension.View.AnalysisView
                 SetBeforeRule();
                 SetAfterRule();
             }
-            SetBeforeEditBox(/*false*/);
+            SetBeforeEditBox();
 
             SizeChanged += OnSizeChanged;
         }
@@ -85,9 +75,9 @@ namespace AnalysisExtension.View.AnalysisView
                 if (codeBlock is NormalBlock)
                 {
                     string content = codeBlock.Content;
-                    if (/*codeBlock.Content.Contains("[\\n\\r]")|| */codeBlock.Content.Contains("[\\s]"))
+                    while (content.Contains("[\\s]"))
                     {
-                        string pattern = "[\\s]";//"[\\n\\r]";
+                        string pattern = "[\\s]";
                         if (content.Contains("[\\s]+"))
                         {
                             pattern += "+";
@@ -115,14 +105,18 @@ namespace AnalysisExtension.View.AnalysisView
                             content = content.Substring(index + pattern.Length);
                         }
                         else
-                        {
-                            continue;
+                        {//is last
+                            content = "";
+                            break;
                         }
                     }
 
-                    content = RemoveRegexToken(content);
-                    Button back = SetEditRuleButton(content, codeBlock);
-                    line.Children.Add(back);
+                    if (content.Length > 0)
+                    {
+                        content = RemoveRegexToken(content);
+                        Button back = SetEditRuleButton(content, codeBlock);
+                        line.Children.Add(back);
+                    }
                 }
                 else if (codeBlock is ParameterBlock)
                 {
@@ -237,18 +231,10 @@ namespace AnalysisExtension.View.AnalysisView
             button.DataContext = codeBlock;
             button.Click += OnRuleSliceBtnClickListener;
             return button;
-        }
-
-        private string RemoveRegexToken(string orgText)
-        {
-            orgText = orgText.Replace(@"[ \t]*\b", "");
-            orgText = orgText.Replace(@"[ \t]*", "");
-            orgText = orgText.Replace(@"[ \t]+", " ");
-            return orgText;
-        }
-
+        }    
+    
         //-----richTextBox--------
-        private void SetBeforeEditBox(/*bool colorWithRule*/)
+        private void SetBeforeEditBox()
         {
             beforeEditBox.Document.Blocks.Clear();
             List<Paragraph> result = new List<Paragraph>();
@@ -303,33 +289,124 @@ namespace AnalysisExtension.View.AnalysisView
             }
         }
 
+        //-----tool----- 
+        private string RemoveRegexToken(string orgText)
+        {
+            orgText = orgText.Replace(@"[ \t]*\b", "");
+            orgText = orgText.Replace(@"[ \t]*", "");
+            orgText = orgText.Replace(@"[ \t]+", " ");
+            orgText = orgText.Replace(@"\","");
+            return orgText;
+        }
+
         private List<ICodeBlock> GetAnalysisList()
         {
             List<ICodeBlock> content = new List<ICodeBlock>();
-            foreach (Paragraph paragraph in beforeEditBox.Document.Blocks)
+            foreach (Run run in chooseRange)
             {
-                foreach (Run run in paragraph.Inlines)
+                ICodeBlock codeBlock = run.DataContext as ICodeBlock;
+                if (content.Count > 0)
                 {
-                    ICodeBlock codeBlock = run.DataContext as ICodeBlock;
-                    if (content.Count > 0)
+                    ICodeBlock lastBlock = content[content.Count - 1];
+                    if (codeBlock.IsMatchRule == lastBlock.IsMatchRule && codeBlock.MatchRule == lastBlock.MatchRule)
                     {
-                        ICodeBlock lastBlock = content[content.Count - 1];
-                        if (codeBlock.IsMatchRule == lastBlock.IsMatchRule && codeBlock.MatchRule == lastBlock.MatchRule)
-                        {
-                            lastBlock.Content += codeBlock.Content;
-                        }
-                        else
-                        {
-                            content.Add(codeBlock.GetCopy());
-                        }
+                        lastBlock.Content += codeBlock.Content;
                     }
                     else
                     {
                         content.Add(codeBlock.GetCopy());
                     }
                 }
+                else
+                {
+                    content.Add(codeBlock.GetCopy());
+                }
             }
             return content;
+        }
+
+        private void ReplaceBlock(int chooseStartIndex, int chooseContentCount)
+        {
+            ICodeBlock orgStartBlock = beforeContent[chooseStartIndex];
+            beforeContent.RemoveRange(chooseStartIndex, chooseContentCount);
+            List<ICodeBlock> insert = new List<ICodeBlock>();
+            foreach (Run run in chooseRange)
+            {
+                insert.Add(run.DataContext as ICodeBlock);
+            }
+
+            List<ICodeBlock> result = SpiltString(StaticValue.GetAllContent(insert));
+
+            foreach (ICodeBlock codeBlock in result)
+            {
+                codeBlock.BlockId = orgStartBlock.BlockId;
+                codeBlock.MatchRule = ruleBlockUseNow;
+            }
+
+            beforeContent.InsertRange(chooseStartIndex, result);
+
+            chooseRange = new List<Run>();
+            SetBeforeEditBox();
+            foreach (Paragraph paragraph in beforeEditBox.Document.Blocks)
+            {
+                foreach (Run run in paragraph.Inlines)
+                {
+                    if ((run.DataContext as ICodeBlock).MatchRule == ruleBlockUseNow)
+                    {
+                        run.Background = changeColor;
+                        chooseRange.Add(run);
+                    }
+                }
+            }
+            ruleBlockUseNow = null;
+        }
+
+        private List<ICodeBlock> SpiltString(string orgContent)
+        {
+            List<ICodeBlock> result = new List<ICodeBlock>();
+
+            result.AddRange(EscapeTokenSet.SpiltByEscapeToken(orgContent));
+            SpiltContentInCodeBlockByToken(' ', result);
+            SpiltContentInCodeBlockByToken('\n', result);
+            SpiltContentInCodeBlockByToken('\t', result);
+            return result;
+        }
+
+        private void SpiltContentInCodeBlockByToken(char token, List<ICodeBlock> codeBlockList)
+        {
+            foreach (ICodeBlock codeBlock in codeBlockList.ToArray())
+            {
+                List<ICodeBlock> innerResult = new List<ICodeBlock>();
+                string[] lineSplit = codeBlock.Content.Split(token);
+                for (int i = 0; i < lineSplit.Length; i++)
+                {
+                    string content = lineSplit[i];
+                    if (i != lineSplit.Length - 1)
+                    {
+                        content += token;
+                    }
+                    ICodeBlock splitBlock = codeBlock.GetCopy();
+                    splitBlock.Content = content;
+                    innerResult.Add(splitBlock);
+                }
+                int index = codeBlockList.IndexOf(codeBlock);
+                //remove
+                codeBlockList.Remove(codeBlock);
+                //insert
+                codeBlockList.InsertRange(index, innerResult);
+            }
+        }
+
+        private void ResetEditBox()
+        {
+            foreach (Paragraph paragraph in beforeEditBox.Document.Blocks)
+            {
+                foreach (Run run in paragraph.Inlines)
+                {
+                    run.Background = orgBackgroundColor;
+                    run.Foreground = orgForegroundColor;
+                }
+            }
         }
         //-----listener--------
         private void OnCancelBtnListener(object sender, RoutedEventArgs e)
@@ -412,7 +489,7 @@ namespace AnalysisExtension.View.AnalysisView
                                 chooseStartIndex = beforeContent.IndexOf(run.DataContext as ICodeBlock);
                             }
                             else if (!isMatch && lastRun != null && (run.ContentStart.CompareTo(selection.Start) > lastRun.ContentStart.CompareTo(selection.Start)))
-                            {
+                            {// if string order is lastRun ->run->selection 
                                 chooseStartIndex = beforeContent.IndexOf(lastRun.DataContext as ICodeBlock);
                                 (lastRun.DataContext as ICodeBlock).MatchRule = ruleBlockUseNow;
                                 (lastRun.DataContext as ICodeBlock).IsMatchRule = false;
@@ -484,67 +561,5 @@ namespace AnalysisExtension.View.AnalysisView
             }
         }
 
-        private void ReplaceBlock(int chooseStartIndex, int chooseContentCount/*, List<Run> chooseRange*/)
-        {
-            beforeContent.RemoveRange(chooseStartIndex, chooseContentCount);
-            List<ICodeBlock> insert = new List<ICodeBlock>();
-            foreach (Run run in chooseRange)
-            {
-                insert.Add(run.DataContext as ICodeBlock);
-            }
-
-            string[] spilt = StaticValue.GetAllContent(insert).Split(' ');
-            List<ICodeBlock> result = new List<ICodeBlock>();
-
-            foreach (string content in spilt)
-            {
-                result.AddRange(EscapeTokenSet.SpiltByEscapeToken(content+" "));
-            }
-
-            foreach (ICodeBlock codeBlock in result)
-            {
-                codeBlock.MatchRule = ruleBlockUseNow;
-            }
-
-            beforeContent.InsertRange(chooseStartIndex, result);
-
-            chooseRange = new List<Run>();
-            SetBeforeEditBox();
-            ICodeBlock lastBlock = null;
-            foreach (Paragraph paragraph in beforeEditBox.Document.Blocks)
-            {
-                foreach (Run run in paragraph.Inlines)
-                {
-                    if ((run.DataContext as ICodeBlock).MatchRule == ruleBlockUseNow)
-                    {
-                        if (lastBlock == null)
-                        {
-                            lastBlock = (run.DataContext as ICodeBlock);
-                        }
-                        else
-                        {
-                            if (lastBlock.MatchRule == (run.DataContext as ICodeBlock).MatchRule)
-                            {
-                                run.Background = changeColor;
-                                chooseRange.Add(run);
-                            }
-                        }
-                    }
-                }
-            }
-            ruleBlockUseNow = null;
-        }
-
-        private void ResetEditBox()
-        {
-            foreach (Paragraph paragraph in beforeEditBox.Document.Blocks)
-            {
-                foreach (Run run in paragraph.Inlines)
-                {
-                    run.Background = orgBackgroundColor;
-                    run.Foreground = orgForegroundColor;
-                }
-            }
-        }
     }
 }

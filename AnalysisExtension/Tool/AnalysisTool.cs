@@ -61,6 +61,8 @@ namespace AnalysisExtension.Model
             InitListValueInArray(finalAfterBlockList);
             for (int i = 0; i < list.Length; i++)
             {
+                finalBeforeBlockList[i] = new List<ICodeBlock>();
+                finalAfterBlockList[i] = new List<ICodeBlock>();
                 foreach (ICodeBlock codeBlock in list[i][0])
                 {
                     if (codeBlock is ParameterBlock)
@@ -133,7 +135,7 @@ namespace AnalysisExtension.Model
                         finalAfterBlockList[i].Add(beforeBlock);
                     }
                 }
-            }            
+            }
         }
 
         public void AddIntoBeforeList(ICodeBlock codeBlock,int fileIndex)
@@ -205,7 +207,7 @@ namespace AnalysisExtension.Model
 
         public List<ICodeBlock>[] GetFinalBeforeBlockList()
         {
-            return finalBeforeBlockList;            
+            return finalBeforeBlockList;
         }
 
         public List<ICodeBlock>[] GetFinalAfterBlockList()
@@ -257,7 +259,69 @@ namespace AnalysisExtension.Model
 
         public bool AnalysisSingleRule(RuleBlock ruleBlock,List<ICodeBlock> content,int fileIndex,int startIndex,int len)
         {
-            bool result = analysisMode.MatchRule(ruleBlock, fileIndex,content);
+            string contentString = StaticValue.GetAllContent(content);
+            int afterStartIndex = -1;
+            int afterInseretIndex = -1;
+
+            List<ICodeBlock>[] result = analysisMode.CompareToSingleRule(ruleBlock, content);
+            if(result == null)
+            {
+                return false;
+            }
+
+            //find text in before 
+            RemoveRangeFromBeforeList(fileIndex, startIndex, len);
+            //find text in after
+            string afterContent = StaticValue.GetAllContent(finalAfterBlockList[fileIndex]);            
+            ICodeBlock lastBlock = null;
+            foreach (ICodeBlock codeBlock in finalAfterBlockList[fileIndex].ToArray())
+            {
+                if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
+                {
+                    if ((codeBlock as CodeBlock).AfterList.Count > 0)
+                    {
+                        int i = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
+                        RemoveFromAfterList(fileIndex, i);
+                        finalAfterBlockList[fileIndex].InsertRange(i, (codeBlock as CodeBlock).ExpandAfterList());
+                    }
+                    lastBlock = codeBlock;
+                }
+                else if (lastBlock != null && codeBlock is NormalBlock && lastBlock is NormalBlock && codeBlock.BlockId == lastBlock.BlockId)
+                {
+                    lastBlock.Content += codeBlock.Content;
+                    int i = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
+                    RemoveFromAfterList(fileIndex, i);
+                }
+                else
+                {
+                    lastBlock = codeBlock;
+                }
+            }
+            foreach (ICodeBlock codeBlock in finalAfterBlockList[fileIndex].ToArray())
+            {
+                if (codeBlock.BlockId == content[0].BlockId && codeBlock.Content.Contains(contentString))
+                {
+                    int matchIndex = codeBlock.Content.IndexOf(contentString);
+                    afterStartIndex = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
+                    NormalBlock front = new NormalBlock(codeBlock.Content.Substring(0, matchIndex));
+                    front.BlockId = codeBlock.BlockId;
+                    string match = contentString;
+                    NormalBlock back = new NormalBlock(codeBlock.Content.Substring(matchIndex + match.Length));
+                    back.BlockId = codeBlock.BlockId;
+
+                    finalAfterBlockList[fileIndex].Remove(codeBlock);
+                    finalAfterBlockList[fileIndex].Insert(afterStartIndex, back);
+                    finalAfterBlockList[fileIndex].Insert(afterStartIndex, front);
+                    afterInseretIndex = finalAfterBlockList[fileIndex].IndexOf(back);
+                    break;
+                }
+            }
+
+            //insert result
+            finalBeforeBlockList[fileIndex].InsertRange(startIndex,result[0]);
+            finalAfterBlockList[fileIndex].InsertRange(afterInseretIndex, result[1]);
+
+            //expand
             ExpandAllList();
             List<ICodeBlock>[][] finalResult = new List<ICodeBlock>[fileLoader.FILE_NUMBER][];
             for (int i = 0; i < finalResult.Length; i++)
@@ -274,6 +338,7 @@ namespace AnalysisExtension.Model
         {
             for (int i = 0; i < fileLoader.FILE_NUMBER; i++)
             {
+                ICodeBlock lastBlock = null;
                 foreach (ICodeBlock codeBlock in finalBeforeBlockList[i].ToArray())
                 {
                     if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
@@ -284,9 +349,22 @@ namespace AnalysisExtension.Model
                             RemoveFromBeforeList(i, index);
                             finalBeforeBlockList[i].InsertRange(index, (codeBlock as CodeBlock).ExpandBeforeList());
                         }
+                        lastBlock = codeBlock;
+                    }
+                    else if (lastBlock != null && codeBlock is NormalBlock && lastBlock is NormalBlock && codeBlock.BlockId == lastBlock.BlockId && codeBlock.MatchRule == lastBlock.MatchRule
+                        && codeBlock.IsMatchRule == lastBlock.IsMatchRule)
+                    {
+                        lastBlock.Content += codeBlock.Content;
+                        int index = finalBeforeBlockList[i].IndexOf(codeBlock);
+                        RemoveFromBeforeList(i, index);
+                    }
+                    else
+                    {
+                        lastBlock = codeBlock;
                     }
                 }
 
+                lastBlock = null;
                 foreach (ICodeBlock codeBlock in finalAfterBlockList[i].ToArray())
                 {
                     if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
@@ -297,6 +375,18 @@ namespace AnalysisExtension.Model
                             RemoveFromAfterList(i, index);
                             finalAfterBlockList[i].InsertRange(index, (codeBlock as CodeBlock).ExpandAfterList());
                         }
+                        lastBlock = codeBlock;
+                    }
+                    else if (lastBlock != null && codeBlock is NormalBlock && lastBlock is NormalBlock && codeBlock.BlockId == lastBlock.BlockId && codeBlock.MatchRule == lastBlock.MatchRule
+                        && codeBlock.IsMatchRule == lastBlock.IsMatchRule)
+                    {
+                        lastBlock.Content += codeBlock.Content;
+                        int index = finalAfterBlockList[i].IndexOf(codeBlock);
+                        RemoveFromAfterList(i, index);
+                    }
+                    else
+                    {
+                        lastBlock = codeBlock;
                     }
                 }
             }

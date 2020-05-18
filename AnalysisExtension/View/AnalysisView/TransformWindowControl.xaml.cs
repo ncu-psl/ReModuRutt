@@ -95,7 +95,7 @@ namespace AnalysisExtension.View
         private void ResizeScrollViewer()
         {
             int padding = 15;
-            double width = (StaticValue.WINDOW.Width - editBtGroup.Width) / 2;
+            double width = StaticValue.WINDOW.Width / 2;
 
             for (int i = 0; i < fileNum; i++)
             {
@@ -184,8 +184,12 @@ namespace AnalysisExtension.View
             GroupBox cancelBtnGroup = new GroupBox();
             cancelBtnGroup.Template = (ControlTemplate)FindResource("rightButtonGroup");
             DockPanel.SetDock(cancelBtnGroup, Dock.Right);
+            GroupBox centerButtonGroup = new GroupBox();
+            centerButtonGroup.Template = (ControlTemplate)FindResource("centerButtonGroup");
+            DockPanel.SetDock(centerButtonGroup, Dock.Left);
 
             dockPanel.Children.Add(cancelBtnGroup);
+            dockPanel.Children.Add(centerButtonGroup);
 
             return dockPanel;
         }
@@ -210,18 +214,19 @@ namespace AnalysisExtension.View
 
             Paragraph paragraph = new Paragraph();
             paragraph.Margin = new Thickness(0, 0, 0, 0);
-            paragraph.Padding = new Thickness(0, 0, 0, 0);
+
             foreach (ICodeBlock codeBlock in codeBlockList)
             {
-                TextBlock inner = new TextBlock() { Text = codeBlock.Content, Background = orgColor, DataContext = codeBlock, Margin = new Thickness(0, 0, 0, 0) };
-                InlineUIContainer container = new InlineUIContainer(inner, paragraph.ContentEnd);
-
-                if (codeBlock.Content.Contains("\n") || codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
+                if (codeBlock.Content.EndsWith("\n") || codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
                 {
                     result.Add(paragraph);
                     paragraph = new Paragraph();
                     paragraph.Margin = new Thickness(0, 0, 0, 0);
-                    paragraph.Padding = new Thickness(0, 0, 0, 0);
+                }
+                else
+                {
+                    TextBlock inner = new TextBlock() { Text = codeBlock.Content, Background = orgColor, DataContext = codeBlock };
+                    InlineUIContainer container = new InlineUIContainer(inner, paragraph.ContentEnd);
                 }
             }
             return result;
@@ -485,16 +490,6 @@ namespace AnalysisExtension.View
                 GetListFromAnalysisTool();
                 Refresh();
             }
-        }
-
-        private void OnClickChangeChooseBlockListener(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void OnClickSkipChooseBlockListener(object sender, RoutedEventArgs e)
-        {
-
         }
 
         private void OnClickShowNextBlockListener(object sender, RoutedEventArgs e)
