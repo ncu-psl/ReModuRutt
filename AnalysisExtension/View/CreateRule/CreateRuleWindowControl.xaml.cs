@@ -656,9 +656,7 @@
         private string GetFinalRule(int ruleId)
         {
             string beforeText = ChangeToText(ruleBefore);
-            beforeText = RemoveLineAtFirstAndEnd(beforeText);
             string afterText = ChangeToText(ruleAfter);
-            afterText = RemoveLineAtFirstAndEnd(afterText);
 
             return GetRuleXml(beforeText, afterText, ruleId);
         }

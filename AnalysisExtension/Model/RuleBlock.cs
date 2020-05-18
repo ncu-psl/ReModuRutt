@@ -8,7 +8,6 @@ namespace AnalysisExtension.Model
 {
     public class RuleBlock
     {
-        //TODO : add ignore whitespace method
         public string RuleName { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
@@ -71,18 +70,29 @@ namespace AnalysisExtension.Model
         //-----get text----
         public string GetOrgText(string tag)
         {
-            string result = StaticValue.GetXmlTextByTag(xmlDocument, tag);
-            if (Regex.IsMatch(result, @"\A[ \t]*[\n\r]+"))
+            string orgText = StaticValue.GetXmlTextByTag(xmlDocument, tag);
+
+            if (orgText.StartsWith("\r\n"))
             {
-                result = Regex.Replace(result, @"\A[ \t]*[\n\r]+","");
+                orgText = orgText.Remove(0, 2);
+            }
+            else if (orgText.StartsWith("\n"))
+            {
+                orgText = orgText.Remove(0, 1);
             }
 
-            if (Regex.IsMatch(result, @"[\n\r]+[ \t]*\Z"))
+            if (orgText.EndsWith("\r\n"))
             {
-                result = Regex.Replace(result, @"[\n\r]+[ \t]*\Z", "");
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 2, 2);
             }
-
-            return result;
+            else if (orgText.EndsWith("\n"))
+            {
+                int len = orgText.Length;
+                orgText = orgText.Remove(orgText.Length - 1, 1);
+            }
+           
+            return orgText;
         }
 
         //-----ruleList-----
@@ -120,6 +130,11 @@ namespace AnalysisExtension.Model
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
             SplitIncludeBlockFromList(ruleSliceList, ruleName + "/");
             RemoveEmptyRuleSlice(ruleSliceList);
+            if (ruleSliceList.Count > 0 && !(ruleSliceList[ruleSliceList.Count - 1] is NormalBlock))
+            {
+                ruleSliceList.Add(new NormalBlock("\n",ruleBlockId));
+            }
+
             foreach (ICodeBlock codeBlock in ruleSliceList)
             {
                 codeBlock.Content = StaticValue.ReplaceXmlToken(codeBlock.Content);
@@ -178,9 +193,6 @@ namespace AnalysisExtension.Model
                         
                         ruleList.Insert(insertIndex, codeBlock);
                         insertIndex++;
-
-                        /*Dictionary<int, string> blockPair = new Dictionary<int, string>();
-                        blockPair.Add(codeBlockId,"(" + codeBlockId + ")");*/
                     }
                 }
                 ruleList.Insert(insertIndex, new NormalBlock(content, ruleBlockId));//add remaining content to list
@@ -288,8 +300,7 @@ namespace AnalysisExtension.Model
             {
                 if (ruleSlice is NormalBlock)
                 {
-                    /*Match match = Regex.Match(ruleSlice.Content, @"[\S]");*/
-                    if (/*!match.Success || */ruleSlice.Content.Length == 0)
+                    if (ruleSlice.Content.Length == 0)
                     {
                         list.Remove(ruleSlice);
                     }
@@ -411,8 +422,15 @@ namespace AnalysisExtension.Model
                 ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
                 indexShift = indexShift - match.Length + changePattern.Length;
             }
-            ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
 
+            if (list.IndexOf(ruleSlice) == list.Count - 1)
+            {//is last
+                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]+");
+            }
+            else
+            {
+                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
+            }
         }
 
         
