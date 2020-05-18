@@ -1343,7 +1343,7 @@ namespace AnalysisExtension.Model
 
             string text = block.Content;
 
-            Match match = Regex.Match(text,@"[\n\r]+([ \t]+)\Z");
+            Match match = Regex.Match(text,@"([ \t]+)\Z");
 
             if (match.Success)
             {
