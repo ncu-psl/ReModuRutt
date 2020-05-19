@@ -423,14 +423,7 @@ namespace AnalysisExtension.Model
                 indexShift = indexShift - match.Length + changePattern.Length;
             }
 
-            if (list.IndexOf(ruleSlice) == list.Count - 1)
-            {//is last
-                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]+");
-            }
-            else
-            {
-                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
-            }
+             ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
         }
 
         
