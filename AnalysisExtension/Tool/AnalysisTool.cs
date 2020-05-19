@@ -1,6 +1,8 @@
 ﻿using AnalysisExtension.Tool;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace AnalysisExtension.Model
@@ -276,7 +278,13 @@ namespace AnalysisExtension.Model
             ICodeBlock lastBlock = null;
             foreach (ICodeBlock codeBlock in finalAfterBlockList[fileIndex].ToArray())
             {
-                if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
+                if (lastBlock != null && /*codeBlock is NormalBlock && lastBlock is NormalBlock && */codeBlock.BlockId == lastBlock.BlockId)
+                {
+                    lastBlock.Content += codeBlock.Content;
+                    int i = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
+                    RemoveFromAfterList(fileIndex, i);
+                }
+                else if (codeBlock.IsMatchRule && codeBlock is CodeBlock)
                 {
                     if ((codeBlock as CodeBlock).AfterList.Count > 0)
                     {
@@ -286,12 +294,6 @@ namespace AnalysisExtension.Model
                     }
                     lastBlock = codeBlock;
                 }
-                else if (lastBlock != null && codeBlock is NormalBlock && lastBlock is NormalBlock && codeBlock.BlockId == lastBlock.BlockId)
-                {
-                    lastBlock.Content += codeBlock.Content;
-                    int i = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
-                    RemoveFromAfterList(fileIndex, i);
-                }
                 else
                 {
                     lastBlock = codeBlock;
@@ -299,21 +301,46 @@ namespace AnalysisExtension.Model
             }
             foreach (ICodeBlock codeBlock in finalAfterBlockList[fileIndex].ToArray())
             {
-                if (codeBlock.BlockId == content[0].BlockId && codeBlock.Content.Contains(contentString))
+                if (codeBlock.BlockId == content[0].BlockId)
                 {
-                    int matchIndex = codeBlock.Content.IndexOf(contentString);
-                    afterStartIndex = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
-                    NormalBlock front = new NormalBlock(codeBlock.Content.Substring(0, matchIndex));
-                    front.BlockId = codeBlock.BlockId;
-                    string match = contentString;
-                    NormalBlock back = new NormalBlock(codeBlock.Content.Substring(matchIndex + match.Length));
-                    back.BlockId = codeBlock.BlockId;
+                    string compare = contentString;
+                    int matchIndex = -1;
+                    int matchLen = -1;
 
-                    finalAfterBlockList[fileIndex].Remove(codeBlock);
-                    finalAfterBlockList[fileIndex].Insert(afterStartIndex, back);
-                    finalAfterBlockList[fileIndex].Insert(afterStartIndex, front);
-                    afterInseretIndex = finalAfterBlockList[fileIndex].IndexOf(back);
-                    break;
+                    if (codeBlock is CodeBlock)
+                    {
+                        contentString = Regex.Replace(Regex.Escape(contentString), @"\\t", @"[\t]*");
+                        Match match = Regex.Match(codeBlock.Content, contentString);
+                        if (match.Success)
+                        {
+                            matchIndex = match.Index;
+                            matchLen = match.Length;
+                        }
+                    }
+                    else
+                    {
+                        if (codeBlock.Content.Contains(contentString))
+                        {
+                            matchIndex = codeBlock.Content.IndexOf(contentString);
+                            matchLen = contentString.Length;
+                        }
+                    }
+
+                    if (matchLen > -1 && matchIndex > -1)
+                    {
+                        afterStartIndex = finalAfterBlockList[fileIndex].IndexOf(codeBlock);
+                        NormalBlock front = new NormalBlock(codeBlock.Content.Substring(0, matchIndex));
+                        front.BlockId = codeBlock.BlockId;
+
+                        NormalBlock back = new NormalBlock(codeBlock.Content.Substring(matchIndex + matchLen));
+                        back.BlockId = codeBlock.BlockId;
+
+                        finalAfterBlockList[fileIndex].Remove(codeBlock);
+                        finalAfterBlockList[fileIndex].Insert(afterStartIndex, back);
+                        finalAfterBlockList[fileIndex].Insert(afterStartIndex, front);
+                        afterInseretIndex = finalAfterBlockList[fileIndex].IndexOf(back);
+                        break;
+                    }                    
                 }
             }
 

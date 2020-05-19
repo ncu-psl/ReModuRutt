@@ -369,6 +369,8 @@ namespace AnalysisExtension.View.AnalysisView
             SpiltContentInCodeBlockByToken(' ', result);
             SpiltContentInCodeBlockByToken('\n', result);
             SpiltContentInCodeBlockByToken('\t', result);
+            SpiltContentInCodeBlockByToken(',', result);
+            SpiltContentInCodeBlockByToken(';', result);
             return result;
         }
 
@@ -381,13 +383,15 @@ namespace AnalysisExtension.View.AnalysisView
                 for (int i = 0; i < lineSplit.Length; i++)
                 {
                     string content = lineSplit[i];
-                    if (i != lineSplit.Length - 1)
-                    {
-                        content += token;
-                    }
                     ICodeBlock splitBlock = codeBlock.GetCopy();
                     splitBlock.Content = content;
                     innerResult.Add(splitBlock);
+                    if (i != lineSplit.Length - 1)
+                    {
+                        ICodeBlock tokenBlock = codeBlock.GetCopy();
+                        tokenBlock.Content = token.ToString();
+                        innerResult.Add(tokenBlock);
+                    }
                 }
                 int index = codeBlockList.IndexOf(codeBlock);
                 //remove
