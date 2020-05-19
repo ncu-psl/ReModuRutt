@@ -467,10 +467,7 @@ namespace AnalysisExtension.Model
                         result[0].Add(content);
                     }
 
-                    if (backList.Count > 0)
-                    {
-                        analysisContentList = backList;
-                    }
+                    analysisContentList = backList;
                 }
                 else
                 {//is normal ruleSlice
