@@ -475,20 +475,23 @@ namespace AnalysisExtension.View
         //-----edit btn------
         private void OnClickEditChooseBlockListener(object sender, RoutedEventArgs e)
         {
-            EditTransformResultWindowControl content = new EditTransformResultWindowControl(beforeList[nowPageIndex], GetBlockById(chooseBlockId), nowPageIndex);
+            if (chooseBlockId > -1)
+            {
+                EditTransformResultWindowControl content = new EditTransformResultWindowControl(beforeList[nowPageIndex], GetBlockById(chooseBlockId), nowPageIndex);
 
-            Window editWindow = new Window
-            {
-                Title = "edit match rule",
-                Content = content,
-                Width = StaticValue.WINDOW_WIDTH,
-                Height = StaticValue.WINDOW_HEIGHT
-            };
-            editWindow.ShowDialog();
-            if (content.isAnalysisSuccess)
-            {
-                GetListFromAnalysisTool();
-                Refresh();
+                Window editWindow = new Window
+                {
+                    Title = "edit match rule",
+                    Content = content,
+                    Width = StaticValue.WINDOW_WIDTH,
+                    Height = StaticValue.WINDOW_HEIGHT
+                };
+                editWindow.ShowDialog();
+                if (content.isAnalysisSuccess)
+                {
+                    GetListFromAnalysisTool();
+                    Refresh();
+                }
             }
         }
 
