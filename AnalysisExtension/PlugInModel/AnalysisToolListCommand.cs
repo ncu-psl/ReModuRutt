@@ -1,4 +1,4 @@
-﻿using AnalysisExtension.ExceptionMode;
+﻿using AnalysisExtension.ExceptionModel;
 using AsyncToolWindowSample.ToolWindows;
 using Microsoft.VisualStudio.Shell;
 using System;
@@ -11,9 +11,9 @@ namespace AnalysisExtension
     /// <summary>
     /// Command handler
     /// </summary>
-    internal sealed class ToolListCommand
+    internal sealed class AnalysisToolListCommand
     {
-        public static ToolListCommand command = null;
+        public static AnalysisToolListCommand command = null;
 
         /// <summary>
         /// Command ID.
@@ -31,12 +31,12 @@ namespace AnalysisExtension
         private readonly AsyncPackage package;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ToolListCommand"/> class.
+        /// Initializes a new instance of the <see cref="AnalysisToolListCommand"/> class.
         /// Adds our command handlers for menu (commands must exist in the command table file)
         /// </summary>
         /// <param name="package">Owner package, not null.</param>
         /// <param name="commandService">Command service to add command to, not null.</param>
-        private ToolListCommand(AsyncPackage package, OleMenuCommandService commandService)
+        private AnalysisToolListCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
@@ -54,7 +54,7 @@ namespace AnalysisExtension
         /// <summary>
         /// Gets the instance of the command.
         /// </summary>
-        public static ToolListCommand Instance
+        public static AnalysisToolListCommand Instance
         {
             get;
             private set;
@@ -82,7 +82,7 @@ namespace AnalysisExtension
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             OleMenuCommandService commandService = await package.GetServiceAsync((typeof(IMenuCommandService))) as OleMenuCommandService;
-            Instance = new ToolListCommand(package, commandService);
+            Instance = new AnalysisToolListCommand(package, commandService);
         }
 
         /// <summary>

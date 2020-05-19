@@ -57,7 +57,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="ExceptionMode\ProjectNotOpenException.cs" />
+    <Compile Include="ExceptionModel\ProjectNotOpenException.cs" />
     <Compile Include="Model\CodeBlock.cs" />
     <Compile Include="Model\NormalBlock.cs" />
     <Compile Include="Model\ICodeBlock.cs" />
@@ -87,7 +87,7 @@
     </Compile>
     <Compile Include="AnalysisModel\Analysis.cs" />
     <Compile Include="Tool\StaticValue.cs" />
-    <Compile Include="PlugInModel\ToolListCommand.cs" />
+    <Compile Include="PlugInModel\AnalysisToolListCommand.cs" />
     <Compile Include="View\AnalysisView\ChooseFileWindowControl.xaml.cs">
       <DependentUpon>ChooseFileWindowControl.xaml</DependentUpon>
     </Compile>

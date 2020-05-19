@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnalysisExtension.ExceptionMode
+namespace AnalysisExtension.ExceptionModel
 {
     class ProjectNotOpenException : Exception, ISerializable
     {

@@ -1,4 +1,4 @@
-﻿using AnalysisExtension.ExceptionMode;
+﻿using AnalysisExtension.ExceptionModel;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
