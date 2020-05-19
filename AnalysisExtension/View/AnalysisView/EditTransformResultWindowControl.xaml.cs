@@ -46,6 +46,7 @@ namespace AnalysisExtension.View.AnalysisView
                     if (codeBlock.BlockId == codeBlockChooseNow.BlockId)
                     {
                         run.Background = changeColor;
+                        run.BringIntoView();
                     }
                 }
             }
@@ -455,7 +456,8 @@ namespace AnalysisExtension.View.AnalysisView
             beforeRuleScrollView.Height = (newWindowHeight - padding)/2;
 
             beforeEditBox.Width = newWindowWidth;
-            beforeEditBox.Height = newWindowHeight - padding;
+            beforeEditBox.Height = newWindowHeight - padding*2;
+            beforeEditBox.Document.PageWidth = newWindowWidth * 2;
         }
 
         private void OnResetEditBtnClickListener(object sender, RoutedEventArgs e)
