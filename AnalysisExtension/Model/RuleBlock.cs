@@ -322,15 +322,23 @@ namespace AnalysisExtension.Model
                 if (ruleSlice is NormalBlock)
                 {
                     MatchCollection matches = Regex.Matches(ruleSlice.Content, @"[\S]");//not include 
-                    foreach (Match match in matches)
+                    int addIndex = 0;
+                    foreach (Match match in matches)                    
                     {//escape those content not include  in \n, \r, \t, \f, and " " 
-                        ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
-                    }
+                        if (match.Value.Equals("+") || match.Value.Equals("*"))
+                        {
 
-                   /* if (CanSpaceIgnore)
-                    {//replace \n, \r, \t, and " " to regex simbol*/
-                        ReplaceWhitespaceToRegex(i,list);
-                 //   }
+                            int index = match.Index + addIndex;
+                            ruleSlice.Content = ruleSlice.Content.Insert(index, "[");
+                            ruleSlice.Content = ruleSlice.Content.Insert(index + 2, "]");
+                            addIndex += 2;
+                        }
+                        else
+                        {
+                            ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
+                        }
+                    }
+                    ReplaceWhitespaceToRegex(i, list);
                 }
             }
         }

@@ -11,7 +11,7 @@ namespace AnalysisExtension.Tool
         public static string COMMENT_START_TOKEN = "";
         public static string COMMENT_END_TOKEN = "";
 
-        public static string[,] PAIR_TOKEN = new string[,] { { "{", "}" }, { "(", ")" } };//, {"[", "]" } };
+        public static string[,] PAIR_TOKEN = new string[,] { { "{", "}" }, { "(", ")" } ,{ "'","'"} };//, {"[", "]" } };
 
         public static string[] FindPairToken(string content)
         {//need to check if need change to regex match or not
