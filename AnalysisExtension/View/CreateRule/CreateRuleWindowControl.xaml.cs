@@ -1064,6 +1064,18 @@
                     ruleMetadata.AddRuleSet(ruleSet);
                     //create folder
                     DirectoryInfo directoryInfo = Directory.CreateDirectory(filePath);
+                    //add default comment rule
+                    int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSet.Id);
+                    System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                    saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name) + "\\" + "comment.xml";
+                    whitespaceIgnoreCheckBox.IsChecked = false;
+                    string final = GetRuleXml("", "", ruleId);
+                    
+                    FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                    fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
+                    fileStream.Close();
+
+                    AddRuleCreateNowIntoMetadata(ruleSet.Id, ruleId, "comment");
                     MessageBox.Show("create rule set " + ruleSet.Name + " successfully");
                     //refresh list
                     Refresh();

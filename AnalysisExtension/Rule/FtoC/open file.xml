@@ -1,18 +1,16 @@
-<rule xml:space="preserve" id="1" name="open file" canWhitespaceIgnore="True">
+<rule xml:space="preserve" id="2" name="open file" canWhitespaceIgnore="True">
 <before>
-<block id = "1"/>
-integer <para id="1" />
-open(<para id="1" />, file=<para id="2" />)
-<block id = "2"/> 
-close(<para id="1" />)
+integer <para id="1"/>
+open(<para id="1"/>, file=<para id="2"/>)
+<block id="1"/> 
+close(<para id="1"/>)
 </before>
 <after>
-<block id = "1"/>
-File* file_ptr = fopen(<para id="2" />,mode);
+File* file_ptr = fopen(<para id="2"/>,mode);
 if(file_ptr == NULL){
 	//error
 }
-<block id = "2"/>
+<block id="1"/>
 fclose(file_ptr);
 </after>
 </rule>

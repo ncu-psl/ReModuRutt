@@ -1,15 +1,13 @@
-<rule  xml:space="preserve" id="3" name="if" canWhitespaceIgnore="True">
+<rule xml:space="preserve" id="4" name="if" canWhitespaceIgnore="True">
 <before>
 if (<block id="1"/>) then
 <block id="2"/>
 endif
-
 </before>
 <after>
 if(<block id="1"/>)
 {
 	<block id="2"/>
 }
-
 </after>
 </rule>

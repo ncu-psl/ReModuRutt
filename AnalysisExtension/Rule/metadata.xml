@@ -1,7 +1,8 @@
 <metadata>
 <ruleSet name="FtoC" id="1">
-    <rule name="open file" id="1"/>
-    <rule name="dowhile" id="2"/>
-    <rule name="if" id="3"/>
+    <rule name="comment" id="1"/>
+    <rule name="open file" id="2"/>
+    <rule name="dowhile" id="3"/>
+    <rule name="if" id="4"/>
 </ruleSet>
 </metadata>

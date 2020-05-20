@@ -8,6 +8,8 @@ namespace AnalysisExtension.Tool
     {
         public static string DOUBLE_QUOTATION = "\"";
         public static string BACKSLASH = @"\\";
+        public static string COMMENT_START_TOKEN = "";
+        public static string COMMENT_END_TOKEN = "";
 
         public static string[,] PAIR_TOKEN = new string[,] { { "{", "}" }, { "(", ")" } };//, {"[", "]" } };
 

@@ -104,6 +104,11 @@ namespace AnalysisExtension.Model
             LoadRule("after" , AfterRuleSliceList);
             ReplaceTokenToRegex(BeforeRuleSliceList);
 
+            if (RuleId == 1 && BeforeRuleSliceList.Count > 0)
+            {//is comment
+                EscapeTokenSet.COMMENT_START_TOKEN = BeforeRuleSliceList[0].Content;
+                EscapeTokenSet.COMMENT_END_TOKEN = BeforeRuleSliceList[BeforeRuleSliceList.Count - 1].Content;
+            }
             /*  show rule content
              string text = "";
              var list = new List<ICodeBlock>(BeforeRuleSliceList);
@@ -322,108 +327,116 @@ namespace AnalysisExtension.Model
                         ruleSlice.Content = ruleSlice.Content.Replace(match.Value, Regex.Escape(match.Value));
                     }
 
-                    if (CanSpaceIgnore)
-                    {//replace \n, \r, \t, and " " to regex simbol
+                   /* if (CanSpaceIgnore)
+                    {//replace \n, \r, \t, and " " to regex simbol*/
                         ReplaceWhitespaceToRegex(i,list);
-                    }
+                 //   }
                 }
             }
         }
 
         private void ReplaceWhitespaceToRegex(int ruleSliceCount, List<ICodeBlock> list)
-        {
+        {//replace \n, \r, \t, and " " to regex simbol
             ICodeBlock ruleSlice = list[ruleSliceCount];
             string whitespacePattern = @"[ \t]+";
             string linePattern = @"[\n\r]+";
             MatchCollection whitespaceMatches = Regex.Matches(ruleSlice.Content, whitespacePattern);
-            int indexShift = 0;
-            foreach (Match match in whitespaceMatches)
+            int indexShift = 0;           
+
+            if (CanSpaceIgnore)
             {
-                string changePattern = "";
-                int actualIndex = match.Index + indexShift;
-                if (actualIndex == 0)
-                {//whitespace at first
-                    if (ruleSliceCount == 0)
-                    {//not have front ruleSlice
-                        changePattern = "";//@"\b[ \t]*";
-                    }
-                    else if (list[ruleSliceCount - 1] is ParameterBlock)
-                    {
-                        if (Regex.Match(list[ruleSliceCount].Content[actualIndex + match.Length].ToString(), @"\w").Success)
+                foreach (Match match in whitespaceMatches)
+                {
+                    string changePattern = "";
+                    int actualIndex = match.Index + indexShift;
+                    if (actualIndex == 0)
+                    {//whitespace at first
+                        if (ruleSliceCount == 0)
+                        {//not have front ruleSlice
+                            changePattern = "";//@"\b[ \t]*";
+                        }
+                        else if (list[ruleSliceCount - 1] is ParameterBlock)
+                        {
+                            if (Regex.Match(list[ruleSliceCount].Content[actualIndex + match.Length].ToString(), @"\w").Success)
+                            {
+                                changePattern = @"[ \t]+";
+                            }
+                            else
+                            {
+                                changePattern = @"[ \t]*";
+                            }
+                        }
+                        else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\w)\Z").Success)
                         {
                             changePattern = @"[ \t]+";
                         }
-                        else
+                        else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1] is CodeBlock)
                         {
                             changePattern = @"[ \t]*";
                         }
                     }
-                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\w)\Z").Success)
-                    {
-                        changePattern = @"[ \t]+";
-                    }
-                    else if (Regex.Match(list[ruleSliceCount - 1].Content, @"(\W)\Z").Success || list[ruleSliceCount - 1] is CodeBlock)
-                    {
-                        changePattern = @"[ \t]*";
-                    }
-                }
-                else if (actualIndex == ruleSlice.Content.Length - 1)
-                {//whitespace at end
-                    if (ruleSliceCount == list.Count - 1)
-                    {//is last ruleSlice
-                        changePattern = @"[ \t]*\b";
-                    }
-                    else if (list[ruleSliceCount + 1] is ParameterBlock)
-                    {
-                        int contentLen = list[ruleSliceCount].Content.Length;
-                        if (Regex.Match(list[ruleSliceCount].Content[actualIndex - 1].ToString(), @"\w").Success)
+                    else if (actualIndex == ruleSlice.Content.Length - 1)
+                    {//whitespace at end
+                        if (ruleSliceCount == list.Count - 1)
+                        {//is last ruleSlice
+                            changePattern = @"[ \t]*\b";
+                        }
+                        else if (list[ruleSliceCount + 1] is ParameterBlock)
+                        {
+                            int contentLen = list[ruleSliceCount].Content.Length;
+                            if (Regex.Match(list[ruleSliceCount].Content[actualIndex - 1].ToString(), @"\w").Success)
+                            {
+                                changePattern = @"[ \t]+";
+                            }
+                            else
+                            {
+                                changePattern = @"[ \t]*";
+                            }
+                        }
+                        else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\w)").Success)
                         {
                             changePattern = @"[ \t]+";
                         }
-                        else
+                        else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\W)").Success || list[ruleSliceCount + 1].Content.Contains("<block"))
                         {
                             changePattern = @"[ \t]*";
                         }
-                    }
-                    else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\w)").Success)
-                    {
-                        changePattern = @"[ \t]+";
-                    }
-                    else if (Regex.Match(list[ruleSliceCount + 1].Content, @"\A(\W)").Success || list[ruleSliceCount + 1].Content.Contains("<block"))
-                    {
-                        changePattern = @"[ \t]*";
-                    }
-                }
-                else
-                {//whitespace in the middle
-                    if (actualIndex > 0 && actualIndex < ruleSlice.Content.Length - 1)
-                    {
-                        if ((Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\w]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\w]").Success) &&
-                            !(Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\W]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\W]").Success))
-                        {
-                            changePattern = @"[ \t]+";
-                        }
-                        else
-                        {
-                            changePattern = @"[ \t]*";
-                        }
-                    }
-                    else if (list.IndexOf(ruleSlice) == 0 && actualIndex == 0)
-                    {//start at whitespace
-                        changePattern = @"\b[ \t]*";
                     }
                     else
-                    {
-                        changePattern = @"[ \t]*";
+                    {//whitespace in the middle
+                        if (actualIndex > 0 && actualIndex < ruleSlice.Content.Length - 1)
+                        {
+                            if ((Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\w]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\w]").Success) &&
+                                !(Regex.Match(ruleSlice.Content[actualIndex - 1].ToString(), @"[\W]").Success || Regex.Match(ruleSlice.Content[actualIndex + 1].ToString(), @"[\W]").Success))
+                            {
+                                changePattern = @"[ \t]+";
+                            }
+                            else
+                            {
+                                changePattern = @"[ \t]*";
+                            }
+                        }
+                        else if (list.IndexOf(ruleSlice) == 0 && actualIndex == 0)
+                        {//start at whitespace
+                            changePattern = @"\b[ \t]*";
+                        }
+                        else
+                        {
+                            changePattern = @"[ \t]*";
+                        }
                     }
+
+                    ruleSlice.Content = ruleSlice.Content.Remove(actualIndex, match.Length);
+                    ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
+                    indexShift = indexShift - match.Length + changePattern.Length;
                 }
-
-                ruleSlice.Content = ruleSlice.Content.Remove(actualIndex, match.Length);
-                ruleSlice.Content = ruleSlice.Content.Insert(actualIndex, changePattern);
-                indexShift = indexShift - match.Length + changePattern.Length;
+                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
             }
-
-             ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]*");//@"[\n\r]*"+ or * ?
+            else
+            {
+                ruleSlice.Content = Regex.Replace(ruleSlice.Content, whitespacePattern,"[ \t]+");
+                ruleSlice.Content = Regex.Replace(ruleSlice.Content, linePattern, @"[\s]+");
+            }
         }
 
         
