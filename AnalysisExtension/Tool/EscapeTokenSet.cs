@@ -149,30 +149,31 @@ namespace AnalysisExtension.Tool
 
         public static List<ICodeBlock> SpiltByEscapeToken(string orgContent)
         {
-            List<ICodeBlock> spiltResult = new List<ICodeBlock>();
+            List<ICodeBlock> splitResult = new List<ICodeBlock>();
             int blockId = StaticValue.GetNextBlockId();
 
-            spiltResult.Add(new NormalBlock(orgContent,blockId));
+            splitResult.Add(new NormalBlock(orgContent,blockId));
 
             foreach (string token in PAIR_TOKEN)
             {
-                ICodeBlock[] copyCompareArray = spiltResult.ToArray();
-                spiltResult.Clear();//clear all, reload all content with split result 
+                ICodeBlock[] copyCompareArray = splitResult.ToArray();
+                splitResult.Clear();//clear all, reload all content with split result 
                 foreach (ICodeBlock codeBlock in copyCompareArray)
                 {
-                    string[] spilt = Regex.Split(codeBlock.Content, Regex.Escape(token));
-                    for (int i = 0; i < spilt.Length; i++)
-                    {
-                        spiltResult.Add(new NormalBlock(spilt[i],blockId));
+                    string[] split = Regex.Split(codeBlock.Content, Regex.Escape(token));
 
-                        if (i < spilt.Length - 1)
+                    for (int i = 0; i < split.Length; i++)
+                    {
+                        splitResult.Add(new NormalBlock(split[i],blockId));
+
+                        if (i < split.Length - 1)
                         {
-                            spiltResult.Add(new NormalBlock(token,blockId));
+                            splitResult.Add(new NormalBlock(token,blockId));
                         }
                     }
                 }
             }
-            return spiltResult;
+            return splitResult;
         }
 
         public static List<ICodeBlock> SpiltByEscapeTokenWithBlockId(string orgContent,int id)
