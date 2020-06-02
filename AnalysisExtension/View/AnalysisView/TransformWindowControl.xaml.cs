@@ -217,7 +217,7 @@ namespace AnalysisExtension.View
 
             foreach (ICodeBlock codeBlock in codeBlockList)
             {
-                if (codeBlock.Content.EndsWith("\n") || codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
+                if (codeBlock.Content.EndsWith("\n"))
                 {
                     result.Add(paragraph);
                     paragraph = new Paragraph();
@@ -227,6 +227,12 @@ namespace AnalysisExtension.View
                 {
                     TextBlock inner = new TextBlock() { Text = codeBlock.Content, Background = orgColor, DataContext = codeBlock };
                     InlineUIContainer container = new InlineUIContainer(inner, paragraph.ContentEnd);
+                    if (codeBlockList.IndexOf(codeBlock) == codeBlockList.Count - 1)
+                    {
+                        result.Add(paragraph);
+                        paragraph = new Paragraph();
+                        paragraph.Margin = new Thickness(0, 0, 0, 0);
+                    }
                 }
             }
             return result;
@@ -407,10 +413,12 @@ namespace AnalysisExtension.View
                         else
                         {
                             afterString += (inline as Run).Text;
-                            if (inline.NextInline == null)
-                            {
-                                afterString += "\n";
-                            }
+                            
+                        }
+
+                        if (inline.NextInline == null)
+                        {
+                            afterString += "\n";
                         }
                     }
                 }
