@@ -186,6 +186,22 @@ namespace AnalysisExtension
             return result;
         }
 
+        public static bool HasContent(List<ICodeBlock> codeBlockList)
+        {
+            bool result = false;
+            string text = "";
+            foreach (ICodeBlock codeBlock in codeBlockList)
+            {
+                text += codeBlock.Content;
+                if (text.Length > 0)
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
         public static List<ICodeBlock> CopyList(List<ICodeBlock> orgList)
         {
             List<ICodeBlock> result = new List<ICodeBlock>();
