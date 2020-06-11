@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="AnalysisExtension.e91b9e27-bae9-41fe-8a15-55f79cf1a840" Version="1.0" Language="en-US" Publisher="nori" />
+        <Identity Id="AnalysisExtension.e91b9e27-bae9-41fe-8a15-55f79cf1a840" Version="1.1" Language="en-US" Publisher="nori" />
         <DisplayName>ReModuRutt</DisplayName>
         <Description xml:space="preserve">Source code transformation tool with modular rule creator</Description>
     </Metadata>

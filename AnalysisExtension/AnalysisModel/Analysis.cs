@@ -31,7 +31,7 @@ namespace AnalysisExtension.Model
         private void LoadRulePath()
         {
             string path = @"\" + Name;
-            RuleFolderPath = StaticValue.RULE_FOLDER_PATH + path;
+            RuleFolderPath = StaticValue.GetRuleFolderPath() + path;
         }
 
         //-----analysis method-----

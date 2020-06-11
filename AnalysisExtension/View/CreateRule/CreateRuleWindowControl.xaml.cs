@@ -689,7 +689,7 @@
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.Filter = "(*.xml)|*.xml";
             saveFileDialog.Title = "save as";
-            saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name);
+            saveFileDialog.InitialDirectory = Path.GetFullPath(StaticValue.GetRuleFolderPath() + "\\" + ruleSetOpenNow.Name);
             saveFileDialog.RestoreDirectory = true;
             saveFileDialog.ShowDialog();
 
@@ -727,7 +727,7 @@
                 ruleNameOpenNow = inputDialog.Input;      
                 int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSetOpenNow.Id);
                 System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-                saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name) + "\\" + ruleNameOpenNow + ".xml";
+                saveFileDialog.FileName = Path.GetFullPath(StaticValue.GetRuleFolderPath() + "\\" + ruleSetOpenNow.Name) + "\\" + ruleNameOpenNow + ".xml";
                 
                 string final = GetRuleXml("", "", ruleId);
 
@@ -756,7 +756,7 @@
 
             System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
             saveFileDialog.RestoreDirectory = true;
-            saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSetOpenNow.Name)+"\\"+ruleName +".xml";
+            saveFileDialog.FileName = Path.GetFullPath(StaticValue.GetRuleFolderPath() + "\\" + ruleSetOpenNow.Name)+"\\"+ruleName +".xml";
             
             FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
             fileStream.Write(Encoding.ASCII.GetBytes(final), 0, Encoding.ASCII.GetByteCount(final));
@@ -1051,7 +1051,7 @@
             if (inputDialog.HasInput)
             {
                 string folderName = inputDialog.Input;
-                string filePath = StaticValue.RULE_FOLDER_PATH + "\\" + inputDialog.Input;
+                string filePath = StaticValue.GetRuleFolderPath() + "\\" + inputDialog.Input;
                 //check if folder is exsts or not
                 if (Directory.Exists(Path.GetFullPath(filePath)))
                 {
@@ -1067,7 +1067,7 @@
                     //add default comment rule
                     int ruleId = ruleMetadata.GetNextRuleIdByRuleSetId(ruleSet.Id);
                     System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
-                    saveFileDialog.FileName = Path.GetFullPath(StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name) + "\\" + "comment.xml";
+                    saveFileDialog.FileName = Path.GetFullPath(StaticValue.GetRuleFolderPath() + "\\" + ruleSet.Name) + "\\" + "comment.xml";
                     whitespaceIgnoreCheckBox.IsChecked = false;
                     string final = GetRuleXml("", "", ruleId);
                     

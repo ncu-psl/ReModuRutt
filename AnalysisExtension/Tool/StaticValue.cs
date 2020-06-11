@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Markup;
 using System.Xml;
 
@@ -20,11 +21,38 @@ namespace AnalysisExtension
         public static Window WINDOW = null;
 
         public static int CODE_BLOCK_ID_COUNT = 0;
-      //  public static int PARAMETER_BLOCK_TYPE_ID_COUNT = 0;
 
-        public static string RULE_FOLDER_PATH = @"..\..\Rule";
+        private static string ruleFolderPath ;
 
         //-----method-----
+        public static string GetRuleFolderPath()
+        {
+            if (ruleFolderPath == null)
+            {
+                FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+                DialogResult result = folderBrowserDialog.ShowDialog();
+                if (result == DialogResult.OK)
+                {
+                    string path = folderBrowserDialog.SelectedPath + "/Rule";
+                    if (GetNameFromPath(folderBrowserDialog.SelectedPath).Equals("Rule"))
+                    {
+                        path = folderBrowserDialog.SelectedPath;
+                    }
+                    else
+                    {
+                        if (!Directory.Exists(path))
+                        {
+                            DirectoryInfo directoryInfo = Directory.CreateDirectory(path);
+                        }
+                    }
+                    ruleFolderPath = path;
+                }
+
+            }
+
+            return ruleFolderPath;       
+        }
+
         public static void AddTextIntoRuleCreateFrame(string selectContent)
         {
             CreateRuleToolWindowControl control = CreateRuleToolWindowControl.GetInstance();
@@ -34,7 +62,7 @@ namespace AnalysisExtension
             }
         }
 
-        public static void BtCancelListener(object sender, RoutedEventArgs e, UserControl control)
+        public static void BtCancelListener(object sender, RoutedEventArgs e, System.Windows.Controls.UserControl control)
         {
             CloseWindow(control);
         }
@@ -46,7 +74,7 @@ namespace AnalysisExtension
             e.Handled = true;
         }
 
-        public static void CloseWindow(UserControl control)
+        public static void CloseWindow(System.Windows.Controls.UserControl control)
         {
             Window.GetWindow(control).Close();
         }

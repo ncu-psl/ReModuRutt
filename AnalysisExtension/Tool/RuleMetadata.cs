@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Xml;
@@ -14,10 +15,18 @@ namespace AnalysisExtension.Tool
         private static RuleMetadata instanceMetadata = null;
         private static List<RuleSet> ruleSetList = null;
         private FileLoader fileLoader = FileLoader.GetInstance();
-        private string metadataPath = StaticValue.RULE_FOLDER_PATH + "\\metadata.xml";
+        private string metadataPath = StaticValue.GetRuleFolderPath() + "\\metadata.xml";
 
         private RuleMetadata()
         {
+            if (!File.Exists(metadataPath))
+            {
+                System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
+                saveFileDialog.FileName = metadataPath;
+                FileStream fileStream = (FileStream)saveFileDialog.OpenFile();
+                fileStream.Write(Encoding.ASCII.GetBytes(GetMetadata()), 0, Encoding.ASCII.GetByteCount(GetMetadata()));
+                fileStream.Close();
+            }
         }
 
         public static RuleMetadata GetInstance()
@@ -63,16 +72,19 @@ namespace AnalysisExtension.Tool
         private string GetMetadata()
         {
             string result = "<metadata>\n";
-            foreach (RuleSet ruleSet in ruleSetList)
+            if (ruleSetList != null)
             {
-                //<ruleSet name="FtoC" id="1">
-                result += "<ruleSet name=" + "\"" + ruleSet.Name + "\" id=" + "\"" + ruleSet.Id + "\">\n";
-                foreach (Dictionary<string,string> pairs in ruleSet.RuleList)
+                foreach (RuleSet ruleSet in ruleSetList)
                 {
-                    //<rule name = "dowhile" id = "2"/>
-                    result += "    <rule name=" +"\"" + pairs["name"] + "\" id=" + "\"" + pairs["id"] + "\"/>\n";
+                    //<ruleSet name="FtoC" id="1">
+                    result += "<ruleSet name=" + "\"" + ruleSet.Name + "\" id=" + "\"" + ruleSet.Id + "\">\n";
+                    foreach (Dictionary<string, string> pairs in ruleSet.RuleList)
+                    {
+                        //<rule name = "dowhile" id = "2"/>
+                        result += "    <rule name=" + "\"" + pairs["name"] + "\" id=" + "\"" + pairs["id"] + "\"/>\n";
+                    }
+                    result += @"</ruleSet>" + "\n";
                 }
-                result += @"</ruleSet>"+"\n";
             }
             result += @"</metadata>";
 
@@ -162,12 +174,12 @@ namespace AnalysisExtension.Tool
 
         public string GetRulePathById(int ruleSetId, int ruleId)
         {
-            return StaticValue.RULE_FOLDER_PATH + "//" + GetRuleSetById(ruleSetId).GetRulePath(ruleId)+".xml";
+            return StaticValue.GetRuleFolderPath() + "//" + GetRuleSetById(ruleSetId).GetRulePath(ruleId)+".xml";
         }
 
         public string GetFilePathInRuleSet(string name, RuleSet ruleSet)
         {
-            return StaticValue.RULE_FOLDER_PATH + "\\" + ruleSet.Name + "\\" + name + ".xml";
+            return StaticValue.GetRuleFolderPath() + "\\" + ruleSet.Name + "\\" + name + ".xml";
         }
 
         //-----remove-----
