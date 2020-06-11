@@ -1,4 +1,4 @@
-# AnalysisExtension
+# ReModuRutt
 
 ## 簡介
 這是一個用於分析與轉換的工具，可以依照規則樣式自訂欲轉換或分析的規則。\
@@ -8,8 +8,12 @@
 - 類別 : plug in
 - 撰寫語言 : C#
 
-## 程式架構
+## 安裝方式
+此專案可由 Visual Studio Marketplace 下載， 可由IDE->工具->擴充功能和更新->線上->搜尋ReModuRutt ，或是由[此連結](https://marketplace.visualstudio.com/items?itemName=nori.ReModuRutt)下載安裝，安裝後即可在Visual Studio IDE 中之工具選項使用此服務。
 
+![](https://i.imgur.com/FixSRoQ.png)
+
+## 程式架構
 ### Plug in
 將程式與IDE銜接的部分為`PlugInModel`內的class以及`ToolListPackage.vsct`兩部分。
 
