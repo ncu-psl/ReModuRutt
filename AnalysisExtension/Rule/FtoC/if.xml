@@ -7,7 +7,7 @@ endif
 <after>
 if(<block id="1"/>)
 {
-	<block id="2"/>
+    <block id="2"/>
 }
 </after>
 </rule>

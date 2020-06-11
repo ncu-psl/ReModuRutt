@@ -1,0 +1,10 @@
+<rule xml:space="preserve" id="5" name="include" canWhitespaceIgnore="True">
+<before>
+include '<block id="1"/>'
+
+</before>
+<after>
+#include "<block id="1"/>"
+
+</after>
+</rule>
