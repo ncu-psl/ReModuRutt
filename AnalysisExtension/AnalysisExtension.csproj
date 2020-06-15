@@ -85,7 +85,7 @@
     <Compile Include="View\AnalysisView\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="AnalysisModel\Analysis.cs" />
+    <Compile Include="Model\Analysis.cs" />
     <Compile Include="Tool\StaticValue.cs" />
     <Compile Include="PlugInModel\AnalysisToolListCommand.cs" />
     <Compile Include="View\AnalysisView\ChooseFileWindowControl.xaml.cs">
