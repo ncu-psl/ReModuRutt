@@ -30,6 +30,7 @@ namespace AnalysisExtension
             if (ruleFolderPath == null)
             {
                 FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
+                folderBrowserDialog.Description = "choose folder that want to save rule file , or exist rule folder.";
                 DialogResult result = folderBrowserDialog.ShowDialog();
                 if (result == DialogResult.OK)
                 {
