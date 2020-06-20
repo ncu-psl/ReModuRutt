@@ -9,7 +9,7 @@
 - 撰寫語言 : C#
 
 ## 安裝方式
-此專案可由 Visual Studio Marketplace 下載， 可由IDE->工具->擴充功能和更新->線上->搜尋ReModuRutt ，或是由[此連結](https://marketplace.visualstudio.com/items?itemName=nori.ReModuRutt)下載安裝，安裝後即可在Visual Studio IDE 中之工具選項使用此服務。
+此專案可由 Visual Studio Marketplace 下載， 可由IDE->工具->擴充功能和更新->線上->搜尋ReModuRutt ，或是由[此連結](https://marketplace.visualstudio.com/items?itemName=ncupslab.ReModuRutt)下載安裝，安裝後即可在Visual Studio IDE 中之工具選項使用此服務。
 
 ![](https://i.imgur.com/FixSRoQ.png)
 
