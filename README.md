@@ -13,6 +13,8 @@
 
 ![](https://i.imgur.com/FixSRoQ.png)
 
+若欲針對此插件進行修改，詳細發佈方法可參照[此文件](https://github.com/ncu-psl/wiki/blob/master/Deployment/Visual%20Studio%20Marcketplace%20plug-in%20publish%20direction.md)，或參考[微軟官方說明](https://docs.microsoft.com/en-us/visualstudio/extensibility/walkthrough-publishing-a-visual-studio-extension?view=vs-2019)。
+
 ## 程式架構
 ### Plug in
 將程式與IDE銜接的部分為`PlugInModel`內的class以及`ToolListPackage.vsct`兩部分。
