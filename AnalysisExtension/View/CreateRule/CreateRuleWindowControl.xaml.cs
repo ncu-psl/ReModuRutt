@@ -492,7 +492,7 @@
             Button clear = new Button() { Content = "Clear", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness { Left = 5 } };
             if (labelText.Equals("after"))
             {
-                Button copy = new Button() { Content = "Copy form before", HorizontalAlignment = HorizontalAlignment.Right };
+                Button copy = new Button() { Content = "Copy from before", HorizontalAlignment = HorizontalAlignment.Right };
                 copy.Click += OnClickBtRuleEditCopyListener;
                 btPanel.Children.Add(copy);
 
