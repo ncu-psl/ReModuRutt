@@ -1,4 +1,5 @@
 ﻿using AnalysisExtension.Tool;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
@@ -44,8 +45,23 @@ namespace AnalysisExtension.Model
                 for (int fileCount = 0; fileCount < FileLoader.GetInstance().GetFileContent().Length; fileCount++)
                 {
                     ruleBlock.InitRuleSetting();
-                    List<ICodeBlock>[] result = CompareToSingleRule(ruleBlock, EscapeTokenSet.SpiltByEscapeToken(orgContentList[fileCount]));//0 : beforeResult , 1 : afterResult
+                    List<ICodeBlock>[] result = null;
+                    List<ICodeBlock> analysisContent = EscapeTokenSet.SpiltByEscapeToken(orgContentList[fileCount]);
 
+                    if (analysisTool.GetFinalBeforeBlockList(fileCount).Count > 0)
+                    {
+                        analysisContent = analysisTool.GetFinalBeforeBlockList(fileCount);
+                    }
+
+                    if (ruleBlock.IsPureRegex)
+                    {
+                        result = ComparePureRegex(ruleBlock, StaticValue.GetAllContent(analysisContent));
+                    }
+                    else
+                    {
+                        result = CompareToSingleRule(ruleBlock, analysisContent);//0 : beforeResult , 1 : afterResult
+                        
+                    }
                     if (result != null)
                     {
                         analysisTool.RefreshNotMatchBlock(fileCount, result);
@@ -53,6 +69,7 @@ namespace AnalysisExtension.Model
                 }
                 backgroundWorker.ReportProgress((int)((float)count / RuleList.Count) * 80);
             }
+
             while (needCheck)
             {
                MatchNeedCheck();
@@ -68,7 +85,13 @@ namespace AnalysisExtension.Model
                     List<ICodeBlock> beforeCodeBlock = analysisTool.GetFinalBeforeBlockList()[fileCount];
 
                     int changeCount = 0;
-                    List<ICodeBlock>[] result = CompareToSingleRule(ruleBlock, beforeCodeBlock);//0 : beforeResult , 1 : afterResult
+                    List<ICodeBlock>[] result = null;
+                    if (!ruleBlock.IsPureRegex)
+                    {
+                        result = CompareToSingleRule(ruleBlock, beforeCodeBlock);//0 : beforeResult , 1 : afterResult
+
+                    }
+                  //  List<ICodeBlock>[] result = CompareToSingleRule(ruleBlock, beforeCodeBlock);//0 : beforeResult , 1 : afterResult
 
                     if (result != null)
                     {
@@ -93,6 +116,76 @@ namespace AnalysisExtension.Model
             return content;
         }
 
+        //-----------------pure regex compare-----------------
+        public List<ICodeBlock>[] ComparePureRegex(RuleBlock ruleBlock, string orgText)
+        {
+            List<ICodeBlock>[] finalResult = new List<ICodeBlock>[2];
+            finalResult[0] = new List<ICodeBlock>();
+            finalResult[1] = new List<ICodeBlock>();
+            string matchString = orgText;
+            int index = 0;
+
+            while (Regex.IsMatch(orgText, ruleBlock.BeforeRuleSliceList[0].Content))
+            {
+                Match match = Regex.Match(orgText, ruleBlock.BeforeRuleSliceList[0].Content);
+                matchString = match.Value;
+                index = match.Index;
+                if (index > 0)
+                {
+                    string frontContent = orgText.Substring(0, index);
+                    NormalBlock front = new NormalBlock(frontContent);
+                    finalResult[0].Add(front);
+                    finalResult[1].Add(front.GetCopy());
+                }
+
+                NormalBlock before = new NormalBlock(matchString);
+                before.IsMatchRule = true;
+                before.MatchRule = ruleBlock;
+
+                string afterContent = Regex.Replace(matchString, ruleBlock.BeforeRuleSliceList[0].Content, ruleBlock.AfterRuleSliceList[0].Content);
+                int groupCount = GetGroupCountInPattern(ruleBlock.AfterRuleSliceList[0].Content);
+                for (int i = 1; i <= groupCount; i++)
+                {
+                    afterContent = Regex.Replace(afterContent, "\\\\" + i, match.Groups[i].Value);
+                }
+                NormalBlock after = new NormalBlock(afterContent, before.BlockId);
+                after.IsMatchRule = true;
+                after.MatchRule = ruleBlock;
+
+                CodeBlock result = new CodeBlock();
+                result.BeforeList.Add(before);
+                result.AfterList.Add(after);
+                result.BlockId = before.BlockId;
+                result.IsMatchRule = true;
+                result.MatchRule = ruleBlock;
+
+                finalResult[0].Add(result);
+                finalResult[1].Add(result);
+
+                if (index + matchString.Length < orgText.Length)
+                {
+                    orgText = orgText.Substring(index + matchString.Length);
+                }
+            }
+
+            if (orgText.Length > 0)
+            {
+                NormalBlock back = new NormalBlock(orgText);
+              
+                finalResult[0].Add(back);
+                finalResult[1].Add(back.GetCopy());
+            }
+
+            return finalResult;
+        }
+
+        private int GetGroupCountInPattern(string pattern)
+        {
+            MatchCollection match = Regex.Matches(pattern, @"\\[0-9]");
+            return match.Count;
+        }
+
+        //------------normal rule compare----------------
         public List<ICodeBlock>[] CompareToSingleRule(RuleBlock ruleBlock, List<ICodeBlock> orgBlockList)//if not match , return null
         {
             List<ICodeBlock> ruleSlice = ruleBlock.BeforeRuleSliceList;
@@ -300,7 +393,11 @@ namespace AnalysisExtension.Model
                             }
                         }
 
-                        List<ICodeBlock>[] findResult = CompareToSingleRule(findRule, newScopeList);
+                        List<ICodeBlock>[] findResult = null;
+                        if (!findRule.IsPureRegex)
+                        {
+                            result = CompareToSingleRule(ruleBlock, newScopeList);//0 : beforeResult , 1 : afterResult
+                        }
 
                         if (findResult == null)
                         {
@@ -456,11 +553,16 @@ namespace AnalysisExtension.Model
                             foreach (RuleBlock subRuleBlock in RuleList)
                             {
                                 RuleBlock rule = new RuleBlock(subRuleBlock);
-                                subResult = CompareToSingleRule(rule, scope[2]);
-                                if (subResult != null)
+                                if (!subRuleBlock.IsPureRegex)
                                 {
-                                    break;
+                                    subResult = CompareToSingleRule(rule, scope[2]);//0 : beforeResult , 1 : afterResult
+                                    if (subResult != null)
+                                    {
+                                        break;
+                                    }
                                 }
+
+                                
                             }
                         }
 
@@ -863,7 +965,7 @@ namespace AnalysisExtension.Model
                                     break;
                                 }
                             }
-                            else if (commentMatch.Success && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(contentList[i].Content, startToken).Index > commentMatch.Index)
+                            else if (commentMatch.Value.Length > 0 && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(contentList[i].Content, startToken).Index > commentMatch.Index)
                             {
                                 List<ICodeBlock>[] innerResult = FindScope(EscapeTokenSet.COMMENT_START_TOKEN, EscapeTokenSet.COMMENT_END_TOKEN, contentList.GetRange(i, contentList.Count - 1 - i));//FindSingleEndTokenScope(EscapeTokenSet.COMMENT_END_TOKEN, contentList.GetRange(i, contentList.Count - 1 - i));
 
@@ -902,7 +1004,6 @@ namespace AnalysisExtension.Model
                             Match escapeMatch = Regex.Match(contentList[i].Content, escapePattern);
                             Match stringQuotationMatch = Regex.Match(contentList[i].Content, EscapeTokenSet.DOUBLE_QUOTATION);
                             Match commentMatch = Regex.Match(contentList[i].Content, EscapeTokenSet.COMMENT_START_TOKEN);
-
                             if (escapeMatch.Success && Regex.Match(contentList[i].Content, endToken).Index > escapeMatch.Index)
                             {
                                 int nextIndex = escapeMatch.Index + escapeMatch.Length;
@@ -936,7 +1037,7 @@ namespace AnalysisExtension.Model
                                     break;
                                 }
                             }
-                            else if (commentMatch.Success && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(contentList[i].Content, endToken).Index > commentMatch.Index)
+                            else if (commentMatch.Value.Length > 0 && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(contentList[i].Content, endToken).Index > commentMatch.Index)
                             {
                                 List<ICodeBlock>[] innerResult = FindScope(EscapeTokenSet.COMMENT_START_TOKEN, EscapeTokenSet.COMMENT_END_TOKEN, contentList.GetRange(i, contentList.Count - 1 - i));//FindSingleEndTokenScope(EscapeTokenSet.COMMENT_END_TOKEN, contentList.GetRange(i, contentList.Count - 1 - i));
 
@@ -1106,7 +1207,7 @@ namespace AnalysisExtension.Model
                                 break;
                             }
                         }
-                        else if (commentMatch.Success && !token.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, token).Index > commentMatch.Index)
+                        else if (commentMatch.Value.Length > 0 && !token.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, token).Index > commentMatch.Index)
                         {
                             List<ICodeBlock>[] innerResult = FindScope(EscapeTokenSet.COMMENT_START_TOKEN, EscapeTokenSet.COMMENT_END_TOKEN, orgContentList.GetRange(i, orgContentList.Count - 1 - i));//FindSingleEndTokenScope(EscapeTokenSet.COMMENT_END_TOKEN, contentList.GetRange(i, contentList.Count - 1 - i));
 
@@ -1246,7 +1347,7 @@ namespace AnalysisExtension.Model
                             result[insertIndex].AddRange(innerResult[3]);
                             orgContentList[i].Content = StaticValue.GetAllContent(innerResult[4]);
                         }
-                        else if (commentMatch.Success && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, startToken).Index > commentMatch.Index)
+                        else if (commentMatch.Value.Length > 0 && !startToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, startToken).Index > commentMatch.Index)
                         {
                             int insertIndex = 0;
                             if (isMatch)
@@ -1372,7 +1473,7 @@ namespace AnalysisExtension.Model
                             result[insertIndex].AddRange(innerResult[3]);
                             orgContentList[i].Content = StaticValue.GetAllContent(innerResult[4]);
                         }
-                        else if (commentMatch.Success && !endToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, endToken).Index > commentMatch.Index)
+                        else if (commentMatch.Value.Length > 0 && !endToken.Equals(EscapeTokenSet.COMMENT_START_TOKEN) && Regex.Match(orgContentList[i].Content, endToken).Index > commentMatch.Index)
                         {
                             int insertIndex = 2;
                             if (isMatch)
@@ -1537,26 +1638,28 @@ namespace AnalysisExtension.Model
                         {
                             result[0].Add(codeBlock);
                         }
-                        continue;
                     }
-                    Match match = Regex.Match(codeBlock.Content, token);
-                    int nextIndex = match.Index + match.Length;
-                    isFind = true;
-                    if (match.Index > 0)
+                    else
                     {
-                        NormalBlock front = new NormalBlock(codeBlock.Content.Substring(0, match.Index));
-                        front.MatchRule = codeBlock.MatchRule;
-                        front.IsMatchRule = codeBlock.IsMatchRule;
-                        result[0].Add(front);
+                        Match match = Regex.Match(codeBlock.Content, token);
+                        int nextIndex = match.Index + match.Length;
+                        isFind = true;
+                        if (match.Index > 0)
+                        {
+                            NormalBlock front = new NormalBlock(codeBlock.Content.Substring(0, match.Index));
+                            front.MatchRule = codeBlock.MatchRule;
+                            front.IsMatchRule = codeBlock.IsMatchRule;
+                            result[0].Add(front);
+                        }
+                        NormalBlock normalBlock = new NormalBlock(match.Value);
+                        normalBlock.MatchRule = codeBlock.MatchRule;
+                        normalBlock.IsMatchRule = codeBlock.IsMatchRule;
+                        result[1].Add(normalBlock);
+                        NormalBlock back = new NormalBlock(codeBlock.Content.Substring(nextIndex));
+                        back.MatchRule = codeBlock.MatchRule;
+                        back.IsMatchRule = codeBlock.IsMatchRule;
+                        result[2].Add(back);
                     }
-                    NormalBlock normalBlock = new NormalBlock(match.Value);
-                    normalBlock.MatchRule = codeBlock.MatchRule;
-                    normalBlock.IsMatchRule = codeBlock.IsMatchRule;
-                    result[1].Add(normalBlock);
-                    NormalBlock back = new NormalBlock(codeBlock.Content.Substring(nextIndex));
-                    back.MatchRule = codeBlock.MatchRule;
-                    back.IsMatchRule = codeBlock.IsMatchRule;
-                    result[2].Add(back);
                 }
                 else
                 {

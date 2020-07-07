@@ -1,10 +1,9 @@
-<rule xml:space="preserve" id="1" name="comment" canWhitespaceIgnore="False">
+<rule xml:space="preserve" id="1" name="comment" canWhitespaceIgnore="False" isPureRegex="True">
 <before>
-c <block id="1"/>
-
+^c[\s]+(.*)[\n]+
 </before>
 <after>
-//<block id="1"/>
+//\1
 
 </after>
 </rule>

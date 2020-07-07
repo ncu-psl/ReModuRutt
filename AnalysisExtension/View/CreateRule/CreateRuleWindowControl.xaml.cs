@@ -418,7 +418,7 @@
             beforeContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("before"));
             afterContent = RemoveLineAtFirstAndEnd(ruleBlockEditNow.GetOrgText("after"));
             whitespaceIgnoreCheckBox.IsChecked = ruleBlockEditNow.CanSpaceIgnore;
-
+            pureRegexCheckBox.IsChecked = ruleBlockEditNow.IsPureRegex;
 
             if (ruleBlockEditNow != null)
             {
@@ -663,7 +663,8 @@
 
         private string GetRuleXml(string beforeText, string afterText,int ruleId)
         {
-            string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() + "\"" + @">" + "\n";
+            string head = @"<rule xml:space=" + "\"preserve\" " + "id=" + "\"" + ruleId + "\"" + " name=" + "\"" + ruleNameOpenNow + "\"" + 
+                " canWhitespaceIgnore=" + "\"" + whitespaceIgnoreCheckBox.IsChecked.ToString() + "\" isPureRegex=" + "\"" + pureRegexCheckBox.IsChecked.ToString() + "\"" + @">" + "\n";
             string before = @"<before>" + "\n" + beforeText + "\n" + @"</before>" + "\n";
             string after = @"<after>" + "\n" + afterText + "\n" + @"</after>" + "\n";
             string end = @"</rule>";
@@ -1069,6 +1070,7 @@
                     System.Windows.Forms.SaveFileDialog saveFileDialog = new System.Windows.Forms.SaveFileDialog();
                     saveFileDialog.FileName = Path.GetFullPath(StaticValue.GetRuleFolderPath() + "\\" + ruleSet.Name) + "\\" + "comment.xml";
                     whitespaceIgnoreCheckBox.IsChecked = false;
+                    pureRegexCheckBox.IsChecked = false;
                     string final = GetRuleXml("", "", ruleId);
                     
                     FileStream fileStream = (FileStream)saveFileDialog.OpenFile();

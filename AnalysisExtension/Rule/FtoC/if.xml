@@ -1,4 +1,4 @@
-<rule xml:space="preserve" id="4" name="if" canWhitespaceIgnore="True">
+<rule xml:space="preserve" id="4" name="if" canWhitespaceIgnore="True" isPureRegex="False">
 <before>
 if (<block id="1"/>) then
 <block id="2"/>

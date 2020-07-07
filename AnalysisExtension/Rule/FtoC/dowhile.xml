@@ -1,4 +1,4 @@
-<rule xml:space="preserve" id="3" name="dowhile" canWhitespaceIgnore="True">
+<rule xml:space="preserve" id="3" name="dowhile" canWhitespaceIgnore="True" isPureRegex="False">
 <before>
 do <para id="1" /> = <para id="2" />, <para id="3" />
 <block id = "1"/>

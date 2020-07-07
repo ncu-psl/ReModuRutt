@@ -1,4 +1,4 @@
-<rule xml:space="preserve" id="8" name="print" canWhitespaceIgnore="False">
+<rule xml:space="preserve" id="8" name="print" canWhitespaceIgnore="False" isPureRegex="False">
 <before>
 write(<block id="2"/>,<block id="3"/>) '<block id="1"/>'
 </before>

@@ -33,6 +33,7 @@
             <Button Content="create new rule set"  Height="20" TextBlock.FontSize="10" Click="OnClickBtCreateNewRuleSetListener"/>
             <Button Content="add new rule" Height="20" TextBlock.FontSize="10" Click="OnClickBtCreateNewRuleListener"/>
             <CheckBox Content="can whitespace ignore" x:Name="whitespaceIgnoreCheckBox"/>
+            <CheckBox Content="is pure regex" x:Name="pureRegexCheckBox"/>
         </StackPanel>
         
         <TreeView x:Name="ruleTreeView" ScrollViewer.CanContentScroll="True" ScrollViewer.VerticalScrollBarVisibility="Auto" >

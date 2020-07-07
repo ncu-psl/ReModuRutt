@@ -11,6 +11,7 @@ namespace AnalysisExtension.Model
         public string RuleName { get; set; }
         public int RuleId{ get; set; }
         public bool CanSpaceIgnore { get; set; }
+        public bool IsPureRegex { get; set; }
 
         public List<ICodeBlock> BeforeRuleSliceList { get; set; }
         public List<ICodeBlock> AfterRuleSliceList { get; set; }
@@ -28,6 +29,7 @@ namespace AnalysisExtension.Model
             RuleName = copy.RuleName;
             RuleId = copy.RuleId;
             CanSpaceIgnore = copy.CanSpaceIgnore;
+            IsPureRegex = copy.IsPureRegex;
 
             BeforeRuleSliceList = new List<ICodeBlock>();
             foreach (ICodeBlock codeBlock in copy.BeforeRuleSliceList)
@@ -52,11 +54,12 @@ namespace AnalysisExtension.Model
             codeBlockList = new List<CodeBlock>();
             includeBlockList = new List<IncludeBlock>();
             CanSpaceIgnore = false;
+            IsPureRegex = false;
 
             InitRule(rule);
         }
 
-        public RuleBlock(string rule,bool canSpaceIgnore)
+        public RuleBlock(string rule,bool canSpaceIgnore,bool isPureRegex)
         {
             BeforeRuleSliceList = new List<ICodeBlock>();
             AfterRuleSliceList = new List<ICodeBlock>();
@@ -64,6 +67,7 @@ namespace AnalysisExtension.Model
             codeBlockList = new List<CodeBlock>();
             includeBlockList = new List<IncludeBlock>();
             CanSpaceIgnore = canSpaceIgnore;
+            IsPureRegex = isPureRegex;
 
             InitRule(rule);
         }
@@ -100,11 +104,20 @@ namespace AnalysisExtension.Model
         {
             xmlDocument.LoadXml(rule);
             SetRuleInfo();
-            LoadRule("before" , BeforeRuleSliceList);
-            LoadRule("after" , AfterRuleSliceList);
-            ReplaceTokenToRegex(BeforeRuleSliceList);
+            //if isRegex is false
+            if (IsPureRegex)
+            {
+                BeforeRuleSliceList.Add(new NormalBlock(GetOrgText("before")));
+                AfterRuleSliceList.Add(new NormalBlock(GetOrgText("after")));
+            }
+            else
+            {
+                LoadRule("before", BeforeRuleSliceList);
+                LoadRule("after", AfterRuleSliceList);
+                ReplaceTokenToRegex(BeforeRuleSliceList);
+            }
 
-            if (RuleId == 1 && BeforeRuleSliceList.Count > 0)
+            if (RuleId == 1 && BeforeRuleSliceList.Count > 0 && !IsPureRegex)
             {//is comment
                 EscapeTokenSet.COMMENT_START_TOKEN = BeforeRuleSliceList[0].Content;
                 EscapeTokenSet.COMMENT_END_TOKEN = BeforeRuleSliceList[BeforeRuleSliceList.Count - 1].Content;
@@ -126,18 +139,19 @@ namespace AnalysisExtension.Model
             RuleId = int.Parse(StaticValue.GetAttributeInElement(element, "id"));
             RuleName = StaticValue.GetAttributeInElement(element, "name");
             CanSpaceIgnore = bool.Parse(StaticValue.GetAttributeInElement(element, "canWhitespaceIgnore"));
+            IsPureRegex = bool.Parse(StaticValue.GetAttributeInElement(element, "isPureRegex"));
         }
 
         private void LoadRule(string ruleName, List<ICodeBlock> ruleSliceList)
         {
-            SpiltByEscapeToken(GetOrgText(ruleName),ruleSliceList);
-            SplitParameterBlockFromList(ruleSliceList , ruleName + "/");
+            SpiltByEscapeToken(GetOrgText(ruleName), ruleSliceList);
+            SplitParameterBlockFromList(ruleSliceList, ruleName + "/");
             SplitCodeBlockFromList(ruleSliceList, ruleName + "/");
             SplitIncludeBlockFromList(ruleSliceList, ruleName + "/");
             RemoveEmptyRuleSlice(ruleSliceList);
             if (ruleSliceList.Count > 0 && !(ruleSliceList[ruleSliceList.Count - 1] is NormalBlock))
             {
-                ruleSliceList.Add(new NormalBlock("\n",ruleBlockId));
+                ruleSliceList.Add(new NormalBlock("\n", ruleBlockId));
             }
 
             foreach (ICodeBlock codeBlock in ruleSliceList)
