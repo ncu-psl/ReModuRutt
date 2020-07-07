@@ -7,25 +7,25 @@ using System.Text.RegularExpressions;
 
 namespace AnalysisExtension.Model
 {
-    public class AnalysisTool 
+    public class AnalysisManager 
     {
-        private static AnalysisTool codeBlockTool = null;
+        private static AnalysisManager codeBlockTool = null;
         private static List<ICodeBlock>[] finalBeforeBlockList = null;
         private static List<ICodeBlock>[] finalAfterBlockList = null;
 
         private static Analysis analysisMode = null;
         private static FileLoader fileLoader = FileLoader.GetInstance();
 
-        private AnalysisTool()
+        private AnalysisManager()
         {
             InitBlockList();
         }
 
-        public static AnalysisTool GetInstance()
+        public static AnalysisManager GetInstance()
         {
             if (codeBlockTool == null)
             {
-                codeBlockTool = new AnalysisTool();
+                codeBlockTool = new AnalysisManager();
             }
 
             return codeBlockTool;         

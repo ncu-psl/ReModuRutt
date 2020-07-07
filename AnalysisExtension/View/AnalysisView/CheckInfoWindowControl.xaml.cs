@@ -13,7 +13,7 @@ namespace AnalysisExtension
         private Analysis analysisMode = null;
         private UserControl previousControl;
         private List<string> typeList = null;
-        private AnalysisTool analysisTool = AnalysisTool.GetInstance();
+        private AnalysisManager analysisTool = AnalysisManager.GetInstance();
         private FileLoader fileLoader = FileLoader.GetInstance();
 
         BackgroundWorker backgroundWorker = new BackgroundWorker();

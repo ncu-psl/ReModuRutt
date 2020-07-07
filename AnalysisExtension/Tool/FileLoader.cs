@@ -46,7 +46,7 @@ namespace AnalysisExtension.Tool
         //-----read file-----
         public void AddFileIntoCodeBlock()
         {
-            AnalysisTool analysisTool = AnalysisTool.GetInstance();
+            AnalysisManager analysisTool = AnalysisManager.GetInstance();
             analysisTool.InitBlockList();
 
             for (int i = 0; i < FILE_NUMBER; i++)

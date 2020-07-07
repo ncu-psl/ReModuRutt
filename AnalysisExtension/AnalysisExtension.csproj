@@ -57,6 +57,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AnalysisTool\ScopeFinder.cs" />
     <Compile Include="ExceptionModel\ProjectNotOpenException.cs" />
     <Compile Include="Model\CodeBlock.cs" />
     <Compile Include="Model\NormalBlock.cs" />
@@ -79,13 +80,13 @@
     <Compile Include="View\CreateRule\CreateRuleWindowControl.xaml.cs">
       <DependentUpon>CreateRuleWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tool\AnalysisTool.cs" />
+    <Compile Include="AnalysisTool\AnalysisManager.cs" />
     <Compile Include="Tool\EscapeTokenSet.cs" />
     <Compile Include="Tool\FileLoader.cs" />
     <Compile Include="View\AnalysisView\CheckInfoWindowControl.xaml.cs">
       <DependentUpon>CheckInfoWindowControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tool\Analysis.cs" />
+    <Compile Include="AnalysisTool\Analysis.cs" />
     <Compile Include="Tool\StaticValue.cs" />
     <Compile Include="PlugInModel\AnalysisToolListCommand.cs" />
     <Compile Include="View\AnalysisView\ChooseFileWindowControl.xaml.cs">

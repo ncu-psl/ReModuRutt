@@ -22,7 +22,7 @@ namespace AnalysisExtension.View
         private RichTextBox[][] richTextBoxList;
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
-        private AnalysisTool analysisTool = AnalysisTool.GetInstance();
+        private AnalysisManager analysisTool = AnalysisManager.GetInstance();
         private FileLoader fileLoader = FileLoader.GetInstance();
 
         private List<ICodeBlock>[] beforeList;

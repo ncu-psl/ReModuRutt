@@ -425,7 +425,7 @@ namespace AnalysisExtension.View.AnalysisView
             {
                 List<ICodeBlock> content = GetAnalysisList();
                 RuleBlock ruleBlock = (chooseRange[0].DataContext as ICodeBlock).MatchRule;
-                bool isSuccess = AnalysisTool.GetInstance().AnalysisSingleRule(ruleBlock, content, fileIndex,chooseStartIndex,chooseContentCount);
+                bool isSuccess = AnalysisManager.GetInstance().AnalysisSingleRule(ruleBlock, content, fileIndex,chooseStartIndex,chooseContentCount);
 
                 if (isSuccess)
                 {
