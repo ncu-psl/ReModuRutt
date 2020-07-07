@@ -1,4 +1,5 @@
-﻿using AnalysisExtension.Model;
+﻿using AnalysisExtension.AnalysisTool;
+using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using AnalysisExtension.View.AnalysisView;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace AnalysisExtension.View
         private RichTextBox[][] richTextBoxList;
         private double[,] scrollViewIndex = null;//[i,0] - HorizontalOffset [i,1] - VerticalOffset
 
-        private AnalysisManager analysisTool = AnalysisManager.GetInstance();
+        private AnalysisManager analysisManager = AnalysisManager.GetInstance();
         private FileLoader fileLoader = FileLoader.GetInstance();
 
         private List<ICodeBlock>[] beforeList;
@@ -43,15 +44,15 @@ namespace AnalysisExtension.View
             {
                 richTextBoxList[i] = new RichTextBox[2];
             }
-            GetListFromAnalysisTool();
+            GetListFromAnalysisManager();
             Refresh();
         }
 
         //-----init-----
-        private void GetListFromAnalysisTool()
+        private void GetListFromAnalysisManager()
         {
-            beforeList = analysisTool.GetFinalBeforeBlockList();
-            afterList = analysisTool.GetFinalAfterBlockList();
+            beforeList = analysisManager.GetFinalBeforeBlockList();
+            afterList = analysisManager.GetFinalAfterBlockList();
         }
 
         private void InitRichTextBoxIndex()
@@ -497,7 +498,7 @@ namespace AnalysisExtension.View
                 editWindow.ShowDialog();
                 if (content.isAnalysisSuccess)
                 {
-                    GetListFromAnalysisTool();
+                    GetListFromAnalysisManager();
                     Refresh();
                 }
             }

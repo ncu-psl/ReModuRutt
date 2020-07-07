@@ -1,11 +1,10 @@
-﻿using AnalysisExtension.Tool;
-using System;
+﻿using AnalysisExtension.Model;
+using AnalysisExtension.Tool;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace AnalysisExtension.Model
+namespace AnalysisExtension.AnalysisTool
 {
     public class AnalysisManager 
     {

@@ -1,4 +1,5 @@
-﻿using AnalysisExtension.Model;
+﻿using AnalysisExtension.AnalysisTool;
+using AnalysisExtension.Model;
 using AnalysisExtension.Tool;
 using AnalysisExtension.View;
 using System.Collections.Generic;
