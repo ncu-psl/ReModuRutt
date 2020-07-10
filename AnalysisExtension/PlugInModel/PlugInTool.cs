@@ -14,6 +14,7 @@ namespace AnalysisExtension.PlugInMode
 
         private DTE2 dte;
         private ProjectItems projs;
+        private bool isProject = false;
 
         //-----init-----
         private PlugInTool()
@@ -29,11 +30,25 @@ namespace AnalysisExtension.PlugInMode
             {
                 throw new ProjectNotOpenException();
             }
-            
-            string projectPath = dte.Solution.FileName;
-            string projectName = StaticValue.GetNameFromPath(projectPath);
 
-            fileList = new FileTreeNode(projectName, projectPath);           
+            string projectPath;
+            string projectName;
+
+            if (dte.Solution.FileName.Length <= 0)
+            {//if not project
+                projectPath = dte.ActiveDocument.FullName;
+                projectName = dte.ActiveDocument.Name;
+                fileList = new FileTreeNode(projectName, projectPath);
+                isProject = false;
+            }
+            else
+            {
+                projectPath = dte.Solution.FileName;
+                projectName = StaticValue.GetNameFromPath(projectPath);
+                isProject = true;
+
+                fileList = new FileTreeNode(projectName, projectPath);
+            }        
         }
 
         public static PlugInTool GetInstancePlugInTool()
@@ -51,7 +66,15 @@ namespace AnalysisExtension.PlugInMode
         public FileTreeNode GetFileList()
         {
             fileList.InitSubNode();
-            AddProjectItem(projs,fileList);
+            if (isProject)
+            {
+                AddProjectItem(projs, fileList);
+            }
+            else
+            {
+                FileTreeNode treeNode = new FileTreeNode(fileList.Name, fileList.Path);
+                fileList.AddSubNode(treeNode);
+            }
             return fileList;
         }
 
@@ -77,7 +100,7 @@ namespace AnalysisExtension.PlugInMode
                     //add file
                     topNode.AddSubNode(node);
                 }
-            }
+            }            
         }
  
     }
