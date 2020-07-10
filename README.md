@@ -23,6 +23,8 @@ ReModuRutt 可由 Visual Studio Marketplace 下載：
 安裝後即可在Visual Studio IDE 中之工具選單使用此服務。\
 ![](https://i.imgur.com/FixSRoQ.png)
 
+第一次使用時，需先選擇欲存放規則的資料夾(或是已存在的規則資料夾)。\
+範例規則可[由此下載](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule)
 
 ReModuRutt can download from Visual Studio Marketplace:
 1. In Visual Studio, on the Tools menu, click `Extensions and Updates`.
@@ -32,6 +34,10 @@ ReModuRutt can download from Visual Studio Marketplace:
 This tool also can download from [this link](https://marketplace.visualstudio.com/items?itemName=ncupslab.ReModuRutt).
 
 After complete the installation, user can find ReModuRutt in Visual Studio Tools menu.
+
+When using for the first time, you need to select the folder where to store the rules, or select existing rule folder.\
+Sample rule files can be downloaded [here](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule).
+
 
 ---
 
