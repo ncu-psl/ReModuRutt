@@ -37,11 +37,11 @@ After complete the installation, user can find ReModuRutt in Visual Studio Tools
 
 主要功能可分成「規則製作 create rule」以及「程式碼轉換分析 Analysis and transferred」。
 第一次使用時，需先選擇欲存放規則的資料夾(或是已存在的規則資料夾)。\
-範例規則可[由此下載](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule)，並在選擇規則時選擇`Rule`資料夾。
+範例規則可[由此下載](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/example)，並在選擇規則時選擇`Rule`資料夾。
 
 The main tools can be divived into `create rule` and `Analysis and transferred`.\
 When using for the first time, you need to select the folder where to store the rules, or select existing rule folder.\
-Sample rule files can be downloaded [here](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule), and choose folder `Rule` when select existing rule folder.
+Sample rule files can be downloaded [here](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/example), and choose folder `Rule` when select existing rule folder.
 
 
 ### 規則製作 create rule
