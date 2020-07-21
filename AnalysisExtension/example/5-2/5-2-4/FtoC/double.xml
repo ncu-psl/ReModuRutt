@@ -1,0 +1,10 @@
+<rule xml:space="preserve" id="6" name="double" canWhitespaceIgnore="False" isPureRegex="False">
+<before>
+real*8 <block id="1"/>
+
+</before>
+<after>
+double <block id="1"/>;
+
+</after>
+</rule>

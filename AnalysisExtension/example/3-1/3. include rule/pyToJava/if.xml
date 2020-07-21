@@ -1,0 +1,26 @@
+<rule xml:space="preserve" id="1" name="if" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+if <para id="1"/> is not None
+    <block id="2"/>
+    <include id="1" compareRuleId="2" fromRuleSetId="1"/>
+else
+    <block id="3"/>
+    <include id="2" compareRuleId="2" fromRuleSetId="1"/>
+
+</before>
+<after>
+if ( <para id="1"/> == NULL)
+{
+    <block id="3"/>
+    <include id="2" compareRuleId="2" fromRuleSetId="1"/>
+}
+else
+{
+    <block id="2"/>
+    <include id="1" compareRuleId="2" fromRuleSetId="1"/>
+}
+
+
+
+</after>
+</rule>

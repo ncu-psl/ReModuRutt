@@ -1,0 +1,8 @@
+<rule xml:space="preserve" id="5" name="include" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+include '<block id="1"/>'
+</before>
+<after>
+import <block id="1"/>
+</after>
+</rule>

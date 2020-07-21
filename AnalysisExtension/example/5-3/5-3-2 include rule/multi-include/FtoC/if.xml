@@ -1,0 +1,25 @@
+<rule xml:space="preserve" id="4" name="if" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+if (<block id="1"/>) then
+<block id="2"/>
+<include id="1" compareRuleId="8" fromRuleSetId="1"/>
+else if(<block id="4"/>) then
+<block id="5"/>
+<include id="2" compareRuleId="8" fromRuleSetId="1"/>
+else
+<block id="3"/>
+<include id="3" compareRuleId="8" fromRuleSetId="1"/>
+endif
+</before>
+<after>
+if <block id="1"/> :
+    <block id="2"/>
+    <include id="1" compareRuleId="8" fromRuleSetId="1"/>
+elif <block id="4"/> :
+    <block id="5"/>
+    <include id="2" compareRuleId="8" fromRuleSetId="1"/>
+else :
+    <block id="3"/>
+    <include id="3" compareRuleId="8" fromRuleSetId="1"/>
+</after>
+</rule>

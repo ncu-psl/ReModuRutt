@@ -1,0 +1,12 @@
+<rule xml:space="preserve" id="3" name="dowhile" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+do <para id="1"/> = <para id="2"/>, <para id="3"/>
+<include id="1" compareRuleId="4" fromRuleSetId="1"/>
+enddo
+</before>
+<after>
+while <para id="1"/> &lt; <para id="3"/> :
+    <include id="1" compareRuleId="4" fromRuleSetId="1"/>
+    <para id="1"/> += 1
+</after>
+</rule>

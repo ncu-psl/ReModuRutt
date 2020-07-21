@@ -1,0 +1,21 @@
+<rule xml:space="preserve" id="1" name="if" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+if <para id="1"/> is not None
+    <block id="2"/>
+else
+    <block id="3"/>
+
+</before>
+<after>
+if ( <para id="1"/> == NULL)
+{
+    <block id="3"/>
+}
+else
+{
+    <block id="2"/>
+}
+
+
+</after>
+</rule>

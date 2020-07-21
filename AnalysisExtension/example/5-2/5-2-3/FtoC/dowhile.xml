@@ -1,0 +1,13 @@
+<rule xml:space="preserve" id="3" name="dowhile" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+do <para id="1" /> = <para id="2" />, <para id="3" />
+<block id = "1"/>
+enddo
+</before>
+<after>
+for(int <para id="1" /> = <para id="2" />; <para id="1" /> &lt; <para id="3" />; <para id="1" />++)
+{
+	<block id = "1"/>
+}  
+</after>
+</rule>

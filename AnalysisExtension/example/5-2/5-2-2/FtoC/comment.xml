@@ -1,0 +1,10 @@
+<rule xml:space="preserve" id="1" name="comment" canWhitespaceIgnore="False" isPureRegex="False">
+<before>
+c <block id="1"/>
+
+</before>
+<after>
+//<block id="1"/>
+
+</after>
+</rule>

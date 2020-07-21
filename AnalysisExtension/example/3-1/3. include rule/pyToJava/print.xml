@@ -1,0 +1,8 @@
+<rule xml:space="preserve" id="2" name="print" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+print('<block id="1"/>')
+</before>
+<after>
+System.out.print("<block id="1"/>");
+</after>
+</rule>

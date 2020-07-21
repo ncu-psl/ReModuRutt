@@ -1,0 +1,21 @@
+<rule xml:space="preserve" id="4" name="if" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+if (<block id="1"/>) then
+<block id="2"/>
+else
+<block id="3"/>
+endif
+
+</before>
+<after>
+if(<block id="1"/>)
+{
+    <block id="2"/>
+}
+else
+{
+    <block id="3"/>
+}
+
+</after>
+</rule>

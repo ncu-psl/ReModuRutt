@@ -1,0 +1,10 @@
+<metadata>
+<ruleSet name="FtoC" id="1">
+    <rule name="comment" id="1"/>
+    <rule name="dowhile" id="3"/>
+    <rule name="if" id="4"/>
+    <rule name="include" id="5"/>
+    <rule name="double" id="6"/>
+    <rule name="print" id="8"/>
+</ruleSet>
+</metadata>

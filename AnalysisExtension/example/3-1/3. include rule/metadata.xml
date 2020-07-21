@@ -1,0 +1,7 @@
+<metadata>
+<ruleSet name="pyToJava" id="1">
+    <rule name="if" id="1"/>
+    <rule name="print" id="2"/>
+    <rule name="while" id="3"/>
+</ruleSet>
+</metadata>

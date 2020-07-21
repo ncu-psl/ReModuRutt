@@ -1,9 +1,0 @@
-<rule xml:space="preserve" id="1" name="comment" canWhitespaceIgnore="False" isPureRegex="True">
-<before>
-^c[\s]+(.*)[\n]+
-</before>
-<after>
-//\1
-
-</after>
-</rule>

@@ -1,0 +1,8 @@
+<rule xml:space="preserve" id="7" name="float" canWhitespaceIgnore="False" isPureRegex="False">
+<before>
+real*4 <block id="1"/>
+</before>
+<after>
+<block id="1"/> = 0.0
+</after>
+</rule>

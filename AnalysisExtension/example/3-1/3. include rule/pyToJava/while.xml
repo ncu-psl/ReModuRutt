@@ -1,0 +1,16 @@
+<rule xml:space="preserve" id="3" name="while" canWhitespaceIgnore="True" isPureRegex="False">
+<before>
+while <block id="1"/>
+    <include id="1" compareRuleId="1" fromRuleSetId="1"/>
+<include id="2" compareRuleId="2" fromRuleSetId="1"/>
+
+</before>
+<after>
+while ( <block id="1"/> )
+{
+    <include id="1" compareRuleId="1" fromRuleSetId="1"/>
+}
+<include id="2" compareRuleId="2" fromRuleSetId="1"/>
+
+</after>
+</rule>
