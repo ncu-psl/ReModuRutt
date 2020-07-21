@@ -33,7 +33,7 @@ This tool also can download from [this link](https://marketplace.visualstudio.co
 After complete the installation, user can find ReModuRutt in Visual Studio Tools menu.
 
 
-## 如何使用 How To Use
+## 如何使用 How to use
 
 主要功能可分成「規則製作 create rule」以及「程式碼轉換分析 Analysis and transferred」。
 第一次使用時，需先選擇欲存放規則的資料夾(或是已存在的規則資料夾)。\
