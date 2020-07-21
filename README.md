@@ -23,9 +23,6 @@ ReModuRutt 可由 Visual Studio Marketplace 下載：
 安裝後即可在Visual Studio IDE 中之工具選單使用此服務。\
 ![](https://i.imgur.com/FixSRoQ.png)
 
-第一次使用時，需先選擇欲存放規則的資料夾(或是已存在的規則資料夾)。\
-範例規則可[由此下載](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule)，並在選擇規則時選擇`Rule`資料夾。
-
 ReModuRutt can download from Visual Studio Marketplace:
 1. In Visual Studio, on the Tools menu, click `Extensions and Updates`.
 2. Click `Online` and then search for `ReModuRutt`.
@@ -35,9 +32,51 @@ This tool also can download from [this link](https://marketplace.visualstudio.co
 
 After complete the installation, user can find ReModuRutt in Visual Studio Tools menu.
 
+
+## 如何使用 How To Use
+
+主要功能可分成「規則製作 create rule」以及「程式碼轉換分析 Analysis and transferred」。
+第一次使用時，需先選擇欲存放規則的資料夾(或是已存在的規則資料夾)。\
+範例規則可[由此下載](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule)，並在選擇規則時選擇`Rule`資料夾。
+
+The main tools can be divived into `create rule` and `Analysis and transferred`.\
 When using for the first time, you need to select the folder where to store the rules, or select existing rule folder.\
 Sample rule files can be downloaded [here](https://github.com/ncu-psl/ReModuRutt/tree/master/AnalysisExtension/Rule), and choose folder `Rule` when select existing rule folder.
 
+
+### 規則製作 create rule
+step 1. 於工具列中點選`create rule`\
+step 2. 選擇已存在的規則資料夾，或是欲存放規則的資料夾 (若已選擇過則會跳過此步驟)\
+step 3. 點選左側列表中的規則進行編輯
+- 編輯方式：`before`為轉換前規則，`after`為轉換後規則
+    - 新增文字：可直接輸入，或是於已開啟專案中選擇文字，點選右鍵後加入
+    ![](https://i.imgur.com/bh7Fx9m.png)
+    - 區塊設置：選擇某段文字右鍵設為區塊，或直接右鍵加入區塊
+    ![](https://i.imgur.com/74HfXbj.png)
+    - 清除內容：點選`clear`按鈕可清除該製作區域內容
+    - 複製內容：點選`copy from before`可直接複製轉換前規則至轉換後規則製作區塊    
+
+step 1. Click `create rule` in the Tools menu \
+step 2. Select the folder where to store the rules, or select existing rule folder.(If  already selected, skip this step)\
+step 3. Click the rule in the list on the left to edit
+- How to edit : `before` is the rule edit block that before transferred, `after`is the rule edit block that after transferred.
+    - Add text : user can enter text directly, or select text in an already opened file, right-click to add it into rule edit block.
+    - Set block : right-click to select a piece of text as a block, or right-click to add a block.
+    - Clear : click the `clear` button to clear the content of rule edit block.
+    - Copy : click the `copy from before` button to directly copy the content in `before` rule edit block to the `after` rule edit block. 
+
+### 程式碼轉換分析 Analysis and transferred
+step 1. 開啟專案或檔案\
+step 2. 於工具列中點選 `Analysis and transferred`，選擇要分析的檔案或專案並點選下一步\
+step 3. 選擇欲進行轉換的規則集合，並點選下一步\
+step 4. 確認轉換與分析之資訊\
+step 5. 確認轉換後結果\
+
+step 1. Open project or file\
+step 2. Click `Analysis and transferred` in the Tools menu, select the file to be analysis and click `Next`.\
+step 3. Select the rule set that used to analysis and click `Next`\
+step 4. Check infomation.\
+step 5. Check final result.\
 
 ---
 
